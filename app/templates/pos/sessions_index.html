@@ -1,0 +1,111 @@
+{% extends "layouts/app.html" %}
+{% block title %}الورديات{% endblock %}
+{% block page_title %}ورديات نقطة البيع{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>الورديات</h1>
+    <div class="subtitle">{{ sessions|length }} وردية</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('pos.index') }}" class="btn btn-primary">
+      <i class="bi bi-play-circle"></i> بدء وردية جديدة
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      {% if current_user.can("pos.view_all") %}
+      <div class="col-md-4">
+        <label class="form-label">النطاق</label>
+        <select name="scope" class="form-select">
+          <option value="mine" {% if scope == 'mine' %}selected{% endif %}>ورديّاتي</option>
+          <option value="all" {% if scope == 'all' %}selected{% endif %}>كل الورديّات</option>
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-md-4">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+          <option value="">— الكل —</option>
+          <option value="open" {% if status_filter == 'open' %}selected{% endif %}>مفتوحة</option>
+          <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>مقفلة</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100"><i class="bi bi-funnel"></i> تصفية</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>رقم الوردية</th>
+          <th>الكاشير</th>
+          <th>فُتحت</th>
+          <th>افتتاحي</th>
+          <th>ختامي فعلي</th>
+          <th>الفرق</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('pos.session_view', session_id=s.id) }}" class="text-decoration-none">
+              {{ s.doc_number }}
+            </a>
+          </td>
+          <td>{{ s.cashier.full_name }}</td>
+          <td>{{ s.opened_at.strftime('%Y/%m/%d %H:%M') }}</td>
+          <td>{{ s.opening_cash | money }}</td>
+          <td>{{ (s.closing_cash_actual if s.closing_cash_actual is not none else '—') | money if s.closing_cash_actual is not none else '—' }}</td>
+          <td>
+            {% if s.difference is not none %}
+              {% if s.difference == 0 %}<span class="badge-status success">مطابق</span>
+              {% elif s.difference < 0 %}<span class="badge-status danger">عجز {{ s.difference | money }}</span>
+              {% else %}<span class="badge-status warning">زيادة {{ s.difference | money }}</span>{% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if s.status.value == 'open' %}
+              <span class="badge-status info">مفتوحة</span>
+            {% else %}
+              <span class="badge-status muted">مقفلة</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if s.status.value == 'open' and s.cashier_id == current_user.id %}
+              <a href="{{ url_for('pos.terminal', session_id=s.id) }}"
+                 class="btn btn-sm btn-outline-primary" title="بيع"><i class="bi bi-cash"></i></a>
+              <a href="{{ url_for('pos.close', session_id=s.id) }}"
+                 class="btn btn-sm btn-outline-danger" title="قفل"><i class="bi bi-power"></i></a>
+            {% endif %}
+            <a href="{{ url_for('pos.session_view', session_id=s.id) }}"
+               class="btn btn-sm btn-outline-secondary" title="عرض"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="icon"><i class="bi bi-clock-history"></i></div>
+              <h5>لا توجد ورديات</h5>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

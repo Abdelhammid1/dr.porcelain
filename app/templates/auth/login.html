@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block body %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-card__logo">د.ب</div>
+    <h1>دكتور بورسلين</h1>
+    <p class="subtitle">النظام المحاسبي — لوحة الإدارة</p>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.username.label(class="form-label") }}
+        {{ form.username(class="form-control form-control-lg", placeholder="admin") }}
+        {% for e in form.username.errors %}
+          <div class="form-text text-danger">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control form-control-lg", placeholder="••••••••") }}
+        {% for e in form.password.errors %}
+          <div class="form-text text-danger">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-check mb-4">
+        {{ form.remember(class="form-check-input") }}
+        {{ form.remember.label(class="form-check-label") }}
+      </div>
+
+      {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+    </form>
+  </div>
+</div>
+{% endblock %}

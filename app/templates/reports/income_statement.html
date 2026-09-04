@@ -1,0 +1,120 @@
+{% extends "layouts/app.html" %}
+{% block title %}قائمة الدخل{% endblock %}
+{% block page_title %}قائمة الدخل{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>قائمة الدخل</h1>
+    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reports.income_statement_csv', **request.args) }}" class="btn-secondary">
+      <i class="bi bi-file-earmark-excel"></i> Excel
+    </a>
+    <button onclick="window.print()" class="btn-secondary">
+      <i class="bi bi-printer"></i> طباعة
+    </button>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">من</label>
+        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">إلى</label>
+        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-brand">
+      <div class="stat-tile-icon"><i class="bi bi-cash-coin"></i></div>
+      <div>
+        <div class="stat-tile-label">الإيرادات</div>
+        <div class="stat-tile-value">{{ stmt.total_revenue | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-warning">
+      <div class="stat-tile-icon"><i class="bi bi-box"></i></div>
+      <div>
+        <div class="stat-tile-label">تكلفة البضاعة + المصروفات</div>
+        <div class="stat-tile-value">{{ (stmt.total_cost + stmt.total_expense) | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon {% if stmt.net_profit >= 0 %}tone-success{% else %}tone-danger{% endif %}">
+      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
+      <div>
+        <div class="stat-tile-label">صافي الربح</div>
+        <div class="stat-tile-value">{{ stmt.net_profit | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <tbody>
+        <!-- الإيرادات -->
+        <tr style="background:var(--dp-brand-tint);"><td colspan="2" class="fw-bold">الإيرادات</td></tr>
+        {% for l in stmt.revenues %}
+        <tr>
+          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+          <td class="text-end">{{ l.amount | money }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2" class="text-center text-muted">لا توجد حركات</td></tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي الإيرادات</td><td class="text-end">{{ stmt.total_revenue | money }}</td></tr>
+
+        <!-- تكلفة البضاعة -->
+        <tr style="background:var(--dp-warning-soft);"><td colspan="2" class="fw-bold">تكلفة البضاعة المباعة</td></tr>
+        {% for l in stmt.costs %}
+        <tr>
+          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+          <td class="text-end">({{ l.amount | money }})</td>
+        </tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي التكلفة</td><td class="text-end">({{ stmt.total_cost | money }})</td></tr>
+
+        <!-- الربح الإجمالي -->
+        <tr class="fw-bold" style="background:var(--dp-info-soft); font-size:1.05rem">
+          <td>= الربح الإجمالي</td><td class="text-end">{{ stmt.gross_profit | money }}</td>
+        </tr>
+
+        <!-- المصروفات -->
+        <tr style="background:var(--dp-warning-soft);"><td colspan="2" class="fw-bold">المصروفات التشغيلية</td></tr>
+        {% for l in stmt.expenses %}
+        <tr>
+          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+          <td class="text-end">({{ l.amount | money }})</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2" class="text-center text-muted">لا توجد مصروفات</td></tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي المصروفات</td><td class="text-end">({{ stmt.total_expense | money }})</td></tr>
+
+        <!-- صافي الربح -->
+        <tr class="fw-bold" style="background:{% if stmt.net_profit >= 0 %}var(--dp-success-soft){% else %}var(--dp-danger-soft){% endif %}; font-size:1.15rem">
+          <td>= صافي الربح</td><td class="text-end">{{ stmt.net_profit | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

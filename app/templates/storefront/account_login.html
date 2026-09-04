@@ -1,0 +1,44 @@
+{% extends "storefront/_base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+<div style="max-width:420px; margin:40px auto; background:white;
+            border:1px solid var(--dp-line); border-radius:16px; padding:40px 30px;">
+  <div style="text-align:center; margin-bottom:24px;">
+    <div style="width:68px; height:68px; margin:0 auto 12px; border-radius:18px;
+                background:linear-gradient(135deg,var(--dp-brand-dark),var(--dp-brand));
+                color:white; display:grid; place-items:center; font-size:1.6rem;
+                box-shadow:0 12px 30px rgba(2,132,199,.3);">
+      <i class="bi bi-person-circle"></i>
+    </div>
+    <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 6px;">تسجيل الدخول</h1>
+    <p style="color:var(--dp-ink-3); font-size:0.9rem; margin:0;">
+      أهلًا بعودتك إلى {{ sf_settings.store_name }}
+    </p>
+  </div>
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">رقم الهاتف</label>
+      <input type="tel" name="phone" class="form-control form-control-lg" required autofocus
+             placeholder="01xxxxxxxxx" dir="ltr">
+    </div>
+    <div class="mb-4">
+      <label class="form-label">كلمة المرور</label>
+      <input type="password" name="password" class="form-control form-control-lg" required>
+    </div>
+    <button type="submit" class="sf-btn-primary" style="width:100%; justify-content:center; padding:12px;">
+      <i class="bi bi-box-arrow-in-right"></i> دخول
+    </button>
+  </form>
+
+  <hr style="margin:24px 0; border-color:var(--dp-line);">
+  <div style="text-align:center; color:var(--dp-ink-3); font-size:0.9rem;">
+    مافيش حساب؟
+    <a href="{{ url_for('storefront.account_register') }}" style="color:var(--dp-brand); font-weight:600;">
+      أنشئ حساب جديد
+    </a>
+  </div>
+</div>
+{% endblock %}

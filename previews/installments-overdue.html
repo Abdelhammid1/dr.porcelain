@@ -1,0 +1,1424 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="IjI0NzVkNmJkOTc5ZGE4YzZiZWNkZWY4YmVjNGUwODBlZjljZTlhZGIi.apq1rg.R7ClIDcnS2p1BQ1PfVNA19m3j7Q">
+  <title>الأقساط المتأخرة — دكتور بورسلين</title>
+
+  <!-- Tailwind (utility layer) + Bootstrap Icons + Cairo font -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Cairo', 'Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand:   { 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' },
+            navy:    { 800:'#0f172a', 700:'#334155', 500:'#64748b', 300:'#cbd5e1' },
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+  
+<style>
+  :root {
+    /* Brand — sky-blue ramp (porcelain water theme) */
+    --dp-brand:        #0284c7;   /* sky-600 — canonical brand */
+    --dp-brand-dark:   #0369a1;   /* sky-700 — hover / gradients */
+    --dp-brand-mid:    #0ea5e9;   /* sky-500 — accents */
+    --dp-brand-tint:   #E0F2FE;   /* sky-100 — active nav bg */
+    --dp-brand-soft:   #F0F9FF;   /* sky-50  — panel tint */
+
+    /* Semantic status colors */
+    --dp-success:      #16a34a;
+    --dp-success-soft: #dcfce7;
+    --dp-warning:      #d97706;
+    --dp-warning-soft: #fef3c7;
+    --dp-danger:       #dc2626;
+    --dp-danger-soft:  #fee2e2;
+    --dp-info:         #2563eb;
+    --dp-info-soft:    #dbeafe;
+
+    /* Ink — 4-step neutral for text hierarchy */
+    --dp-ink-1:        #0f172a;  /* strongest — headings, values */
+    --dp-ink-2:        #334155;  /* body text */
+    --dp-ink-3:        #64748b;  /* meta / muted body */
+    --dp-ink-4:        #64748b;  /* placeholders / hints — WCAG AA */
+
+    /* Surface & background */
+    --dp-surface:      #ffffff;
+    --dp-surface-soft: #f8fafc;
+    --dp-bg:           #f5f8fb;
+    /* App ground: subtle vertical gradient from white to sky tint */
+    --dp-app-bg:       linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+
+    /* Line / borders */
+    --dp-line:         #e5e7eb;
+    --dp-line-strong:  #cbd5e1;
+
+    /* Radius scale */
+    --dp-radius-sm:    8px;
+    --dp-radius-md:    12px;
+    --dp-radius-lg:    16px;
+    --dp-radius-pill:  9999px;
+
+    /* Shadow scale */
+    --dp-shadow-sm:    0 1px 2px rgba(15,23,42,.05);
+    --dp-shadow-md:    0 4px 12px rgba(15,23,42,.06);
+    --dp-shadow-lg:    0 10px 30px rgba(15,23,42,.09);
+
+    /* Typography scale */
+    --dp-font-body:    'Cairo', 'Inter', system-ui, sans-serif;
+    --dp-font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+    --dp-fs-xs:        11.5px;
+    --dp-fs-sm:        12.5px;
+    --dp-fs-base:      13.5px;
+    --dp-fs-lg:        15px;
+    --dp-fs-xl:        18px;
+    --dp-fs-h1:        22px;
+
+    /* Space scale */
+    --dp-gap-1:        4px;
+    --dp-gap-2:        8px;
+    --dp-gap-3:        12px;
+    --dp-gap-4:        16px;
+    --dp-gap-5:        20px;
+    --dp-gap-6:        24px;
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Empty state
+     Usage:
+       <div class="empty-state">
+         <div class="empty-state-icon">🆕</div>
+         <div class="empty-state-title">لا توجد بيانات</div>
+         <div class="empty-state-sub">أضف أول بند لتبدأ.</div>
+       </div>
+     ─────────────────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--dp-ink-3);
+    background: var(--dp-surface-soft);
+    border-radius: var(--dp-radius-md);
+  }
+  .empty-state-icon { font-size: 34px; margin-bottom: 8px; opacity: .75; }
+  .empty-state-title {
+    font-size: var(--dp-fs-base);
+    font-weight: 600;
+    color: var(--dp-ink-2);
+    margin-bottom: 4px;
+  }
+  .empty-state-sub { font-size: var(--dp-fs-sm); color: var(--dp-ink-4); }
+
+  /* Loading spinner */
+  .dp-spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--dp-line-strong);
+    border-top-color: var(--dp-brand);
+    border-radius: 50%;
+    animation: dp-spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes dp-spin { to { transform: rotate(360deg); } }
+
+  /* KPI stat tile */
+  .stat-tile {
+    background: var(--dp-surface);
+    border: 1px solid var(--dp-line);
+    border-radius: var(--dp-radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--dp-shadow-sm);
+  }
+  .stat-tile-label {
+    font-size: var(--dp-fs-sm);
+    color: var(--dp-ink-3);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .stat-tile-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    line-height: 1.15;
+    letter-spacing: -0.4px;
+  }
+  .stat-tile-hint {
+    font-size: var(--dp-fs-xs);
+    color: var(--dp-ink-3);
+    margin-top: 4px;
+  }
+  .stat-tile.tone-success { background: var(--dp-success-soft); }
+  .stat-tile.tone-success .stat-tile-value { color: var(--dp-success); }
+  .stat-tile.tone-warning { background: var(--dp-warning-soft); }
+  .stat-tile.tone-warning .stat-tile-value { color: var(--dp-warning); }
+  .stat-tile.tone-danger  { background: var(--dp-danger-soft); }
+  .stat-tile.tone-danger  .stat-tile-value { color: var(--dp-danger); }
+  .stat-tile.tone-brand   { background: var(--dp-brand-soft); }
+  .stat-tile.tone-brand   .stat-tile-value { color: var(--dp-brand-dark); }
+
+  /* KPI with icon (visual variant used across mtgar) */
+  .stat-tile-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-tile-with-icon .stat-tile-icon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: var(--dp-brand-tint);
+    color: var(--dp-brand);
+    display: grid; place-items: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .stat-tile-with-icon.tone-success .stat-tile-icon { background: var(--dp-success-soft); color: var(--dp-success); }
+  .stat-tile-with-icon.tone-warning .stat-tile-icon { background: var(--dp-warning-soft); color: var(--dp-warning); }
+  .stat-tile-with-icon.tone-danger  .stat-tile-icon { background: var(--dp-danger-soft);  color: var(--dp-danger); }
+
+  /* Page header */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--dp-gap-3);
+    margin-bottom: var(--dp-gap-5);
+    flex-wrap: wrap;
+  }
+  .page-header .page-title {
+    font-size: var(--dp-fs-xl);
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    margin: 0;
+  }
+  .page-header .page-subtitle {
+    font-size: var(--dp-fs-sm);
+    color: var(--dp-ink-3);
+    margin: 4px 0 0;
+    line-height: 1.5;
+  }
+  .page-header .page-actions {
+    display: flex;
+    gap: var(--dp-gap-2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Card primitive
+     ─────────────────────────────────────────────────────── */
+  .card {
+    background: var(--dp-surface);
+    border: 1px solid var(--dp-line);
+    border-radius: var(--dp-radius-lg);
+    box-shadow: var(--dp-shadow-sm);
+  }
+  .card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--dp-line);
+    background: var(--dp-surface-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--dp-gap-3);
+    border-radius: var(--dp-radius-lg) var(--dp-radius-lg) 0 0;
+  }
+  .card-head h2, .card-head h3 {
+    font-size: var(--dp-fs-base);
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    margin: 0;
+  }
+  .card-head p {
+    font-size: var(--dp-fs-sm);
+    color: var(--dp-ink-3);
+    margin: 3px 0 0;
+  }
+  .card-body { padding: 20px; }
+  .card-foot {
+    padding: 12px 20px;
+    border-top: 1px solid var(--dp-line);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--dp-gap-2);
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Buttons — gradient primary, secondary/accent/danger
+     ─────────────────────────────────────────────────────── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--dp-brand-dark) 0%, var(--dp-brand) 100%);
+    color: white;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--dp-radius-sm);
+    font-weight: 600;
+    font-size: var(--dp-fs-base);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -6px rgba(2, 132, 199, 0.4);
+    color: white;
+  }
+  .btn-secondary {
+    background: white;
+    color: var(--dp-ink-1);
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--dp-radius-sm);
+    font-weight: 600;
+    font-size: var(--dp-fs-base);
+    border: 1px solid var(--dp-line);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-secondary:hover { border-color: var(--dp-brand); color: var(--dp-brand); }
+  .btn-accent {
+    background: var(--dp-info);
+    color: white;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--dp-radius-sm);
+    font-weight: 600;
+    font-size: var(--dp-fs-base);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-accent:hover { background: #1D4ED8; transform: translateY(-1px); color: white; }
+  .btn-danger {
+    background: var(--dp-danger);
+    color: white;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--dp-radius-sm);
+    font-weight: 600;
+    font-size: var(--dp-fs-base);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.15s;
+  }
+  .btn-danger:hover { background: #b91c1c; color: white; }
+  .btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: var(--dp-fs-sm);
+    border-radius: var(--dp-radius-sm);
+  }
+  .btn-icon {
+    width: 36px; height: 36px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    background: white;
+    color: var(--dp-ink-3);
+    border: 1px solid var(--dp-line);
+    border-radius: var(--dp-radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-icon:hover { color: var(--dp-brand); border-color: var(--dp-brand); }
+
+  /* Focus rings */
+  .btn-primary:focus-visible,
+  .btn-secondary:focus-visible,
+  .btn-accent:focus-visible,
+  .btn-danger:focus-visible,
+  .btn-icon:focus-visible,
+  .nav-link:focus-visible {
+    outline: 3px solid var(--dp-brand);
+    outline-offset: 2px;
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Inputs
+     ─────────────────────────────────────────────────────── */
+  .input, .select, .textarea, .form-control, .form-select {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--dp-line);
+    border-radius: var(--dp-radius-sm);
+    background: white;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    color: var(--dp-ink-1);
+    font-size: var(--dp-fs-base);
+  }
+  .input:focus, .select:focus, .textarea:focus,
+  .form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--dp-brand);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+  }
+  .input::placeholder, .textarea::placeholder,
+  .form-control::placeholder { color: var(--dp-ink-4); }
+
+  .form-label {
+    font-weight: 600;
+    color: var(--dp-ink-1);
+    margin-bottom: 0.4rem;
+    display: block;
+    font-size: var(--dp-fs-sm);
+  }
+  .form-text {
+    font-size: var(--dp-fs-xs);
+    color: var(--dp-ink-3);
+    margin-top: 0.35rem;
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Badges — status pills
+     ─────────────────────────────────────────────────────── */
+  .badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--dp-radius-pill);
+    font-size: var(--dp-fs-xs);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .badge-success  { background: var(--dp-success-soft); color: #166534; }
+  .badge-warning  { background: var(--dp-warning-soft); color: #92400E; }
+  .badge-danger   { background: var(--dp-danger-soft);  color: #991B1B; }
+  .badge-info     { background: var(--dp-info-soft);    color: #1D4ED8; }
+  .badge-brand    { background: var(--dp-brand-tint);   color: var(--dp-brand-dark); }
+  .badge-muted    { background: var(--dp-surface-soft); color: var(--dp-ink-3); }
+
+  /* Aliases for older markup */
+  .badge-status { padding: 0.25rem 0.625rem; border-radius: var(--dp-radius-pill); font-size: var(--dp-fs-xs); font-weight: 600; }
+  .badge-status.success { background: var(--dp-success-soft); color: #166534; }
+  .badge-status.warning { background: var(--dp-warning-soft); color: #92400E; }
+  .badge-status.danger  { background: var(--dp-danger-soft);  color: #991B1B; }
+  .badge-status.info    { background: var(--dp-info-soft);    color: #1D4ED8; }
+  .badge-status.muted   { background: var(--dp-surface-soft); color: var(--dp-ink-3); }
+
+  /* ───────────────────────────────────────────────────────
+     Data tables
+     ─────────────────────────────────────────────────────── */
+  table.data-table,
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+  }
+  table.data-table thead th,
+  .table thead th {
+    background: var(--dp-surface-soft);
+    color: var(--dp-ink-3);
+    font-weight: 700;
+    font-size: var(--dp-fs-xs);
+    padding: 0.75rem 1rem;
+    text-align: start;
+    border-bottom: 1px solid var(--dp-line);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+  table.data-table tbody td,
+  .table tbody td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: var(--dp-fs-base);
+    vertical-align: middle;
+  }
+  table.data-table tbody tr:hover,
+  .table tbody tr:hover { background: var(--dp-surface-soft); }
+  table.data-table tbody tr:last-child td,
+  .table tbody tr:last-child td { border-bottom: 0; }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Callouts
+     ─────────────────────────────────────────────────────── */
+  .dp-callout {
+    border: 1px solid var(--dp-line);
+    background: var(--dp-surface-soft);
+    border-radius: var(--dp-radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    font-size: var(--dp-fs-sm);
+    line-height: 1.75;
+    color: var(--dp-ink-2);
+    margin-bottom: var(--dp-gap-4);
+  }
+  .dp-callout .dp-callout-title { font-weight: 700; display: block; margin-bottom: 3px; color: var(--dp-ink-1); }
+  .dp-callout.tone-warn   { background: var(--dp-warning-soft); border-color: #fcd34d; color: #78350f; }
+  .dp-callout.tone-info   { background: var(--dp-info-soft);    border-color: #93c5fd; color: #1e3a8a; }
+  .dp-callout.tone-danger { background: var(--dp-danger-soft);  border-color: #fca5a5; color: #7f1d1d; }
+  .dp-callout.tone-brand  { background: var(--dp-brand-soft);   border-color: #7dd3fc; color: var(--dp-brand-dark); }
+  .dp-callout.tone-success { background: var(--dp-success-soft); border-color: #86efac; color: #166534; }
+
+  /* ───────────────────────────────────────────────────────
+     Chips
+     ─────────────────────────────────────────────────────── */
+  .dp-chip {
+    font-size: var(--dp-fs-xs);
+    font-weight: 600;
+    background: var(--dp-info-soft);
+    color: #1e40af;
+    border-radius: var(--dp-radius-pill);
+    padding: 2px 9px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .dp-chip.tone-warn   { background: var(--dp-warning-soft); color: #92400e; }
+  .dp-chip.tone-danger { background: var(--dp-danger-soft);  color: #991b1b; }
+  .dp-chip.tone-brand  { background: var(--dp-brand-tint);   color: var(--dp-brand-dark); }
+  .dp-chip.tone-success{ background: var(--dp-success-soft); color: #166534; }
+  .dp-chip.tone-muted  { background: var(--dp-surface-soft); color: var(--dp-ink-3); }
+
+  /* ───────────────────────────────────────────────────────
+     Flash messages (top-right)
+     ─────────────────────────────────────────────────────── */
+  .flash-stack {
+    position: fixed;
+    top: 74px;
+    left: 20px;
+    z-index: 1050;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .flash-item {
+    background: white;
+    border-right: 4px solid var(--dp-brand);
+    padding: 12px 14px;
+    border-radius: var(--dp-radius-sm);
+    box-shadow: var(--dp-shadow-md);
+    font-size: var(--dp-fs-sm);
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    animation: dp-flash-in 0.3s ease-out;
+  }
+  .flash-item.success { border-color: var(--dp-success); }
+  .flash-item.warning { border-color: var(--dp-warning); }
+  .flash-item.danger  { border-color: var(--dp-danger); }
+  .flash-item.info    { border-color: var(--dp-info); }
+  @keyframes dp-flash-in {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Sidebar sections (collapsible)
+     ─────────────────────────────────────────────────────── */
+  .sidebar-section { border-bottom: 1px solid rgba(148,163,184,0.08); padding-bottom: 2px; }
+  .sidebar-section:last-of-type { border-bottom: none; }
+  .section-body { overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease; max-height: 600px; opacity: 1; }
+  .section-collapsed { max-height: 0 !important; opacity: 0; }
+  .section-chevron { display: inline-block; transition: transform 0.2s ease; }
+  .section-collapsed-chevron { transform: rotate(-90deg); }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px 8px 36px;
+    font-size: var(--dp-fs-sm);
+    color: var(--dp-ink-2);
+    transition: all 0.15s ease;
+    text-decoration: none;
+    position: relative;
+  }
+  .nav-link:hover {
+    background: var(--dp-brand-soft);
+    color: var(--dp-brand-dark);
+  }
+  .nav-link.active {
+    background: var(--dp-brand-tint);
+    color: var(--dp-brand);
+    font-weight: 700;
+    border-right: 3px solid var(--dp-brand);
+  }
+
+  .section-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    font-size: var(--dp-fs-sm);
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .section-toggle:hover { background: rgba(14, 165, 233, 0.05); }
+
+  /* ───────────────────────────────────────────────────────
+     Sidebar shell
+     ─────────────────────────────────────────────────────── */
+  .app-sidebar {
+    background: var(--dp-surface-soft);
+    color: var(--dp-ink-2);
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    border-left: 1px solid var(--dp-line);
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    transition: transform 250ms ease;
+  }
+  body.sidebar-hidden .app-sidebar { transform: translateX(100%); }
+  body.sidebar-hidden .app-main { margin-right: 0 !important; }
+
+  .app-sidebar-brand {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--dp-line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-sidebar-brand .brand-logo {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--dp-brand-dark), var(--dp-brand));
+    border-radius: 12px;
+    display: grid; place-items: center;
+    color: white;
+    font-weight: 800;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  }
+  .app-sidebar-brand .brand-name {
+    font-weight: 800;
+    color: var(--dp-ink-1);
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+  .app-sidebar-brand .brand-sub {
+    font-size: 0.7rem;
+    color: var(--dp-ink-3);
+    margin-top: 2px;
+  }
+
+  .app-sidebar-nav {
+    flex: 1;
+    padding: 8px 0;
+    overflow-y: auto;
+  }
+  .app-sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .app-sidebar-nav::-webkit-scrollbar-thumb { background: var(--dp-line-strong); border-radius: 4px; }
+
+  .app-sidebar-user {
+    padding: 12px 16px;
+    border-top: 1px solid var(--dp-line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-sidebar-user .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--dp-brand);
+    color: white;
+    display: grid; place-items: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .app-sidebar-user .user-name {
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    font-size: 0.9rem;
+  }
+  .app-sidebar-user .user-role {
+    font-size: 0.72rem;
+    color: var(--dp-ink-3);
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Top bar
+     ─────────────────────────────────────────────────────── */
+  .app-topbar {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--dp-line);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .app-topbar h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    margin: 0;
+  }
+
+  .app-main {
+    margin-right: 260px;
+    min-height: 100vh;
+    transition: margin 250ms ease;
+  }
+  .app-content {
+    padding: 20px 24px;
+  }
+
+  /* Mobile drawer behavior */
+  @media (max-width: 900px) {
+    .app-sidebar { transform: translateX(100%); }
+    .app-main { margin-right: 0 !important; }
+    body.sidebar-open-mobile .app-sidebar { transform: translateX(0); }
+    .app-content { padding: 16px; }
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Login screen
+     ─────────────────────────────────────────────────────── */
+  .login-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.10), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(2, 132, 199, 0.10), transparent 40%),
+      var(--dp-bg);
+    padding: 2rem;
+  }
+  .login-card {
+    background: white;
+    padding: 2.5rem 2.25rem;
+    border-radius: var(--dp-radius-lg);
+    box-shadow: var(--dp-shadow-lg);
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--dp-line);
+  }
+  .login-card-logo {
+    width: 68px; height: 68px;
+    margin: 0 auto 1.25rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--dp-brand-dark), var(--dp-brand));
+    color: white;
+    display: grid; place-items: center;
+    font-weight: 800;
+    font-size: 1.4rem;
+    box-shadow: 0 12px 30px rgba(2, 132, 199, 0.3);
+  }
+  .login-card h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0 0 0.35rem;
+    color: var(--dp-ink-1);
+  }
+  .login-card .subtitle {
+    text-align: center;
+    color: var(--dp-ink-3);
+    margin-bottom: 1.75rem;
+    font-size: var(--dp-fs-sm);
+  }
+
+  /* ───────────────────────────────────────────────────────
+     Aliases for existing markup so migration is a no-op
+     ─────────────────────────────────────────────────────── */
+  .login-page { /* alias for .login-shell */
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.10), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(2, 132, 199, 0.10), transparent 40%),
+      var(--dp-bg);
+    padding: 2rem;
+  }
+  .login-card__logo {
+    width: 68px; height: 68px;
+    margin: 0 auto 1.25rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--dp-brand-dark), var(--dp-brand));
+    color: white;
+    display: grid; place-items: center;
+    font-weight: 800;
+    font-size: 1.4rem;
+    box-shadow: 0 12px 30px rgba(2, 132, 199, 0.3);
+  }
+  /* Legacy KPI card → adopt stat-tile look with icon */
+  .kpi-card {
+    background: var(--dp-surface);
+    border: 1px solid var(--dp-line);
+    border-radius: var(--dp-radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--dp-shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .kpi-card .kpi-icon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: var(--dp-brand-tint);
+    color: var(--dp-brand);
+    display: grid; place-items: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .kpi-card .kpi-label { font-size: var(--dp-fs-sm); color: var(--dp-ink-3); }
+  .kpi-card .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--dp-ink-1);
+    line-height: 1.15;
+  }
+  /* Legacy Bootstrap card overrides */
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--dp-line);
+    background: var(--dp-surface-soft);
+    font-weight: 700;
+    color: var(--dp-ink-1);
+    font-size: var(--dp-fs-base);
+    border-radius: var(--dp-radius-lg) var(--dp-radius-lg) 0 0;
+  }
+  .card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--dp-line);
+    background: var(--dp-surface-soft);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--dp-gap-2);
+  }
+  /* Bootstrap btn overrides so btn-outline-primary/btn-light behave */
+  .btn {
+    border-radius: var(--dp-radius-sm);
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    font-size: var(--dp-fs-base);
+    transition: all 0.15s ease;
+  }
+  .btn-lg { padding: 0.75rem 1.4rem; font-size: 1rem; }
+  .btn-outline-primary {
+    color: var(--dp-brand);
+    border-color: var(--dp-brand);
+    background: white;
+  }
+  .btn-outline-primary:hover,
+  .btn-outline-primary:focus {
+    background: var(--dp-brand);
+    color: white;
+    border-color: var(--dp-brand);
+  }
+  .btn-outline-secondary {
+    color: var(--dp-ink-2);
+    border-color: var(--dp-line-strong);
+    background: white;
+  }
+  .btn-outline-secondary:hover {
+    color: var(--dp-brand);
+    border-color: var(--dp-brand);
+  }
+  .btn-outline-danger {
+    color: var(--dp-danger);
+    border-color: var(--dp-danger);
+    background: white;
+  }
+  .btn-outline-danger:hover {
+    background: var(--dp-danger);
+    color: white;
+  }
+  .btn-outline-warning {
+    color: var(--dp-warning);
+    border-color: var(--dp-warning);
+    background: white;
+  }
+  .btn-outline-warning:hover { background: var(--dp-warning); color: white; }
+  .btn-light {
+    color: var(--dp-ink-2);
+    background: var(--dp-surface-soft);
+    border-color: var(--dp-line);
+  }
+  .btn-light:hover { background: white; color: var(--dp-ink-1); border-color: var(--dp-line-strong); }
+  .btn-primary { padding: 0.55rem 1.1rem; }  /* keep flush with other sizes */
+  .btn-warning {
+    background: var(--dp-warning);
+    color: white;
+    border: none;
+  }
+  .btn-warning:hover { background: #b45309; color: white; }
+
+  /* Bootstrap form-control-lg */
+  .form-control-lg, .form-select-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+
+  <style>
+    body {
+      font-family: var(--dp-font-body);
+      background: var(--dp-app-bg);
+      color: var(--dp-ink-1);
+      margin: 0;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--dp-brand); text-decoration: none; }
+    a:hover { color: var(--dp-brand-dark); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+
+  
+</head>
+<body class="antialiased">
+  
+<div class="flex min-h-screen">
+  
+
+
+
+<aside class="app-sidebar">
+  <div class="app-sidebar-brand">
+    <div class="brand-logo">د.ب</div>
+    <div class="min-w-0">
+      <div class="brand-name">دكتور بورسلين</div>
+      <div class="brand-sub">النظام المحاسبي</div>
+    </div>
+  </div>
+
+  <nav class="app-sidebar-nav">
+    
+  
+  
+  
+    
+      
+      
+    
+  
+  
+  <div class="sidebar-section" data-section="الرئيسية">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">🏠</span>
+        <span>الرئيسية</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body section-collapsed">
+      
+        
+        <a href="/dashboard" class="nav-link ">
+          <span aria-hidden="true">📊</span>
+          <span>لوحة المعلومات</span>
+        </a>
+      
+    </div>
+  </div>
+  
+
+
+    
+  
+  
+  
+    
+      
+      
+    
+  
+    
+      
+      
+    
+  
+    
+      
+      
+        
+      
+    
+  
+    
+      
+      
+        
+      
+    
+  
+    
+      
+      
+        
+      
+    
+  
+    
+      
+      
+    
+  
+    
+      
+      
+    
+  
+  
+  <div class="sidebar-section" data-section="المبيعات">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">💰</span>
+        <span>المبيعات</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body ">
+      
+        
+        <a href="/sales/" class="nav-link ">
+          <span aria-hidden="true">🧾</span>
+          <span>فواتير البيع</span>
+        </a>
+      
+        
+        <a href="/sales/new" class="nav-link ">
+          <span aria-hidden="true">➕</span>
+          <span>فاتورة جديدة</span>
+        </a>
+      
+        
+        <a href="/installments/" class="nav-link active">
+          <span aria-hidden="true">📅</span>
+          <span>خطط التقسيط</span>
+        </a>
+      
+        
+        <a href="/installments/new" class="nav-link active">
+          <span aria-hidden="true">💳</span>
+          <span>بيع بالتقسيط</span>
+        </a>
+      
+        
+        <a href="/installments/overdue" class="nav-link active">
+          <span aria-hidden="true">⚠️</span>
+          <span>أقساط متأخرة</span>
+        </a>
+      
+        
+        <a href="/pos/" class="nav-link ">
+          <span aria-hidden="true">🛒</span>
+          <span>نقطة البيع</span>
+        </a>
+      
+        
+        <a href="/pos/sessions" class="nav-link ">
+          <span aria-hidden="true">🕐</span>
+          <span>الورديات</span>
+        </a>
+      
+    </div>
+  </div>
+  
+
+
+    
+  
+  
+  
+    
+      
+      
+    
+  
+    
+      
+      
+    
+  
+  
+  <div class="sidebar-section" data-section="المشتريات">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">🛍️</span>
+        <span>المشتريات</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body section-collapsed">
+      
+        
+        <a href="/purchases/" class="nav-link ">
+          <span aria-hidden="true">📥</span>
+          <span>فواتير الشراء</span>
+        </a>
+      
+        
+        <a href="/purchases/new" class="nav-link ">
+          <span aria-hidden="true">➕</span>
+          <span>فاتورة شراء جديدة</span>
+        </a>
+      
+    </div>
+  </div>
+  
+
+
+    
+  
+  
+  
+    
+      
+      
+    
+  
+    
+      
+      
+    
+  
+  
+  <div class="sidebar-section" data-section="المخزون">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">📦</span>
+        <span>المخزون</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body section-collapsed">
+      
+        
+        <a href="/products/" class="nav-link ">
+          <span aria-hidden="true">📦</span>
+          <span>المنتجات</span>
+        </a>
+      
+        
+        <a href="/products/categories" class="nav-link ">
+          <span aria-hidden="true">🏷️</span>
+          <span>التصنيفات</span>
+        </a>
+      
+    </div>
+  </div>
+  
+
+
+    
+    
+    
+    <div class="sidebar-section" data-section="العملاء والموردون">
+      <button type="button" class="section-toggle" onclick="toggleSection(this)">
+        <span class="flex items-center gap-2">
+          <span aria-hidden="true">👥</span>
+          <span>العملاء والموردون</span>
+        </span>
+        <span class="section-chevron text-xs text-slate-500">▼</span>
+      </button>
+      <div class="section-body section-collapsed">
+        
+        
+        <a href="/parties/customer/"
+           class="nav-link ">
+          <span aria-hidden="true">🧑</span><span>العملاء</span>
+        </a>
+        <a href="/parties/vendor/"
+           class="nav-link ">
+          <span aria-hidden="true">🚚</span><span>الموردون</span>
+        </a>
+      </div>
+    </div>
+    
+
+    
+  
+  
+  
+    
+      
+      
+    
+  
+  
+  <div class="sidebar-section" data-section="التقارير">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">📈</span>
+        <span>التقارير</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body section-collapsed">
+      
+        
+        <a href="/reports/trial-balance" class="nav-link ">
+          <span aria-hidden="true">⚖️</span>
+          <span>ميزان المراجعة</span>
+        </a>
+      
+    </div>
+  </div>
+  
+
+  </nav>
+
+  
+  <div class="app-sidebar-user">
+    <div class="avatar">أ</div>
+    <div class="flex-1 min-w-0">
+      <div class="user-name truncate">أحمد المالك</div>
+      <div class="user-role">صاحب المتجر</div>
+    </div>
+  </div>
+  
+</aside>
+
+  <!-- Backdrop for mobile drawer -->
+  <div id="sidebar-backdrop"
+       class="hidden fixed inset-0 bg-black/40 z-30"
+       style="display:none"
+       onclick="toggleSidebar(false)"></div>
+
+  <main class="app-main flex-1">
+    <header class="app-topbar">
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="toggleSidebar()"
+                class="btn-icon" title="القائمة الجانبية" aria-label="القائمة الجانبية">
+          <i class="bi bi-list" style="font-size:1.15rem"></i>
+        </button>
+        <div>
+          <h1>الأقساط المتأخرة</h1>
+          
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/auth/logout" class="btn-icon" title="تسجيل الخروج">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </header>
+
+    <div class="app-content">
+      
+<div class="page-header">
+  <div>
+    <h1>الأقساط المتأخرة</h1>
+    <div class="subtitle">4 قسط تجاوز تاريخ استحقاقه</div>
+  </div>
+  <a href="/installments/" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع لكل الخطط
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الخطة</th>
+          <th>العميل</th>
+          <th>القسط</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>المتبقي</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="/installments/2">
+              INST-2026-000002
+            </a>
+          </td>
+          <td>
+            محمد علي
+            <div class="small text-muted" dir="ltr">01000000002</div>
+          </td>
+          <td>#1 / 4</td>
+          <td>
+            2026/03/01
+            <span class="badge badge-danger">متأخر</span>
+          </td>
+          <td class="fw-bold">450.000 ج.م</td>
+          <td class="text-end">
+            <a href="/installments/2"
+               class="btn-primary btn-sm">
+              <i class="bi bi-cash"></i> تحصيل
+            </a>
+          </td>
+        </tr>
+        
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="/installments/2">
+              INST-2026-000002
+            </a>
+          </td>
+          <td>
+            محمد علي
+            <div class="small text-muted" dir="ltr">01000000002</div>
+          </td>
+          <td>#2 / 4</td>
+          <td>
+            2026/04/01
+            <span class="badge badge-danger">متأخر</span>
+          </td>
+          <td class="fw-bold">450.000 ج.م</td>
+          <td class="text-end">
+            <a href="/installments/2"
+               class="btn-primary btn-sm">
+              <i class="bi bi-cash"></i> تحصيل
+            </a>
+          </td>
+        </tr>
+        
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="/installments/1">
+              INST-2026-000001
+            </a>
+          </td>
+          <td>
+            أحمد محمد
+            <div class="small text-muted" dir="ltr">01000000001</div>
+          </td>
+          <td>#2 / 6</td>
+          <td>
+            2026/05/01
+            <span class="badge badge-danger">متأخر</span>
+          </td>
+          <td class="fw-bold">150.000 ج.م</td>
+          <td class="text-end">
+            <a href="/installments/1"
+               class="btn-primary btn-sm">
+              <i class="bi bi-cash"></i> تحصيل
+            </a>
+          </td>
+        </tr>
+        
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="/installments/2">
+              INST-2026-000002
+            </a>
+          </td>
+          <td>
+            محمد علي
+            <div class="small text-muted" dir="ltr">01000000002</div>
+          </td>
+          <td>#3 / 4</td>
+          <td>
+            2026/05/01
+            <span class="badge badge-danger">متأخر</span>
+          </td>
+          <td class="fw-bold">450.000 ج.م</td>
+          <td class="text-end">
+            <a href="/installments/2"
+               class="btn-primary btn-sm">
+              <i class="bi bi-cash"></i> تحصيل
+            </a>
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+</div>
+
+    </div>
+  </main>
+</div>
+
+<style>
+  /* Backdrop mobile toggle */
+  body.sidebar-open-mobile #sidebar-backdrop { display: block !important; }
+</style>
+
+
+  
+  
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar toggle (both desktop hide and mobile drawer)
+    function toggleSidebar(force) {
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
+      if (isMobile) {
+        const isOpen = document.body.classList.contains('sidebar-open-mobile');
+        const shouldOpen = (typeof force === 'boolean') ? force : !isOpen;
+        document.body.classList.toggle('sidebar-open-mobile', shouldOpen);
+        const bd = document.getElementById('sidebar-backdrop');
+        if (bd) bd.classList.toggle('hidden', !shouldOpen);
+      } else {
+        document.body.classList.toggle('sidebar-hidden');
+      }
+    }
+    // Collapsible sidebar sections
+    function toggleSection(btn) {
+      const body = btn.nextElementSibling;
+      const chev = btn.querySelector('.section-chevron');
+      if (!body) return;
+      const isCollapsed = body.classList.toggle('section-collapsed');
+      if (chev) chev.classList.toggle('section-collapsed-chevron', isCollapsed);
+    }
+    // Auto-dismiss flash messages
+    setTimeout(() => {
+      document.querySelectorAll('.flash-item').forEach(el => {
+        el.style.transition = 'opacity 0.35s ease';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+      });
+    }, 4500);
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,301 @@
+{% extends "layouts/app.html" %}
+{% block title %}فاتورة بيع جديدة{% endblock %}
+{% block page_title %}فاتورة بيع جديدة{% endblock %}
+
+{% block content %}
+<form method="post" id="invoiceForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="page-header">
+    <h1>فاتورة بيع جديدة</h1>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('sales.index') }}" class="btn btn-light">إلغاء</a>
+      <button type="submit" class="btn btn-primary" id="saveBtn">
+        <i class="bi bi-check-lg"></i> حفظ الفاتورة
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- بيانات الفاتورة -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">بيانات الفاتورة</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">العميل *</label>
+              <div class="position-relative">
+                <input type="hidden" name="customer_id" id="customer_id" required>
+                <input type="text" id="customerSearch" class="form-control form-control-lg"
+                       placeholder="ابحث بالاسم أو الهاتف أو الكود..." autocomplete="off">
+                <div id="customerResults" class="list-group position-absolute w-100 shadow-sm"
+                     style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+              </div>
+              <div class="form-text" id="customerHint">مطلوب — اختر عميل موجود.</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">التاريخ</label>
+              <input type="date" name="invoice_date" class="form-control" value="{{ today }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">طريقة الدفع</label>
+              <select name="payment_method" class="form-select">
+                <option value="cash" selected>نقدي</option>
+                <option value="bank">بنك</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- البنود -->
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>البنود</span>
+          <div class="d-flex gap-2 align-items-center">
+            <div class="position-relative" style="width:280px">
+              <input type="text" id="productSearch" class="form-control form-control-sm"
+                     placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off">
+              <div id="productResults" class="list-group position-absolute w-100 shadow-sm"
+                   style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEmptyLine()">
+              <i class="bi bi-plus"></i> صف يدوي
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0" id="linesTable">
+            <thead>
+              <tr>
+                <th style="width:35%">المنتج</th>
+                <th style="width:15%">السعر</th>
+                <th style="width:15%">الكمية</th>
+                <th style="width:10%">المتاح</th>
+                <th style="width:15%" class="text-end">الإجمالي</th>
+                <th style="width:5%"></th>
+              </tr>
+            </thead>
+            <tbody id="linesBody">
+              <!-- الصفوف تُضاف ديناميكيًا -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noLinesHint" class="empty-state">
+          <div class="icon"><i class="bi bi-arrow-up"></i></div>
+          <p class="mb-0">ابحث عن منتج في الأعلى لإضافته</p>
+        </div>
+      </div>
+
+      <!-- ملاحظات -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <label class="form-label">ملاحظات</label>
+          <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- الملخّص -->
+    <div class="col-lg-4">
+      <div class="card" style="position:sticky; top:80px;">
+        <div class="card-header">الملخّص</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
+            <dd class="col-6 text-end" id="sumSubtotal">0.000</dd>
+
+            <dt class="col-6 text-muted d-flex align-items-center">
+              الخصم
+            </dt>
+            <dd class="col-6">
+              <input type="number" name="discount_amount" id="discountInput"
+                     class="form-control form-control-sm text-end" step="0.001" min="0" value="0">
+            </dd>
+
+            {% if tax_enabled %}
+            <dt class="col-6 text-muted">الضريبة ({{ tax_rate }}%)</dt>
+            <dd class="col-6 text-end" id="sumTax">0.000</dd>
+            {% endif %}
+
+            <hr>
+            <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
+            <dd class="col-6 text-end fs-5 fw-bold" id="sumTotal">0.000</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body small text-muted">
+          <ul class="mb-0 ps-3">
+            <li>الحفظ يُنشِئ 3 قيود تلقائيًا (بيع + تحصيل + COGS).</li>
+            <li>يُخصم من المخزون فوريًا.</li>
+            <li>لا يمكن حذف الفاتورة بعد الحفظ — استخدم المرتجع.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  const TAX_ENABLED = {{ 'true' if tax_enabled else 'false' }};
+  const TAX_RATE = parseFloat("{{ tax_rate }}") || 0;
+  let lineIdx = 0;
+
+  // ---------- بحث العميل ----------
+  const customerSearch = document.getElementById('customerSearch');
+  const customerResults = document.getElementById('customerResults');
+  const customerHint = document.getElementById('customerHint');
+  let customerDebounce;
+
+  customerSearch.addEventListener('input', () => {
+    clearTimeout(customerDebounce);
+    document.getElementById('customer_id').value = '';
+    const q = customerSearch.value.trim();
+    if (!q) { customerResults.innerHTML = ''; return; }
+    customerDebounce = setTimeout(async () => {
+      const r = await fetch(`/parties/api/search?type=customer&q=${encodeURIComponent(q)}`);
+      const data = await r.json();
+      customerResults.innerHTML = data.map(p => `
+        <button type="button" class="list-group-item list-group-item-action text-start"
+                data-id="${p.id}" data-name="${p.name_ar}">
+          <strong>${p.name_ar}</strong>
+          <span class="text-muted small ms-2" dir="ltr">${p.code}</span>
+          ${p.phone ? `<span class="text-muted small ms-2" dir="ltr">${p.phone}</span>` : ''}
+        </button>
+      `).join('') || '<div class="list-group-item text-muted">لا نتائج — أنشئ عميلًا جديدًا أولاً.</div>';
+      customerResults.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          document.getElementById('customer_id').value = b.dataset.id;
+          customerSearch.value = b.dataset.name;
+          customerResults.innerHTML = '';
+          customerHint.textContent = '✓ محدد';
+          customerHint.classList.add('text-success');
+        });
+      });
+    }, 250);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+      customerResults.innerHTML = '';
+    }
+  });
+
+  // ---------- بحث المنتج ----------
+  const productSearch = document.getElementById('productSearch');
+  const productResults = document.getElementById('productResults');
+  let productDebounce;
+
+  productSearch.addEventListener('input', () => {
+    clearTimeout(productDebounce);
+    const q = productSearch.value.trim();
+    if (!q) { productResults.innerHTML = ''; return; }
+    productDebounce = setTimeout(async () => {
+      const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
+      const data = await r.json();
+      productResults.innerHTML = data.map(v => `
+        <button type="button" class="list-group-item list-group-item-action text-start"
+                data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
+          <strong>${v.name}</strong>
+          <div class="small text-muted" dir="ltr">
+            SKU: ${v.sku} — السعر: ${v.price} — الرصيد: ${v.stock}
+          </div>
+        </button>
+      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
+      productResults.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          const v = JSON.parse(b.dataset.payload);
+          addLine(v);
+          productSearch.value = '';
+          productResults.innerHTML = '';
+          productSearch.focus();
+        });
+      });
+    }, 250);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!productSearch.contains(e.target) && !productResults.contains(e.target)) {
+      productResults.innerHTML = '';
+    }
+  });
+
+  // ---------- إضافة سطر ----------
+  function addLine(variant) {
+    document.getElementById('noLinesHint').style.display = 'none';
+    const idx = lineIdx++;
+    const tr = document.createElement('tr');
+    tr.dataset.stock = variant.stock;
+    tr.innerHTML = `
+      <td>
+        <input type="hidden" name="line_variant_id[]" value="${variant.id}">
+        <div class="fw-semibold">${variant.name}</div>
+        <div class="small text-muted" dir="ltr">SKU: ${variant.sku}</div>
+      </td>
+      <td>
+        <input type="number" name="line_price[]" class="form-control form-control-sm line-price"
+               step="0.001" min="0" value="${variant.price}">
+      </td>
+      <td>
+        <input type="number" name="line_qty[]" class="form-control form-control-sm line-qty"
+               step="0.001" min="0.001" max="${variant.stock}" value="1" required>
+      </td>
+      <td class="text-muted small">${variant.stock}</td>
+      <td class="text-end fw-bold line-total">0.000</td>
+      <td>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove(); recalc();">
+          <i class="bi bi-x"></i>
+        </button>
+      </td>
+    `;
+    document.getElementById('linesBody').appendChild(tr);
+    tr.querySelectorAll('.line-price, .line-qty').forEach(inp => {
+      inp.addEventListener('input', recalc);
+    });
+    recalc();
+  }
+
+  function addEmptyLine() {
+    // نُلاحظ: صف يدوي يحتاج تحديد variant عبر البحث (يمكن توسيع لاحقًا)
+    alert('استخدم البحث في الأعلى لإضافة منتج.');
+  }
+
+  // ---------- حساب الإجماليات ----------
+  function recalc() {
+    let subtotal = 0;
+    document.querySelectorAll('#linesBody tr').forEach(tr => {
+      const price = parseFloat(tr.querySelector('.line-price').value) || 0;
+      const qty = parseFloat(tr.querySelector('.line-qty').value) || 0;
+      const lineTotal = price * qty;
+      tr.querySelector('.line-total').textContent = lineTotal.toFixed(3);
+      subtotal += lineTotal;
+    });
+    const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+    const net = Math.max(0, subtotal - discount);
+    const tax = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
+    const total = net + tax;
+    document.getElementById('sumSubtotal').textContent = subtotal.toFixed(3);
+    if (TAX_ENABLED) document.getElementById('sumTax').textContent = tax.toFixed(3);
+    document.getElementById('sumTotal').textContent = total.toFixed(3);
+  }
+
+  document.getElementById('discountInput').addEventListener('input', recalc);
+
+  // ---------- التحقق قبل الحفظ ----------
+  document.getElementById('invoiceForm').addEventListener('submit', (e) => {
+    if (!document.getElementById('customer_id').value) {
+      e.preventDefault();
+      alert('اختر عميلًا أولاً.');
+      return;
+    }
+    if (!document.querySelectorAll('#linesBody tr').length) {
+      e.preventDefault();
+      alert('أضف بندًا واحدًا على الأقل.');
+      return;
+    }
+  });
+</script>
+{% endblock %}

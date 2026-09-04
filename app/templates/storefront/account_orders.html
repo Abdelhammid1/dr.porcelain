@@ -1,0 +1,70 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}طلباتي{% endblock %}
+
+{% set order_status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+
+{% block portal_content %}
+<h1 style="font-size:1.6rem; font-weight:800; margin:0 0 6px;">طلباتي</h1>
+<p style="color:var(--dp-ink-3); margin:0 0 20px;">
+  {{ orders|length }} طلب في المجموع
+</p>
+
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>التاريخ</th>
+          <th>البنود</th>
+          <th>الإجمالي</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        {% set st = order_status_labels.get(o.status.value, (o.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+               class="text-decoration-none">{{ o.doc_number }}</a>
+          </td>
+          <td>{{ o.order_date | hdate }}</td>
+          <td>
+            <span class="dp-chip tone-brand">{{ o.lines|length }} صنف</span>
+          </td>
+          <td class="fw-bold">{{ o.total | money }}</td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+               class="btn-icon" title="تفاصيل"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="empty-state-icon">🛍️</div>
+              <div class="empty-state-title">لا توجد طلبات بعد</div>
+              <div class="empty-state-sub">
+                <a href="{{ url_for('storefront.home') }}" class="sf-btn-primary" style="margin-top:16px;">
+                  <i class="bi bi-arrow-left-circle"></i> ابدأ التسوق
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

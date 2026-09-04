@@ -1,0 +1,113 @@
+{% extends "storefront/_base.html" %}
+{% block title %}السلة{% endblock %}
+
+{% block content %}
+<h1 style="font-size:1.8rem; font-weight:800; margin:0 0 20px;">
+  <i class="bi bi-basket3"></i> سلة التسوق
+</h1>
+
+{% if cart.is_empty %}
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:60px 20px; text-align:center;">
+  <div style="font-size:4rem; color:var(--dp-brand); opacity:0.5;">🛒</div>
+  <h3 style="margin:14px 0 8px; color:var(--dp-ink-1);">سلتك فارغة</h3>
+  <p style="color:var(--dp-ink-3); margin-bottom:20px;">ابدأ التسوق واختر منتجاتك المفضلة</p>
+  <a href="{{ url_for('storefront.home') }}" class="sf-btn-primary">
+    <i class="bi bi-arrow-left-circle"></i> استكشف المتجر
+  </a>
+</div>
+{% else %}
+<div style="display:grid; grid-template-columns:1fr 380px; gap:24px;">
+  <!-- Items -->
+  <form method="post" action="{{ url_for('storefront.cart_update') }}"
+        style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>المنتج</th>
+          <th style="width:120px">السعر</th>
+          <th style="width:140px">الكمية</th>
+          <th style="width:100px" class="text-end">الإجمالي</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in cart.lines %}
+        <tr>
+          <td>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="width:56px; height:56px; background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
+                          border-radius:10px; display:grid; place-items:center;
+                          font-size:1.4rem; color:var(--dp-brand); flex-shrink:0;">
+                <i class="bi bi-box"></i>
+              </div>
+              <div style="min-width:0;">
+                <a href="{{ url_for('storefront.product', product_id=line.variant.product_id) }}"
+                   style="color:var(--dp-ink-1); text-decoration:none; font-weight:600;">
+                  {{ line.variant.display_name }}
+                </a>
+                <div style="font-size:0.75rem; color:var(--dp-ink-3);" dir="ltr">
+                  SKU: {{ line.variant.sku }}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>{{ line.unit_price | money }}</td>
+          <td>
+            <input type="number" name="qty_{{ line.variant.id }}" value="{{ line.qty | qty }}"
+                   min="0" step="1" max="{{ line.variant.stock_qty | qty }}"
+                   style="width:80px; padding:6px; border:1px solid var(--dp-line-strong); border-radius:8px; text-align:center; font-weight:700;">
+          </td>
+          <td class="text-end fw-bold">{{ line.line_total | money }}</td>
+          <td>
+            <button type="submit" formaction="{{ url_for('storefront.cart_remove', variant_id=line.variant.id) }}"
+                    class="btn-icon" title="حذف" style="color:var(--dp-danger);">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="padding:14px 20px; border-top:1px solid var(--dp-line); text-align:end;">
+      <button type="submit" class="btn-secondary">
+        <i class="bi bi-arrow-clockwise"></i> تحديث السلة
+      </button>
+    </div>
+  </form>
+
+  <!-- Summary -->
+  <aside>
+    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;
+                position:sticky; top:100px;">
+      <h5 style="font-weight:800; margin:0 0 14px;">ملخّص الطلب</h5>
+      <dl class="row mb-0">
+        <dt class="col-7 text-muted small">الإجمالي الفرعي</dt>
+        <dd class="col-5 text-end">{{ cart.subtotal | money }}</dd>
+        {% if cart.tax_amount > 0 %}
+        <dt class="col-7 text-muted small">الضريبة ({{ cart.tax_rate }}%)</dt>
+        <dd class="col-5 text-end">{{ cart.tax_amount | money }}</dd>
+        {% endif %}
+        <dt class="col-7 text-muted small">الشحن</dt>
+        <dd class="col-5 text-end">
+          {% if cart.free_shipping_reached %}
+          <span style="color:var(--dp-success); font-weight:700;">مجاني</span>
+          {% else %}
+          {{ cart.shipping_fee | money }}
+          {% endif %}
+        </dd>
+        <hr>
+        <dt class="col-7 fs-5 fw-bold">الإجمالي</dt>
+        <dd class="col-5 text-end fs-5 fw-bold" style="color:var(--dp-brand);">{{ cart.total | money }}</dd>
+      </dl>
+      <a href="{{ url_for('storefront.checkout') }}" class="sf-btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
+        <i class="bi bi-credit-card-2-back"></i> إتمام الطلب
+      </a>
+      <div style="margin-top:12px; font-size:0.8rem; color:var(--dp-ink-3); text-align:center;">
+        الدفع عند الاستلام (COD)
+      </div>
+    </div>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "layouts/app.html" %}
+{% block title %}خطط التقسيط{% endblock %}
+{% block page_title %}البيع بالتقسيط{% endblock %}
+
+{% set plan_status_labels = {
+  'active':    ('نشطة', 'info'),
+  'completed': ('مكتملة', 'success'),
+  'cancelled': ('ملغاة', 'muted'),
+} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>خطط التقسيط</h1>
+    <div class="subtitle">{{ plans|length }} خطة</div>
+  </div>
+  {% if current_user.can("installments.create") %}
+  <a href="{{ url_for('installments.create') }}" class="btn-primary">
+    <i class="bi bi-plus-lg"></i> خطة تقسيط جديدة
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-calendar-check"></i></div>
+      <div>
+        <div class="stat-tile-label">خطط نشطة</div>
+        <div class="stat-tile-value">{{ total_active }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-warning">
+      <div class="stat-tile-icon"><i class="bi bi-clock"></i></div>
+      <div>
+        <div class="stat-tile-label">مستحقة اليوم</div>
+        <div class="stat-tile-value">{{ due_today_count }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('installments.overdue') }}" class="text-decoration-none">
+      <div class="stat-tile stat-tile-with-icon tone-danger">
+        <div class="stat-tile-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+          <div class="stat-tile-label">أقساط متأخرة</div>
+          <div class="stat-tile-value">{{ overdue_count }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label">بحث</label>
+        <input name="q" value="{{ q }}" class="form-control"
+               placeholder="رقم خطة / اسم عميل / هاتف">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+          <option value="">— الكل —</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشطة</option>
+          <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>مكتملة</option>
+        </select>
+      </div>
+      <div class="col-md-2 pt-4">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" name="overdue" value="1" id="ov"
+                 {% if only_overdue %}checked{% endif %}>
+          <label class="form-check-label" for="ov">متأخرة فقط</label>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn-primary w-100"><i class="bi bi-funnel"></i> تصفية</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table data-table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الخطة</th>
+          <th>العميل</th>
+          <th>الإجمالي</th>
+          <th>المقدم</th>
+          <th>المتبقي</th>
+          <th>الأقساط</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in plans %}
+        {% set st = plan_status_labels.get(p.status.value, (p.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('installments.view', plan_id=p.id) }}" class="text-decoration-none">
+              {{ p.doc_number }}
+            </a>
+          </td>
+          <td>{{ p.customer.name_ar }}</td>
+          <td>{{ p.total_amount | money }}</td>
+          <td>{{ p.down_payment | money }}</td>
+          <td class="fw-bold">{{ p.total_remaining | money }}</td>
+          <td>
+            <span class="dp-chip tone-brand">
+              {{ p.paid_installments_count }} / {{ p.installments_count }}
+            </span>
+            {% if p.overdue_lines %}
+              <span class="dp-chip tone-danger">متأخر {{ p.overdue_lines|length }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('installments.view', plan_id=p.id) }}"
+               class="btn-icon" title="عرض">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="empty-state-icon">📅</div>
+              <div class="empty-state-title">لا توجد خطط تقسيط بعد</div>
+              {% if current_user.can("installments.create") %}
+              <a href="{{ url_for('installments.create') }}" class="btn-primary mt-3">
+                <i class="bi bi-plus-lg"></i> إنشاء أول خطة
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

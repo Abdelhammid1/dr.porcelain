@@ -1,0 +1,78 @@
+{% extends "layouts/app.html" %}
+{% block title %}مرتجع {{ ret.doc_number }}{% endblock %}
+{% block page_title %}مرتجع بيع{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>مرتجع <span dir="ltr">{{ ret.doc_number }}</span>
+      {% if ret.is_full_return %}<span class="badge-status danger ms-2">كامل</span>
+      {% else %}<span class="badge-status warning ms-2">جزئي</span>{% endif %}
+    </h1>
+    <div class="subtitle">
+      من فاتورة <a href="{{ url_for('sales.view', invoice_id=ret.invoice.id) }}" dir="ltr">{{ ret.invoice.doc_number }}</a>
+      · {{ ret.return_date | hdate }}
+    </div>
+  </div>
+  <a href="{{ url_for('sales.view', invoice_id=ret.invoice.id) }}" class="btn btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع للفاتورة
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">البنود المرتجعة</div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الكمية</th>
+              <th>السعر</th>
+              <th class="text-end">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in ret.lines %}
+            <tr>
+              <td>{{ line.invoice_line.product_name }}</td>
+              <td>{{ line.qty | qty }}</td>
+              <td>{{ line.unit_price | money }}</td>
+              <td class="text-end fw-bold">{{ (line.qty * line.unit_price) | money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">السبب</div>
+      <div class="card-body" style="white-space:pre-line">{{ ret.reason }}</div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">الملخّص</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          {% if ret.refund_tax > 0 %}
+          <dt class="col-6 text-muted">ضريبة مرتجعة</dt>
+          <dd class="col-6 text-end">{{ ret.refund_tax | money }}</dd>
+          {% endif %}
+          <dt class="col-6 fs-5 fw-bold">إجمالي المُسترد</dt>
+          <dd class="col-6 text-end fs-5 fw-bold text-danger">{{ ret.refund_amount | money }}</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-body small text-muted">
+        <div>أنشأه: {{ ret.created_by.full_name if ret.created_by else "—" }}</div>
+        <div>{{ ret.created_at | hdate }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

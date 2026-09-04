@@ -1,0 +1,121 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}خطة تقسيط {{ plan.doc_number }}{% endblock %}
+
+{% set plan_status_labels = {
+  'active':    ('نشطة',    'info'),
+  'completed': ('مكتملة',  'success'),
+  'cancelled': ('ملغاة',   'muted'),
+} %}
+{% set line_status = {
+  'pending': ('مستحق',   'muted'),
+  'partial': ('جزئي',    'warning'),
+  'paid':    ('مسدَّد',    'success'),
+  'overdue': ('متأخر',   'danger'),
+} %}
+{% set st = plan_status_labels.get(plan.status.value, (plan.status.value, 'muted')) %}
+{% set freq_labels = {'monthly':'شهري','biweekly':'كل أسبوعين','weekly':'أسبوعي'} %}
+
+{% block portal_content %}
+<div style="margin-bottom:20px;">
+  <a href="{{ url_for('storefront.account_installments') }}"
+     style="color:var(--dp-ink-3); text-decoration:none; font-size:0.85rem;">
+    <i class="bi bi-arrow-right"></i> رجوع لكل الخطط
+  </a>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+  <div>
+    <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 4px;">
+      خطة تقسيط <span dir="ltr">{{ plan.doc_number }}</span>
+    </h1>
+    <div style="color:var(--dp-ink-3);">
+      {{ plan.installments_count }} أقساط · {{ freq_labels.get(plan.frequency.value, plan.frequency.value) }}
+    </div>
+  </div>
+  <span class="badge badge-{{ st[1] }}" style="padding:6px 14px;">{{ st[0] }}</span>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-cash"></i></div>
+      <div>
+        <div class="stat-tile-label">الإجمالي</div>
+        <div class="stat-tile-value">{{ plan.total_amount | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-down-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">المقدم</div>
+        <div class="stat-tile-value">{{ plan.down_payment | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-check2-all"></i></div>
+      <div>
+        <div class="stat-tile-label">مسدَّد</div>
+        <div class="stat-tile-value">{{ plan.total_paid | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-danger">
+      <div class="stat-tile-icon"><i class="bi bi-exclamation-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">المتبقي</div>
+        <div class="stat-tile-value">{{ plan.total_remaining | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+  <div style="padding:14px 20px; border-bottom:1px solid var(--dp-line); font-weight:800;">
+    جدول الأقساط
+  </div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>المبلغ</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in plan.schedule %}
+        {% set lst = line_status.get(line.status.value, (line.status.value, 'muted')) %}
+        <tr>
+          <td class="fw-bold">{{ line.number }}</td>
+          <td>{{ line.due_date.strftime('%Y/%m/%d') }}</td>
+          <td>{{ line.amount | money }}</td>
+          <td>{{ line.paid_amount | money }}</td>
+          <td class="fw-bold">{{ line.remaining | money }}</td>
+          <td><span class="badge badge-{{ lst[1] }}">{{ lst[0] }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="dp-callout tone-info mt-3">
+  <div>
+    <strong class="dp-callout-title">للاستفسار عن السداد</strong>
+    تواصل مع المتجر
+    {% if sf_settings.store_phone %}
+    على الرقم <a href="tel:{{ sf_settings.store_phone }}" dir="ltr">{{ sf_settings.store_phone }}</a>
+    {% endif %}
+    أو زر المحل مباشرة.
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "layouts/app.html" %}
+{% block title %}ربحية المنتجات{% endblock %}
+{% block page_title %}تقرير ربحية المنتجات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>ربحية المنتجات</h1>
+    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reports.profitability_csv', **request.args) }}" class="btn-secondary">
+      <i class="bi bi-file-earmark-excel"></i> Excel
+    </a>
+    <button onclick="window.print()" class="btn-secondary">
+      <i class="bi bi-printer"></i> طباعة
+    </button>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">من</label>
+        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">إلى</label>
+        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-brand">
+      <div class="stat-tile-icon"><i class="bi bi-cash-coin"></i></div>
+      <div><div class="stat-tile-label">الإيراد</div><div class="stat-tile-value">{{ report.total_revenue | money }}</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-warning">
+      <div class="stat-tile-icon"><i class="bi bi-box"></i></div>
+      <div><div class="stat-tile-label">التكلفة</div><div class="stat-tile-value">{{ report.total_cost | money }}</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
+      <div><div class="stat-tile-label">الربح</div><div class="stat-tile-value">{{ report.total_gross_profit | money }}</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-percent"></i></div>
+      <div><div class="stat-tile-label">الهامش الإجمالي</div><div class="stat-tile-value">{{ '%.2f'|format(report.total_margin_percent) }}%</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>المنتج</th>
+          <th class="text-end">الكمية</th>
+          <th class="text-end">الإيراد</th>
+          <th class="text-end">التكلفة</th>
+          <th class="text-end">الربح</th>
+          <th class="text-end">الهامش</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in report.rows %}
+        <tr>
+          <td class="fw-bold">{{ loop.index }}</td>
+          <td>
+            <a href="{{ url_for('products.view', product_id=r.product.id) }}"
+               class="text-decoration-none fw-semibold">{{ r.product.name_ar }}</a>
+          </td>
+          <td class="text-end">{{ r.qty_sold | qty }}</td>
+          <td class="text-end">{{ r.revenue | money }}</td>
+          <td class="text-end text-muted">{{ r.cost | money }}</td>
+          <td class="text-end fw-bold" style="color:var(--dp-success)">{{ r.gross_profit | money }}</td>
+          <td class="text-end">
+            <span class="dp-chip {% if r.margin_percent >= 30 %}tone-success{% elif r.margin_percent >= 10 %}tone-brand{% else %}tone-warn{% endif %}">
+              {{ '%.1f'|format(r.margin_percent) }}%
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">لا توجد مبيعات في هذه الفترة</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+      {% if report.rows %}
+      <tfoot>
+        <tr class="fw-bold" style="background:var(--dp-brand-tint)">
+          <td colspan="3" class="text-end">الإجمالي</td>
+          <td class="text-end">{{ report.total_revenue | money }}</td>
+          <td class="text-end">{{ report.total_cost | money }}</td>
+          <td class="text-end">{{ report.total_gross_profit | money }}</td>
+          <td class="text-end">{{ '%.2f'|format(report.total_margin_percent) }}%</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}

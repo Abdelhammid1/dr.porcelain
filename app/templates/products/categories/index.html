@@ -1,0 +1,92 @@
+{% extends "layouts/app.html" %}
+{% block title %}التصنيفات{% endblock %}
+{% block page_title %}تصنيفات المنتجات{% endblock %}
+
+{% macro render_tree(cat, depth) %}
+<tr>
+  <td>
+    <span style="padding-inline-start: {{ (depth - 1) * 24 }}px">
+      {% if depth > 1 %}<i class="bi bi-arrow-return-left text-muted me-1"></i>{% endif %}
+      <strong>{{ cat.name_ar }}</strong>
+      {% if not cat.is_active %}<span class="badge-status muted ms-2">موقوف</span>{% endif %}
+    </span>
+  </td>
+  <td>{{ depth }}</td>
+  <td>{{ cat.display_order }}</td>
+  <td class="text-end">
+    {% if current_user.can("products.manage") %}
+      {% if depth < 3 %}
+      <a href="{{ url_for('products.categories_create', parent_id=cat.id) }}"
+         class="btn btn-sm btn-outline-primary" title="إضافة تصنيف فرعي">
+        <i class="bi bi-plus"></i>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('products.categories_edit', cat_id=cat.id) }}"
+         class="btn btn-sm btn-outline-secondary" title="تعديل">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <form method="post" action="{{ url_for('products.categories_delete', cat_id=cat.id) }}"
+            class="d-inline" onsubmit="return confirm('حذف التصنيف؟')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-danger" title="حذف"><i class="bi bi-trash"></i></button>
+      </form>
+    {% endif %}
+  </td>
+</tr>
+{% for child in cat.children | sort(attribute='display_order') %}
+  {{ render_tree(child, depth + 1) }}
+{% endfor %}
+{% endmacro %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>تصنيفات المنتجات</h1>
+    <div class="subtitle">شجرة حتى 3 مستويات (رئيسي / فرعي / فرعي فرعي)</div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if current_user.can("products.manage") %}
+    <a href="{{ url_for('products.categories_create') }}" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> تصنيف رئيسي جديد
+    </a>
+    {% endif %}
+    <a href="{{ url_for('products.index') }}" class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> رجوع للمنتجات
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>التصنيف</th>
+          <th>المستوى</th>
+          <th>الترتيب</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in roots | sort(attribute='display_order') %}
+          {{ render_tree(cat, 1) }}
+        {% else %}
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <div class="icon"><i class="bi bi-tags"></i></div>
+              <h5>لا توجد تصنيفات بعد</h5>
+              {% if current_user.can("products.manage") %}
+              <a href="{{ url_for('products.categories_create') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-lg"></i> إضافة أول تصنيف
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

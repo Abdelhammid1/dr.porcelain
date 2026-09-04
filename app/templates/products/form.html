@@ -1,0 +1,137 @@
+{% extends "layouts/app.html" %}
+{% block title %}{% if product %}تعديل {{ product.name_ar }}{% else %}منتج جديد{% endif %}{% endblock %}
+{% block page_title %}{% if product %}تعديل منتج{% else %}منتج جديد{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{% if product %}تعديل: {{ product.name_ar }}{% else %}إضافة منتج جديد{% endif %}</h1>
+  <a href="{{ url_for('products.index') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-right"></i> رجوع
+  </a>
+</div>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="row g-3">
+    <!-- بيانات المنتج -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">بيانات المنتج</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-8">
+              {{ form.name_ar.label(class="form-label") }}
+              {{ form.name_ar(class="form-control form-control-lg") }}
+              {% for e in form.name_ar.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              {{ form.brand.label(class="form-label") }}
+              {{ form.brand(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.category_id.label(class="form-label") }}
+              {{ form.category_id(class="form-select") }}
+              {% for e in form.category_id.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-3">
+              {{ form.unit.label(class="form-label") }}
+              {{ form.unit(class="form-control") }}
+            </div>
+            <div class="col-md-3">
+              {{ form.default_price.label(class="form-label") }}
+              {{ form.default_price(class="form-control", step="0.001") }}
+              {% for e in form.default_price.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.tax_rate_override.label(class="form-label") }}
+              {{ form.tax_rate_override(class="form-control", step="0.001", placeholder="اتركه فارغًا لاستخدام الافتراضي") }}
+            </div>
+            <div class="col-12">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control") }}
+            </div>
+            {% if product %}
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_active(class="form-check-input") }}
+                {{ form.is_active.label(class="form-check-label") }}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- المتغيرات (اللون) — فقط عند الإنشاء -->
+      {% if not product %}
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>المتغيرات (ألوان)</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addVariantRow()">
+            <i class="bi bi-plus"></i> إضافة صف
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="text-muted small mb-2">
+            اتركها فارغة لإنشاء متغير افتراضي واحد بنفس السعر. أضف صفوفًا للألوان المختلفة.
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle" id="variantsTable">
+              <thead>
+                <tr>
+                  <th>اللون</th>
+                  <th>السعر</th>
+                  <th>الحد الأدنى</th>
+                  <th>الباركود (اختياري)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">تلميحات</div>
+        <div class="card-body small text-muted">
+          <ul class="mb-0 ps-3">
+            <li>الاسم والتصنيف إجباريان.</li>
+            <li>الأسعار بـ 3 خانات عشرية.</li>
+            <li>الباركود يُولَّد تلقائيًا (EAN-13) لو تُرك فارغًا.</li>
+            <li>SKU يُولَّد تلقائيًا من رقم المنتج + رقم المتغير.</li>
+            <li>تكلفة المتغير تُحسب متوسط مرجّح تلقائيًا مع كل شراء.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end gap-2">
+    <a href="{{ url_for('products.index') }}" class="btn btn-light">إلغاء</a>
+    {{ form.submit(class="btn btn-primary") }}
+  </div>
+</form>
+
+{% if not product %}
+<script>
+  function addVariantRow() {
+    const tbody = document.querySelector('#variantsTable tbody');
+    const idx = tbody.children.length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="form-control form-control-sm" name="variant_color[]" placeholder="مثال: أحمر"></td>
+      <td><input class="form-control form-control-sm" name="variant_price[]" type="number" step="0.001" placeholder="السعر"></td>
+      <td><input class="form-control form-control-sm" name="variant_reorder[]" type="number" step="0.001" placeholder="0"></td>
+      <td><input class="form-control form-control-sm" name="variant_barcode[]" placeholder="تلقائي" dir="ltr"></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+</script>
+{% endif %}
+{% endblock %}

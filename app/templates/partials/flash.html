@@ -1,0 +1,18 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-stack">
+      {% for category, message in messages %}
+        {% set cls = 'info' if category not in ['success','warning','danger','info'] else category %}
+        <div class="flash-item {{ cls }}" role="alert">
+          <i class="bi
+             {{ 'bi-check-circle' if cls == 'success' else
+                'bi-exclamation-triangle' if cls == 'warning' else
+                'bi-x-circle' if cls == 'danger' else
+                'bi-info-circle' }}"
+             style="color: var(--dp-{{ cls }}); font-size: 1.05rem; flex-shrink:0"></i>
+          <div style="color: var(--dp-ink-2); line-height: 1.5">{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}

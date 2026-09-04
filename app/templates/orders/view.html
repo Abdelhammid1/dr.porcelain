@@ -1,0 +1,139 @@
+{% extends "layouts/app.html" %}
+{% block title %}طلب {{ order.doc_number }}{% endblock %}
+{% block page_title %}طلب {{ order.doc_number }}{% endblock %}
+
+{% set status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+{% set st = status_labels.get(order.status.value, (order.status.value, 'muted')) %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      طلب <span dir="ltr">{{ order.doc_number }}</span>
+      <span class="badge badge-{{ st[1] }} ms-2">{{ st[0] }}</span>
+    </h1>
+    <div class="subtitle">{{ order.order_date | hdate }} · {{ order.customer_display_name }}</div>
+  </div>
+  <a href="{{ url_for('orders.index') }}" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <!-- Line items -->
+    <div class="card">
+      <div class="card-header">بنود الطلب</div>
+      <div class="table-scroll">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>SKU</th>
+              <th>الكمية</th>
+              <th>السعر</th>
+              <th class="text-end">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in order.lines %}
+            <tr>
+              <td>{{ line.product_name }}</td>
+              <td dir="ltr" class="small text-muted">{{ line.sku }}</td>
+              <td>{{ line.qty | qty }}</td>
+              <td>{{ line.unit_price | money }}</td>
+              <td class="text-end fw-bold">{{ line.line_total | money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Status transitions -->
+    {% if current_user.can("orders.manage") %}
+    <div class="card mt-3">
+      <div class="card-header">تحديث الحالة</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('orders.change_status', order_id=order.id) }}"
+              class="d-flex gap-3 align-items-end">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div style="flex:1">
+            <label class="form-label">الحالة الجديدة</label>
+            <select name="status" class="form-select">
+              {% for code, lbl in [('pending','قيد المعالجة'),('processing','قيد التجهيز'),('shipped','تم الشحن'),('delivered','تم التسليم'),('cancelled','ملغى')] %}
+              <option value="{{ code }}" {% if order.status.value == code %}selected disabled{% endif %}>
+                {{ lbl }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn-primary"><i class="bi bi-check-lg"></i> تحديث</button>
+        </form>
+        <div class="dp-callout tone-brand mt-3">
+          <div>
+            <strong class="dp-callout-title">تكامل محاسبي فعّال</strong>
+            عند تغيير الحالة لـ "تم التسليم" ستُنشأ فاتورة بيع تلقائية + 3 قيود
+            (بيع + تحصيل COD + COGS). عند "مرتجع" بعد التسليم ستُعكس القيود تلقائيًا.
+          </div>
+        </div>
+        {% if order.sales_invoice_id %}
+        <div class="dp-callout tone-success mt-2">
+          <div>
+            <strong class="dp-callout-title">فاتورة مرتبطة ✓</strong>
+            تم إنشاء
+            <a href="{{ url_for('sales.view', invoice_id=order.sales_invoice_id) }}"
+               dir="ltr" class="fw-bold">{{ order.sales_invoice.doc_number }}</a>
+            بإجمالي <strong>{{ order.sales_invoice.total | money }}</strong>.
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Summary -->
+    <div class="card">
+      <div class="card-header">الملخّص</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-6 text-muted small">الفرعي</dt>
+          <dd class="col-6 text-end">{{ order.subtotal | money }}</dd>
+          {% if order.tax_amount > 0 %}
+          <dt class="col-6 text-muted small">الضريبة</dt>
+          <dd class="col-6 text-end">{{ order.tax_amount | money }}</dd>
+          {% endif %}
+          <dt class="col-6 text-muted small">الشحن</dt>
+          <dd class="col-6 text-end">{{ order.shipping_fee | money }}</dd>
+          <hr>
+          <dt class="col-6 fw-bold">الإجمالي</dt>
+          <dd class="col-6 text-end fw-bold" style="color:var(--dp-brand);">{{ order.total | money }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">بيانات الشحن</div>
+      <div class="card-body">
+        <div class="fw-bold mb-1">{{ order.customer_display_name }}</div>
+        <div class="small text-muted" dir="ltr">{{ order.customer_phone }}</div>
+        <hr>
+        <div><strong>{{ order.shipping_city or 'المدينة —' }}</strong></div>
+        <div style="white-space:pre-line">{{ order.shipping_address }}</div>
+        {% if order.shipping_notes %}
+        <div class="small text-muted mt-2">📝 {{ order.shipping_notes }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

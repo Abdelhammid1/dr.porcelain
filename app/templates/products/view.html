@@ -1,0 +1,226 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ product.name_ar }}{% endblock %}
+{% block page_title %}{{ product.name_ar }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      {{ product.name_ar }}
+      {% if not product.is_active %}<span class="badge-status muted">موقوف</span>{% endif %}
+    </h1>
+    <div class="subtitle">
+      {{ product.category.full_path_ar if product.category else "—" }}
+      {% if product.brand %} · {{ product.brand }}{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if current_user.can("products.manage") %}
+    <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-pencil"></i> تعديل
+    </a>
+    {% endif %}
+    <a href="{{ url_for('products.index') }}" class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> رجوع
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-boxes"></i></div>
+      <div>
+        <div class="kpi-label">إجمالي المخزون</div>
+        <div class="kpi-value">{{ product.total_stock | qty }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-palette"></i></div>
+      <div>
+        <div class="kpi-label">عدد المتغيرات</div>
+        <div class="kpi-value">{{ product.variants|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-tag"></i></div>
+      <div>
+        <div class="kpi-label">السعر الافتراضي</div>
+        <div class="kpi-value" style="font-size:1.1rem">{{ product.default_price | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-percent"></i></div>
+      <div>
+        <div class="kpi-label">الضريبة</div>
+        <div class="kpi-value" style="font-size:1.1rem">
+          {% if product.tax_rate_override is not none %}{{ product.tax_rate_override }}%{% else %}افتراضي{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>المتغيرات والمخزون</span>
+    {% if current_user.can("products.manage") %}
+    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+      <i class="bi bi-plus"></i> إضافة متغير
+    </button>
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>اللون</th>
+          <th>الباركود</th>
+          <th>السعر</th>
+          <th>متوسط التكلفة</th>
+          <th>الرصيد</th>
+          <th>الحد الأدنى</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in product.variants %}
+        <tr>
+          <td dir="ltr" class="fw-semibold">{{ v.sku }}</td>
+          <td>{{ v.color or "—" }}</td>
+          <td dir="ltr" class="small text-muted">{{ v.barcode or "—" }}</td>
+          <td>{{ v.price | money }}</td>
+          <td>{{ v.avg_cost | money }}</td>
+          <td>
+            {{ v.stock_qty | qty }}
+            {% if v.is_low_stock %}<span class="badge-status warning ms-1">منخفض</span>{% endif %}
+          </td>
+          <td>{{ v.reorder_level | qty }}</td>
+          <td>
+            {% if v.is_active %}<span class="badge-status success">نشط</span>
+            {% else %}<span class="badge-status muted">موقوف</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('products.variant_movements', variant_id=v.id) }}"
+               class="btn btn-sm btn-outline-primary" title="حركة المخزون">
+              <i class="bi bi-list-ul"></i>
+            </a>
+            {% if current_user.can("products.manage") %}
+            <button class="btn btn-sm btn-outline-secondary" title="تعديل"
+                    data-bs-toggle="modal" data-bs-target="#editVariant{{ v.id }}">
+              <i class="bi bi-pencil"></i>
+            </button>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% if current_user.can("products.manage") %}
+        <!-- Modal تعديل المتغير -->
+        <div class="modal fade" id="editVariant{{ v.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <form method="post" action="{{ url_for('products.variants_edit', variant_id=v.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">تعديل المتغير</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">SKU</label>
+                      <input name="sku" class="form-control" value="{{ v.sku }}" dir="ltr">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">اللون</label>
+                      <input name="color" class="form-control" value="{{ v.color or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">الباركود</label>
+                      <input name="barcode" class="form-control" value="{{ v.barcode or '' }}" dir="ltr">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">السعر</label>
+                      <input name="price" type="number" step="0.001" class="form-control" value="{{ v.price }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">الحد الأدنى</label>
+                      <input name="reorder_level" type="number" step="0.001" class="form-control" value="{{ v.reorder_level }}">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="is_active" id="active{{ v.id }}"
+                               {% if v.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="active{{ v.id }}">نشط</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+                  <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if product.description %}
+<div class="card mt-3">
+  <div class="card-header">الوصف</div>
+  <div class="card-body" style="white-space:pre-line">{{ product.description }}</div>
+</div>
+{% endif %}
+
+<!-- Modal إضافة متغير جديد -->
+{% if current_user.can("products.manage") %}
+<div class="modal fade" id="addVariantModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{{ url_for('products.variants_add', product_id=product.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">إضافة متغير جديد</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">اللون</label>
+              <input name="color" class="form-control" placeholder="مثال: أزرق">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">السعر</label>
+              <input name="price" type="number" step="0.001" class="form-control"
+                     value="{{ product.default_price }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">الحد الأدنى للتنبيه</label>
+              <input name="reorder_level" type="number" step="0.001" class="form-control" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">إضافة</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

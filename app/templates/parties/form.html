@@ -1,0 +1,128 @@
+{% extends "layouts/app.html" %}
+{% block title %}{% if mode == 'create' %}{{ labels.new }}{% else %}تعديل {{ party.name_ar }}{% endif %}{% endblock %}
+{% block page_title %}{% if mode == 'create' %}{{ labels.new }}{% else %}تعديل {{ labels.singular }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if mode == 'create' %}إضافة {{ labels.new }}{% else %}تعديل {{ party.name_ar }} <span class="text-muted" dir="ltr" style="font-size:0.75em">({{ party.code }})</span>{% endif %}</h1>
+    <div class="subtitle">
+      {% if mode == 'create' %}
+        سيتم فتح حساب فرعي تلقائي تحت {{ '1200 (ذمم عملاء)' if party_type.value == 'customer' else '2100 (ذمم موردين)' }}.
+      {% else %}
+        الحساب المرتبط: <strong dir="ltr">{{ party.account.code }}</strong>
+      {% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('parties.index', type_str=party_type.value) }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-right"></i> رجوع
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card">
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.name_ar.label(class="form-label") }}
+              {{ form.name_ar(class="form-control form-control-lg") }}
+              {% for e in form.name_ar.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.phone.label(class="form-label") }}
+              {{ form.phone(class="form-control form-control-lg") }}
+              {% for e in form.phone.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              {{ form.email.label(class="form-label") }}
+              {{ form.email(class="form-control") }}
+              {% for e in form.email.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.tax_number.label(class="form-label") }}
+              {{ form.tax_number(class="form-control") }}
+              {% for e in form.tax_number.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-12">
+              {{ form.address.label(class="form-label") }}
+              {{ form.address(class="form-control") }}
+            </div>
+
+            <div class="col-12">
+              {{ form.notes.label(class="form-label") }}
+              {{ form.notes(class="form-control") }}
+            </div>
+
+            {% if mode == 'edit' %}
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_active(class="form-check-input") }}
+                {{ form.is_active.label(class="form-check-label") }}
+                <div class="form-text">عند إلغاء التنشيط لن يظهر الطرف في الفواتير الجديدة، لكن يظل في الكشوف والتقارير.</div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+          <div>
+            {% if mode == 'edit' and current_user.can("parties.manage") %}
+              <button type="button" class="btn btn-outline-danger btn-sm"
+                      data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="bi bi-trash"></i> حذف نهائي
+              </button>
+            {% endif %}
+          </div>
+          <div>
+            <a href="{{ url_for('parties.index', type_str=party_type.value) }}" class="btn btn-light">إلغاء</a>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">تلميحات</div>
+      <div class="card-body small text-muted">
+        <ul class="mb-0 ps-3">
+          <li>الاسم الوحيد الإجباري.</li>
+          <li>رقم الهاتف يجب أن يكون فريدًا لكل {{ labels.singular }}.</li>
+          <li>الرقم الضريبي مطلوب فقط للتعاملات B2B الرسمية.</li>
+          <li>لا يمكن حذف {{ labels.singular }} له حركة محاسبية — يمكن إيقافه فقط.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if mode == 'edit' %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تأكيد الحذف</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        هل أنت متأكد من حذف <strong>{{ party.name_ar }}</strong> نهائيًا؟<br>
+        <span class="text-danger">لا يمكن التراجع.</span> لن يتم الحذف إذا كان له أي حركة محاسبية.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+        <form method="post" action="{{ url_for('parties.delete', type_str=party_type.value, party_id=party.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger">حذف نهائي</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

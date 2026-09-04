@@ -1,0 +1,94 @@
+{% extends "storefront/_base.html" %}
+{% block title %}{{ category.name_ar }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px;">
+  <div style="color:var(--dp-ink-3); font-size:0.85rem; margin-bottom:8px;">
+    <a href="{{ url_for('storefront.home') }}" style="color:var(--dp-ink-3);">الرئيسية</a>
+    <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
+    <span>{{ category.name_ar }}</span>
+  </div>
+  <h1 style="font-size:2rem; font-weight:800; margin:0;">{{ category.name_ar }}</h1>
+  <div style="color:var(--dp-ink-3); margin-top:4px;">{{ variants|length }} منتج</div>
+</div>
+
+<div style="display:grid; grid-template-columns:280px 1fr; gap:24px;">
+  <!-- Filters sidebar -->
+  <aside>
+    <div class="card" style="padding:20px;">
+      <h6 style="font-weight:800; margin-bottom:14px;">الفلاتر</h6>
+      <form method="get">
+        <div style="margin-bottom:16px;">
+          <label class="form-label small">بحث</label>
+          <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm"
+                 placeholder="اسم المنتج">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="form-label small">نطاق السعر</label>
+          <div style="display:flex; gap:6px;">
+            <input type="number" name="price_min" value="{{ price_min or '' }}"
+                   class="form-control form-control-sm" placeholder="من">
+            <input type="number" name="price_max" value="{{ price_max or '' }}"
+                   class="form-control form-control-sm" placeholder="إلى">
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="form-label small">الترتيب</label>
+          <select name="sort" class="form-select form-select-sm">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>الأحدث</option>
+            <option value="best_selling" {% if sort == 'best_selling' %}selected{% endif %}>الأكثر مبيعًا</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>السعر: من الأقل</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>السعر: من الأعلى</option>
+          </select>
+        </div>
+        <button type="submit" class="sf-btn-primary" style="width:100%;">
+          <i class="bi bi-funnel"></i> تطبيق
+        </button>
+      </form>
+    </div>
+
+    {% if category.children %}
+    <div class="card mt-3" style="padding:20px;">
+      <h6 style="font-weight:800; margin-bottom:10px;">التصنيفات الفرعية</h6>
+      {% for sub in category.children %}
+      <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
+         style="display:block; padding:6px 0; color:var(--dp-ink-2); text-decoration:none; font-size:0.9rem;">
+        <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
+        {{ sub.name_ar }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- Products grid -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px; align-content:start;">
+    {% for v in variants %}
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
+      <div class="sf-product-image">
+        <i class="bi bi-box"></i>
+      </div>
+      <div class="sf-product-body">
+        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
+        <div class="sf-product-name">{{ v.display_name }}</div>
+        <div class="sf-product-price">{{ v.price | money }}</div>
+        <form method="post" action="{{ url_for('storefront.cart_add') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="variant_id" value="{{ v.id }}">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}>
+            <i class="bi bi-basket-fill"></i>
+            {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
+          </button>
+        </form>
+      </div>
+    </a>
+    {% else %}
+    <div style="grid-column:1/-1; padding:60px 20px; text-align:center; background:white; border-radius:14px; color:var(--dp-ink-3);">
+      <div style="font-size:3rem; opacity:0.4;">📦</div>
+      <p style="margin:14px 0 0;">لا توجد منتجات في هذا القسم</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}الصفحة غير موجودة{% endblock %}
+{% block body %}
+<div class="login-page">
+  <div class="login-card text-center">
+    <div class="login-card__logo">404</div>
+    <h1>الصفحة غير موجودة</h1>
+    <p class="subtitle">الرابط المطلوب لا يوجد أو تم نقله.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">العودة للرئيسية</a>
+  </div>
+</div>
+{% endblock %}

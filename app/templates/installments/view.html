@@ -1,0 +1,211 @@
+{% extends "layouts/app.html" %}
+{% block title %}خطة تقسيط {{ plan.doc_number }}{% endblock %}
+{% block page_title %}خطة تقسيط {{ plan.doc_number }}{% endblock %}
+
+{% set plan_status_labels = {
+  'active':    ('نشطة',    'info'),
+  'completed': ('مكتملة',  'success'),
+  'cancelled': ('ملغاة',   'muted'),
+} %}
+{% set line_status_labels = {
+  'pending': ('مستحق',   'muted'),
+  'partial': ('جزئي',    'warning'),
+  'paid':    ('مدفوع',   'success'),
+  'overdue': ('متأخر',   'danger'),
+} %}
+{% set st = plan_status_labels.get(plan.status.value, (plan.status.value, 'muted')) %}
+{% set freq_labels = {'monthly':'شهري','biweekly':'كل أسبوعين','weekly':'أسبوعي'} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      خطة <span dir="ltr">{{ plan.doc_number }}</span>
+      <span class="badge badge-{{ st[1] }} ms-2">{{ st[0] }}</span>
+    </h1>
+    <div class="subtitle">
+      {{ plan.customer.name_ar }} · {{ plan.installments_count }} أقساط
+      <span dir="ltr">({{ freq_labels.get(plan.frequency.value, plan.frequency.value) }})</span> ·
+      من فاتورة <a href="{{ url_for('sales.view', invoice_id=plan.sales_invoice.id) }}" dir="ltr">{{ plan.sales_invoice.doc_number }}</a>
+    </div>
+  </div>
+  <a href="{{ url_for('installments.index') }}" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع
+  </a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-cash"></i></div>
+      <div>
+        <div class="stat-tile-label">إجمالي الفاتورة</div>
+        <div class="stat-tile-value">{{ plan.total_amount | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-down-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">المقدم</div>
+        <div class="stat-tile-value">{{ plan.down_payment | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-check2-all"></i></div>
+      <div>
+        <div class="stat-tile-label">مسدَّد من الأقساط</div>
+        <div class="stat-tile-value">{{ plan.total_paid | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-danger">
+      <div class="stat-tile-icon"><i class="bi bi-exclamation-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">المتبقي</div>
+        <div class="stat-tile-value">{{ plan.total_remaining | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">جدول الأقساط</div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>المبلغ</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الحالة</th>
+          <th class="text-end">تحصيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in plan.schedule %}
+        {% set lst = line_status_labels.get(line.status.value, (line.status.value, 'muted')) %}
+        <tr>
+          <td class="fw-bold">{{ line.number }}</td>
+          <td>{{ line.due_date.strftime('%Y/%m/%d') }}</td>
+          <td>{{ line.amount | money }}</td>
+          <td>{{ line.paid_amount | money }}</td>
+          <td class="fw-bold">{{ line.remaining | money }}</td>
+          <td><span class="badge badge-{{ lst[1] }}">{{ lst[0] }}</span></td>
+          <td class="text-end">
+            {% if line.status.value != 'paid' and plan.status.value == 'active' and current_user.can("installments.collect") %}
+            <button class="btn-primary btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#collectModal{{ line.id }}">
+              <i class="bi bi-cash"></i> تحصيل
+            </button>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% if line.status.value != 'paid' and plan.status.value == 'active' and current_user.can("installments.collect") %}
+        <!-- Modal تحصيل -->
+        <div class="modal fade" id="collectModal{{ line.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <form method="post" action="{{ url_for('installments.collect', line_id=line.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">تحصيل قسط {{ line.number }} — {{ plan.customer.name_ar }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="dp-callout tone-info">
+                    <div>
+                      <strong>المتبقي على القسط:</strong> {{ line.remaining | money }}<br>
+                      تاريخ الاستحقاق: {{ line.due_date.strftime('%Y/%m/%d') }}
+                    </div>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">المبلغ *</label>
+                      <input type="number" name="amount" class="form-control form-control-lg"
+                             step="0.001" min="0.001" max="{{ line.remaining }}"
+                             value="{{ line.remaining }}" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">تاريخ التحصيل</label>
+                      <input type="date" name="collection_date" class="form-control"
+                             value="{{ ''|hdate if False else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">طريقة الدفع</label>
+                      <select name="method" class="form-select">
+                        <option value="cash" selected>نقدي</option>
+                        <option value="bank">بنك</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">ملاحظة (اختياري)</label>
+                      <input type="text" name="memo" class="form-control">
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn-light" data-bs-dismiss="modal">إلغاء</button>
+                  <button type="submit" class="btn-primary">
+                    <i class="bi bi-check-lg"></i> تأكيد التحصيل
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if plan.collections %}
+<div class="card mt-3">
+  <div class="card-header">سجل التحصيلات</div>
+  <div class="table-scroll">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr>
+          <th>رقم السند</th>
+          <th>التاريخ</th>
+          <th>القسط</th>
+          <th>المبلغ</th>
+          <th>طريقة الدفع</th>
+          <th>ملاحظة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in plan.collections %}
+        <tr>
+          <td dir="ltr">{{ c.doc_number }}</td>
+          <td>{{ c.collection_date.strftime('%Y/%m/%d') }}</td>
+          <td>#{{ c.schedule_line.number }}</td>
+          <td class="fw-bold">{{ c.amount | money }}</td>
+          <td>{% if c.method == 'cash' %}نقدي{% elif c.method == 'bank' %}بنك{% else %}{{ c.method }}{% endif %}</td>
+          <td class="small text-muted">{{ c.memo or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if plan.notes %}
+<div class="card mt-3">
+  <div class="card-header">ملاحظات</div>
+  <div class="card-body" style="white-space:pre-line">{{ plan.notes }}</div>
+</div>
+{% endif %}
+{% endblock %}

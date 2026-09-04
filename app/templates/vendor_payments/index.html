@@ -1,0 +1,79 @@
+{% extends "layouts/app.html" %}
+{% block title %}جداول سداد الموردين{% endblock %}
+{% block page_title %}جداول سداد الموردين{% endblock %}
+
+{% set status_labels = {
+  'active':    ('نشط',    'info'),
+  'completed': ('مكتمل',  'success'),
+  'cancelled': ('ملغى',   'muted'),
+} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>جداول سداد الموردين</h1>
+    <div class="subtitle">{{ schedules|length }} جدول</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('purchases.index', status='posted') }}" class="btn-secondary">
+      <i class="bi bi-plus-lg"></i> إرفاق جدول لفاتورة
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>الفاتورة</th>
+          <th>المورد</th>
+          <th>الإجمالي</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الدفعات</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        {% set st = status_labels.get(s.status.value, (s.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('vendor_payments.view', schedule_id=s.id) }}" class="text-decoration-none">
+              {{ s.purchase_invoice.doc_number }}
+            </a>
+          </td>
+          <td>{{ s.vendor.name_ar }}</td>
+          <td>{{ s.total_amount | money }}</td>
+          <td>{{ s.total_paid | money }}</td>
+          <td class="fw-bold">{{ s.total_remaining | money }}</td>
+          <td>
+            <span class="dp-chip tone-brand">{{ s.lines|selectattr('status.value','equalto','paid')|list|length }} / {{ s.lines|length }}</span>
+            {% if s.overdue_lines %}
+              <span class="dp-chip tone-danger">متأخر {{ s.overdue_lines|length }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('vendor_payments.view', schedule_id=s.id) }}"
+               class="btn-icon" title="عرض"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="empty-state-icon">📄</div>
+              <div class="empty-state-title">لا توجد جداول سداد بعد</div>
+              <div class="empty-state-sub">أنشئ فاتورة شراء آجلة ثم أرفِق لها جدول سداد.</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

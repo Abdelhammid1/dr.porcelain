@@ -1,0 +1,207 @@
+{% extends "layouts/app.html" %}
+{% block title %}لوحة المعلومات{% endblock %}
+{% block page_title %}لوحة المعلومات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>مرحبًا، {{ current_user.full_name }}</h1>
+    <div class="subtitle">
+      نظرة شاملة على أداء المتجر · محدَّث الآن {{ data.generated_at.strftime('%H:%M') }}
+    </div>
+  </div>
+</div>
+
+<!-- KPI اليوم / الأسبوع / الشهر -->
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-sun"></i></div>
+      <div>
+        <div class="stat-tile-label">مبيعات اليوم</div>
+        <div class="stat-tile-value">{{ data.today.total | money }}</div>
+        <div class="stat-tile-hint">{{ data.today.invoices_count }} فاتورة</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-calendar-week"></i></div>
+      <div>
+        <div class="stat-tile-label">مبيعات الأسبوع</div>
+        <div class="stat-tile-value">{{ data.week.total | money }}</div>
+        <div class="stat-tile-hint">{{ data.week.invoices_count }} فاتورة</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-calendar-month"></i></div>
+      <div>
+        <div class="stat-tile-label">مبيعات الشهر</div>
+        <div class="stat-tile-value">{{ data.month.total | money }}</div>
+        <div class="stat-tile-hint">
+          POS: {{ data.month.pos_total | money }} · أونلاين: {{ data.month.online_total | money }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ربح الشهر + تنبيهات -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
+      <div>
+        <div class="stat-tile-label">صافي ربح الشهر (تقريبي)</div>
+        <div class="stat-tile-value">{{ data.net_profit_month | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('installments.overdue') }}" class="text-decoration-none">
+      <div class="stat-tile stat-tile-with-icon {% if data.overdue_installments > 0 %}tone-danger{% endif %}">
+        <div class="stat-tile-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+          <div class="stat-tile-label">أقساط متأخرة</div>
+          <div class="stat-tile-value">{{ data.overdue_installments }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon {% if data.due_today_installments > 0 %}tone-warning{% endif %}">
+      <div class="stat-tile-icon"><i class="bi bi-clock"></i></div>
+      <div>
+        <div class="stat-tile-label">أقساط مستحقة اليوم</div>
+        <div class="stat-tile-value">{{ data.due_today_installments }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('products.index', low_stock=1) }}" class="text-decoration-none">
+      <div class="stat-tile stat-tile-with-icon {% if data.low_stock_variants|length > 0 %}tone-warning{% endif %}">
+        <div class="stat-tile-icon"><i class="bi bi-box-seam"></i></div>
+        <div>
+          <div class="stat-tile-label">منتجات بمخزون منخفض</div>
+          <div class="stat-tile-value">{{ data.low_stock_variants|length }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- أعلى المنتجات مبيعًا -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>أعلى المنتجات مبيعًا هذا الشهر</span>
+        <a href="{{ url_for('reports.profitability_view') }}" class="btn-sm btn-secondary">
+          <i class="bi bi-graph-up"></i> تقرير الربحية
+        </a>
+      </div>
+      <div class="table-scroll">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المنتج</th>
+              <th>الكمية</th>
+              <th class="text-end">الإيراد</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tp in data.top_products_month %}
+            <tr>
+              <td class="fw-bold">{{ loop.index }}</td>
+              <td>
+                <a href="{{ url_for('products.view', product_id=tp.product.id) }}"
+                   class="text-decoration-none fw-semibold">{{ tp.product.name_ar }}</a>
+              </td>
+              <td>{{ tp.qty_sold | qty }}</td>
+              <td class="text-end fw-bold">{{ tp.revenue | money }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📦</div>
+                  <div class="empty-state-title">لا توجد مبيعات هذا الشهر بعد</div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- تنبيهات المخزون -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>مخزون منخفض</span>
+        <a href="{{ url_for('products.index', low_stock=1) }}" class="btn-sm btn-secondary">
+          عرض الكل
+        </a>
+      </div>
+      <div class="table-scroll" style="max-height:400px">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الرصيد</th>
+              <th>الحد الأدنى</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in data.low_stock_variants %}
+            <tr>
+              <td>
+                <a href="{{ url_for('products.view', product_id=v.product_id) }}"
+                   class="text-decoration-none">{{ v.display_name }}</a>
+              </td>
+              <td class="fw-bold text-danger">{{ v.stock_qty | qty }}</td>
+              <td class="text-muted small">{{ v.reorder_level | qty }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3">
+                <div class="empty-state">
+                  <div class="empty-state-icon">✅</div>
+                  <div class="empty-state-title">كل المنتجات فوق الحد الأدنى</div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- روابط سريعة -->
+<div class="card mt-3">
+  <div class="card-header">إحصائيات المتجر</div>
+  <div class="card-body">
+    <div class="row g-3 text-center">
+      <div class="col-md-4">
+        <div class="text-muted small">إجمالي العملاء النشطين</div>
+        <div class="fs-3 fw-bold">{{ data.total_customers }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">إجمالي المنتجات</div>
+        <div class="fs-3 fw-bold">{{ data.total_products }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">إجمالي المتغيرات النشطة (SKU)</div>
+        <div class="fs-3 fw-bold">{{ data.total_active_variants }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

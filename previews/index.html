@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>معاينات — دكتور بورسلين</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --brand: #0284c7;
+      --brand-dark: #0369a1;
+      --brand-tint: #E0F2FE;
+      --dark: #0f172a;
+      --muted: #64748b;
+      --bg: #f5f8fb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Cairo", "Tajawal", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #0369a1 100%);
+      color: white;
+      padding: 60px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.20), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(2, 132, 199, 0.20), transparent 40%);
+    }
+    .hero > * { position: relative; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 165, 233, 0.20);
+      color: #bae6fd;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 12px; }
+    .hero p { color: #cbd5e1; font-size: 1.05rem; max-width: 640px; margin: 0 auto; line-height: 1.7; }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 32px;
+      margin-top: 30px; flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num {
+      display: block; font-size: 2rem; font-weight: 800; color: #7dd3fc;
+    }
+    .hero-stat .label { font-size: 0.8rem; color: #94a3b8; }
+
+    .container { max-width: 1200px; margin: -40px auto 60px; padding: 0 20px; position: relative; }
+    .section { margin-bottom: 40px; }
+    .section-title {
+      font-size: 1.15rem; font-weight: 800; color: var(--dark);
+      margin: 24px 0 12px;
+      padding-inline-start: 12px;
+      border-inline-start: 4px solid var(--brand);
+    }
+    .section-hint { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+      text-decoration: none; color: inherit;
+      transition: all 0.15s ease;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--brand);
+      box-shadow: 0 12px 24px rgba(2, 132, 199, 0.12);
+    }
+    .card-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: var(--brand-tint); color: var(--brand);
+      display: grid; place-items: center; font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .card-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+    .card-cta {
+      color: var(--brand); font-size: 0.8rem; font-weight: 600;
+      margin-top: auto; display: flex; align-items: center; gap: 6px;
+    }
+    .card-cta i { transition: transform 0.15s ease; }
+    .card:hover .card-cta i { transform: translateX(-4px); }
+    .card-pdf .card-icon { background: #fef2f2; color: #dc2626; }
+    .card-pos .card-icon { background: #f0fdf4; color: #16a34a; }
+    .card-report .card-icon { background: #eff6ff; color: #2563eb; }
+
+    .footer {
+      text-align: center; color: var(--muted); font-size: 0.85rem;
+      padding: 30px 20px; border-top: 1px solid var(--border); background: white;
+    }
+    .footer strong { color: var(--dark); }
+    .note {
+      background: #fefce8; border: 1px solid #fde68a; color: #713f12;
+      padding: 12px 18px; border-radius: 10px; margin-bottom: 24px;
+      font-size: 0.9rem; line-height: 1.6;
+    }
+    .note strong { color: #422006; }
+    .design-badge {
+      background: var(--brand-tint); color: var(--brand-dark);
+      border: 1px solid #7dd3fc;
+      padding: 10px 16px; border-radius: 10px; margin-bottom: 24px;
+      font-size: 0.9rem; line-height: 1.6;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .design-badge i { font-size: 1.4rem; }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="hero-badge">
+    <i class="bi bi-eye"></i> نظام تصميم جديد — مقتبس من مرصود
+  </span>
+  <h1>دكتور بورسلين — النظام المحاسبي والمتجر</h1>
+  <p>
+    مجموعة معاينات لواجهات النظام المكتمل حتى الآن: الأساس المحاسبي (قيود، فواتير، مخزون، تقارير)
+    ونقطة البيع (POS) بشاشة كاشير كاملة وإيصال حراري 80mm.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num">13</span><span class="label">شاشة معاينة</span></div>
+    <div class="hero-stat"><span class="num">97</span><span class="label">اختبار ✓</span></div>
+    <div class="hero-stat"><span class="num">2</span><span class="label">مرحلة مكتملة</span></div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="design-badge">
+    <i class="bi bi-palette"></i>
+    <div>
+      <strong>نظام التصميم:</strong> تم اعتماد بنية <strong>مرصود (Marsoud)</strong>
+      كاملةً — سايدبار مطوّية بأقسام + خط Cairo + بطاقات KPI + دليل شامل للألوان والمسافات —
+      مع تبديل لون العلامة من الأخضر إلى <span style="color:var(--brand);font-weight:700">الأزرق السماوي</span>
+      المتناغم مع طبيعة المتجر (بورسلين وسيراميك).
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>ملاحظة للمراجع:</strong> هذه معاينات ثابتة (بدون سيرفر) — التخطيط والألوان والخطوط
+    ظاهرة بشكل حقيقي، لكن حقول البحث الحيّة والـ Modals قد لا تعمل هنا.
+  </div>
+
+  <section class="section">
+    <h2 class="section-title">الدخول والرئيسية</h2>
+    <p class="section-hint">شاشة تسجيل الدخول ولوحة المعلومات الرئيسية.</p>
+    <div class="grid">
+      <a href="login.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-shield-lock"></i></div>
+        <div class="card-title">تسجيل الدخول</div>
+        <div class="card-desc">تصميم أزرق سماوي بلوجو د.ب متدرّج.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="dashboard.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-speedometer2"></i></div>
+        <div class="card-title">لوحة المعلومات</div>
+        <div class="card-desc">السايدبار المطوّية بأقسام + بطاقات KPI.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">نقطة البيع (POS) — المرحلة 2</h2>
+    <p class="section-hint">شاشة الكاشير الكاملة وقفل الشيفت وإيصال حراري 80mm.</p>
+    <div class="grid">
+      <a href="pos-terminal.html" target="_blank" class="card card-pos">
+        <div class="card-icon"><i class="bi bi-cash-stack"></i></div>
+        <div class="card-title">شاشة البيع (Terminal)</div>
+        <div class="card-desc">شبكة منتجات + سلة + 3 أزرار دفع بلمسة واحدة.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="pos-close.html" target="_blank" class="card card-pos">
+        <div class="card-icon"><i class="bi bi-power"></i></div>
+        <div class="card-title">قفل الوردية</div>
+        <div class="card-desc">مقارنة النقدية الفعلية بالمتوقع + تسجيل الفروقات تلقائيًا.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="pos-receipt.html" target="_blank" class="card card-pos">
+        <div class="card-icon"><i class="bi bi-printer"></i></div>
+        <div class="card-title">إيصال حراري (80mm)</div>
+        <div class="card-desc">جاهز للطباعة على طابعة حرارية.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">فواتير المبيعات والمشتريات</h2>
+    <p class="section-hint">إنشاء وعرض الفواتير مع بحث حي عن العملاء والمنتجات.</p>
+    <div class="grid">
+      <a href="sales-new.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-receipt"></i></div>
+        <div class="card-title">فاتورة بيع جديدة</div>
+        <div class="card-desc">فورم إنشاء فاتورة مع حساب الإجماليات فوريًا.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="sales-list.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-list-ul"></i></div>
+        <div class="card-title">قائمة الفواتير</div>
+        <div class="card-desc">مع فلترة بالحالة والبحث.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="purchases-new.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-bag-check"></i></div>
+        <div class="card-title">فاتورة شراء جديدة</div>
+        <div class="card-desc">3 طرق دفع (نقدي/بنك/آجل).</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">البيانات الأساسية</h2>
+    <p class="section-hint">المنتجات والعملاء.</p>
+    <div class="grid">
+      <a href="products.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="card-title">قائمة المنتجات</div>
+        <div class="card-desc">فلترة بالتصنيف + تنبيه المخزون المنخفض.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="product-view.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-boxes"></i></div>
+        <div class="card-title">تفاصيل منتج (بمتغيرات)</div>
+        <div class="card-desc">4 بطاقات KPI + جدول المتغيرات (ألوان).</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="customers.html" target="_blank" class="card">
+        <div class="card-icon"><i class="bi bi-people"></i></div>
+        <div class="card-title">قائمة العملاء</div>
+        <div class="card-desc">رصيد كل عميل + رابط كشف الحساب.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">التقارير</h2>
+    <p class="section-hint">ميزان المراجعة وكشوف الحسابات — ويب و PDF.</p>
+    <div class="grid">
+      <a href="trial-balance.html" target="_blank" class="card card-report">
+        <div class="card-icon"><i class="bi bi-bar-chart"></i></div>
+        <div class="card-title">ميزان المراجعة (ويب)</div>
+        <div class="card-desc">شريط تنبيه بحالة التوازن + جدول تفصيلي.</div>
+        <div class="card-cta">عرض <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="trial-balance.pdf" target="_blank" class="card card-pdf">
+        <div class="card-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+        <div class="card-title">ميزان المراجعة (PDF)</div>
+        <div class="card-desc">PDF عربي RTL بخط Cairo — جاهز للإرسال.</div>
+        <div class="card-cta">فتح PDF <i class="bi bi-arrow-left"></i></div>
+      </a>
+      <a href="customer-statement.pdf" target="_blank" class="card card-pdf">
+        <div class="card-icon"><i class="bi bi-file-earmark-text"></i></div>
+        <div class="card-title">كشف حساب عميل (PDF)</div>
+        <div class="card-desc">كشف كامل بكل الحركات مع الرصيد الجاري.</div>
+        <div class="card-cta">فتح PDF <i class="bi bi-arrow-left"></i></div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>
+    <strong>دكتور بورسلين</strong> — نظام محاسبي ومتجر إلكتروني
+    · نظام تصميم مقتبس من مرصود مع لوحة ألوان مخصّصة
+  </div>
+  <div style="margin-top: 6px; opacity: 0.8;">
+    شلبي إنتليجنس للبرمجيات وحلول الذكاء الاصطناعي
+  </div>
+</footer>
+
+</body>
+</html>

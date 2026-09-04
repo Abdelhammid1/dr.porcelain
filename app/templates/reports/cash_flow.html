@@ -1,0 +1,110 @@
+{% extends "layouts/app.html" %}
+{% block title %}التدفق النقدي{% endblock %}
+{% block page_title %}تقرير التدفق النقدي{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>التدفق النقدي التشغيلي</h1>
+    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <button onclick="window.print()" class="btn-secondary">
+    <i class="bi bi-printer"></i> طباعة
+  </button>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">من</label>
+        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">إلى</label>
+        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-up-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">رصيد افتتاحي</div>
+        <div class="stat-tile-value">{{ cf.opening_balance | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-down-left"></i></div>
+      <div>
+        <div class="stat-tile-label">إجمالي الدخول</div>
+        <div class="stat-tile-value">{{ cf.total_inflow | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-danger">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-up-right"></i></div>
+      <div>
+        <div class="stat-tile-label">إجمالي الخروج</div>
+        <div class="stat-tile-value">{{ cf.total_outflow | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-brand">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-down-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">رصيد ختامي</div>
+        <div class="stat-tile-value">{{ cf.closing_balance | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">حركات النقدية والبنك</div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>المستند</th>
+          <th>الحساب</th>
+          <th>البيان</th>
+          <th class="text-end">دخول</th>
+          <th class="text-end">خروج</th>
+          <th class="text-end">الرصيد</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fw-bold" style="background:#f8fafc">
+          <td colspan="6">الرصيد الافتتاحي</td>
+          <td class="text-end">{{ cf.opening_balance | money }}</td>
+        </tr>
+        {% for m in cf.movements %}
+        <tr>
+          <td>{{ m.date.strftime('%Y/%m/%d') }}</td>
+          <td dir="ltr" class="small text-muted">{{ m.doc_number }}</td>
+          <td dir="ltr" class="small">{{ m.account_code }}</td>
+          <td class="small">{{ m.memo or "—" }}</td>
+          <td class="text-end" style="color:var(--dp-success)">{{ m.inflow | money if m.inflow > 0 else '—' }}</td>
+          <td class="text-end" style="color:var(--dp-danger)">{{ m.outflow | money if m.outflow > 0 else '—' }}</td>
+          <td class="text-end fw-bold">{{ m.running_balance | money }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">لا توجد حركات نقدية في هذه الفترة</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

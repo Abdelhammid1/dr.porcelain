@@ -1,0 +1,118 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ party.name_ar }}{% endblock %}
+{% block page_title %}{{ labels.singular }} — {{ party.name_ar }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      {{ party.name_ar }}
+      <span class="text-muted" dir="ltr" style="font-size:0.7em">{{ party.code }}</span>
+      {% if not party.is_active %}<span class="badge-status muted">موقوف</span>{% endif %}
+    </h1>
+    <div class="subtitle">حساب فرعي: <strong dir="ltr">{{ party.account.code }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('parties.statement', type_str=party_type.value, party_id=party.id) }}"
+       class="btn btn-primary">
+      <i class="bi bi-file-earmark-text"></i> كشف الحساب
+    </a>
+    {% if current_user.can("parties.manage") %}
+    <a href="{{ url_for('parties.edit', type_str=party_type.value, party_id=party.id) }}"
+       class="btn btn-outline-secondary">
+      <i class="bi bi-pencil"></i> تعديل
+    </a>
+    {% endif %}
+    <a href="{{ url_for('parties.index', type_str=party_type.value) }}"
+       class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> رجوع
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+      <div>
+        <div class="kpi-label">
+          {% if party_type.value == 'customer' %}مستحق على العميل{% else %}مستحق للمورد{% endif %}
+        </div>
+        <div class="kpi-value">{{ balance | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
+      <div>
+        <div class="kpi-label">تاريخ التسجيل</div>
+        <div class="kpi-value" style="font-size:1rem">{{ party.created_at | hdate }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-{{ 'person-check' if party_type.value == 'customer' else 'truck' }}"></i></div>
+      <div>
+        <div class="kpi-label">النوع</div>
+        <div class="kpi-value" style="font-size:1rem">{{ labels.singular }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">بيانات التواصل</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">الاسم</dt>
+          <dd class="col-sm-8">{{ party.name_ar }}</dd>
+
+          <dt class="col-sm-4 text-muted">الهاتف</dt>
+          <dd class="col-sm-8" dir="ltr">{{ party.phone or "—" }}</dd>
+
+          <dt class="col-sm-4 text-muted">البريد</dt>
+          <dd class="col-sm-8" dir="ltr">{{ party.email or "—" }}</dd>
+
+          <dt class="col-sm-4 text-muted">العنوان</dt>
+          <dd class="col-sm-8" style="white-space:pre-line">{{ party.address or "—" }}</dd>
+
+          <dt class="col-sm-4 text-muted">الرقم الضريبي</dt>
+          <dd class="col-sm-8" dir="ltr">{{ party.tax_number or "—" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">الحساب المحاسبي المرتبط</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">كود الحساب</dt>
+          <dd class="col-sm-8" dir="ltr"><strong>{{ party.account.code }}</strong></dd>
+
+          <dt class="col-sm-4 text-muted">اسم الحساب</dt>
+          <dd class="col-sm-8">{{ party.account.name_ar }}</dd>
+
+          <dt class="col-sm-4 text-muted">النوع</dt>
+          <dd class="col-sm-8">{{ party.account.type.label_ar }}</dd>
+
+          <dt class="col-sm-4 text-muted">الحساب الأب</dt>
+          <dd class="col-sm-8" dir="ltr">{{ party.account.parent.code }} - {{ party.account.parent.name_ar }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if party.notes %}
+    <div class="card mt-3">
+      <div class="card-header">ملاحظات</div>
+      <div class="card-body" style="white-space:pre-line">{{ party.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

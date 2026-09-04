@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>إيصال {{ invoice.doc_number }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* شاشة العرض */
+    body {
+      font-family: "Cairo", "Tajawal", monospace;
+      background: #eef2f7; margin: 0; padding: 20px;
+    }
+    .receipt {
+      width: 76mm;
+      margin: 0 auto;
+      background: white;
+      padding: 8mm 5mm;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      color: #000;
+    }
+    .center { text-align: center; }
+    .row-flex { display: flex; justify-content: space-between; }
+    .divider { border-top: 1px dashed #666; margin: 6px 0; }
+    .store-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 3px; }
+    .small { font-size: 0.75rem; }
+    .doc-info { font-size: 0.85rem; margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+    table th { text-align: right; font-size: 0.7rem; padding: 3px 0; border-bottom: 1px solid #999; }
+    table td { padding: 4px 0; font-size: 0.8rem; vertical-align: top; }
+    table td.qty, table td.total { text-align: end; }
+    .totals { margin-top: 8px; }
+    .totals .row-flex { padding: 2px 0; font-size: 0.85rem; }
+    .totals .grand {
+      font-size: 1.1rem; font-weight: 800;
+      border-top: 2px solid #000; padding-top: 5px !important; margin-top: 5px;
+    }
+    .footer { text-align: center; margin-top: 10px; font-size: 0.75rem; }
+    .thanks { font-weight: 700; margin: 8px 0; }
+    .actions { text-align: center; padding: 10px; }
+    .actions button {
+      background: #0ea5e9; color: white; border: none;
+      padding: 8px 18px; border-radius: 6px; cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* الطباعة على طابعة حرارية 80mm */
+    @media print {
+      body { background: white; padding: 0; }
+      .receipt { width: 76mm; box-shadow: none; padding: 3mm 2mm; }
+      .actions { display: none; }
+      @page { size: 80mm auto; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="actions">
+    <button onclick="window.print()">🖨 طباعة</button>
+    <button onclick="window.close()" style="background:#64748b; margin-inline-start:4px">إغلاق</button>
+  </div>
+
+  <div class="receipt">
+    <div class="center">
+      <div class="store-name">{{ store_name }}</div>
+      {% if store_addr %}<div class="small">{{ store_addr }}</div>{% endif %}
+      {% if store_phone %}<div class="small" dir="ltr">{{ store_phone }}</div>{% endif %}
+      {% if tax_number %}<div class="small">الرقم الضريبي: {{ tax_number }}</div>{% endif %}
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="doc-info">
+      <div class="row-flex">
+        <span>رقم الفاتورة</span>
+        <strong dir="ltr">{{ invoice.doc_number }}</strong>
+      </div>
+      <div class="row-flex">
+        <span>التاريخ</span>
+        <span>{{ invoice.invoice_date.strftime('%Y/%m/%d') }} {{ invoice.created_at.strftime('%H:%M') }}</span>
+      </div>
+      <div class="row-flex">
+        <span>الكاشير</span>
+        <span>{{ invoice.created_by.full_name if invoice.created_by else "—" }}</span>
+      </div>
+      {% if invoice.customer.code != 'C-WALKIN' %}
+      <div class="row-flex">
+        <span>العميل</span>
+        <span>{{ invoice.customer.name_ar }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="divider"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>الصنف</th>
+          <th class="qty">الكمية</th>
+          <th class="qty">السعر</th>
+          <th class="total">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in invoice.lines %}
+        <tr>
+          <td>
+            {{ line.product_name }}
+          </td>
+          <td class="qty">{{ line.qty | qty }}</td>
+          <td class="qty">{{ line.unit_price | money }}</td>
+          <td class="total">{{ line.line_total | money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <div class="totals">
+      <div class="row-flex">
+        <span>الإجمالي الفرعي</span>
+        <span>{{ invoice.subtotal | money }}</span>
+      </div>
+      {% if invoice.discount_amount > 0 %}
+      <div class="row-flex">
+        <span>الخصم</span>
+        <span>- {{ invoice.discount_amount | money }}</span>
+      </div>
+      {% endif %}
+      {% if invoice.tax_amount > 0 %}
+      <div class="row-flex">
+        <span>الضريبة ({{ invoice.tax_rate }}%)</span>
+        <span>{{ invoice.tax_amount | money }}</span>
+      </div>
+      {% endif %}
+      <div class="row-flex grand">
+        <span>الإجمالي</span>
+        <span>{{ invoice.total | money }}</span>
+      </div>
+      <div class="row-flex" style="margin-top: 4px; font-size:0.8rem;">
+        <span>طريقة الدفع</span>
+        <strong>
+          {% if invoice.payment_method.value == 'cash' %}نقدي
+          {% elif invoice.payment_method.value == 'card' %}بطاقة
+          {% elif invoice.payment_method.value == 'wallet' %}محفظة
+          {% else %}{{ invoice.payment_method.value }}{% endif %}
+        </strong>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="footer">
+      <div class="thanks">شكرًا لتسوقك معنا</div>
+      <div class="small">هذا الإيصال دليل الشراء — احتفظ به.</div>
+    </div>
+  </div>
+
+  <script>
+    // طباعة تلقائية عند الفتح لو تم فتحه من نافذة POS
+    if (window.opener) {
+      setTimeout(() => window.print(), 300);
+    }
+  </script>
+</body>
+</html>

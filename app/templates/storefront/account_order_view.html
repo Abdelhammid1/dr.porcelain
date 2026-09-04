@@ -1,0 +1,144 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}طلب {{ order.doc_number }}{% endblock %}
+
+{% set order_status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+{% set st = order_status_labels.get(order.status.value, (order.status.value, 'muted')) %}
+{% set steps = [
+  ('pending',    'استلمنا طلبك', 'bi-inbox'),
+  ('processing', 'قيد التجهيز',  'bi-box-seam'),
+  ('shipped',    'تم الشحن',     'bi-truck'),
+  ('delivered',  'تم التسليم',   'bi-check-circle'),
+] %}
+{% set current_step_index = 0 %}
+{% for s, _, _ in steps %}
+  {% if s == order.status.value %}{% set current_step_index = loop.index0 %}{% endif %}
+{% endfor %}
+
+{% block portal_content %}
+<div style="margin-bottom:20px;">
+  <a href="{{ url_for('storefront.account_orders') }}"
+     style="color:var(--dp-ink-3); text-decoration:none; font-size:0.85rem;">
+    <i class="bi bi-arrow-right"></i> رجوع للطلبات
+  </a>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+  <div>
+    <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 4px;">
+      طلب <span dir="ltr">{{ order.doc_number }}</span>
+    </h1>
+    <div style="color:var(--dp-ink-3);">{{ order.order_date | hdate }}</div>
+  </div>
+  <span class="badge badge-{{ st[1] }}" style="font-size:0.9rem; padding:6px 14px;">{{ st[0] }}</span>
+</div>
+
+<!-- Timeline (only for non-cancelled) -->
+{% if order.status.value not in ['cancelled', 'returned'] %}
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:24px; margin-bottom:20px;">
+  <div style="display:grid; grid-template-columns:repeat({{ steps|length }}, 1fr); gap:8px; position:relative;">
+    {% for s_code, s_label, s_icon in steps %}
+    {% set is_done = loop.index0 <= current_step_index %}
+    {% set is_current = loop.index0 == current_step_index %}
+    <div style="text-align:center; position:relative;">
+      {% if not loop.last %}
+        <div style="position:absolute; top:22px; right:50%; left:-50%; height:3px;
+                    background:{% if loop.index <= current_step_index %}var(--dp-brand){% else %}var(--dp-line){% endif %};
+                    z-index:0;"></div>
+      {% endif %}
+      <div style="position:relative; z-index:1; width:44px; height:44px;
+                  margin:0 auto 8px; border-radius:50%;
+                  background:{% if is_done %}var(--dp-brand){% else %}var(--dp-surface-soft){% endif %};
+                  color:{% if is_done %}white{% else %}var(--dp-ink-3){% endif %};
+                  display:grid; place-items:center; font-size:1.1rem;
+                  border:3px solid white; box-shadow:{% if is_current %}0 0 0 3px var(--dp-brand-tint){% else %}0 0 0 1px var(--dp-line){% endif %};">
+        <i class="bi {{ s_icon }}"></i>
+      </div>
+      <div style="font-size:0.85rem; font-weight:{% if is_current %}700{% else %}500{% endif %};
+                  color:{% if is_current %}var(--dp-brand-dark){% elif is_done %}var(--dp-ink-1){% else %}var(--dp-ink-3){% endif %};">
+        {{ s_label }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- Items -->
+  <div class="col-lg-8">
+    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 20px; border-bottom:1px solid var(--dp-line); font-weight:800;">
+        بنود الطلب
+      </div>
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>المنتج</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th class="text-end">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in order.lines %}
+          <tr>
+            <td>
+              <div style="font-weight:600;">{{ line.product_name }}</div>
+              <div style="font-size:0.75rem; color:var(--dp-ink-3);" dir="ltr">{{ line.sku }}</div>
+            </td>
+            <td>{{ line.qty | qty }}</td>
+            <td>{{ line.unit_price | money }}</td>
+            <td class="text-end fw-bold">{{ line.line_total | money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary + address -->
+  <div class="col-lg-4">
+    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;">
+      <h6 style="font-weight:800; margin:0 0 12px;">الملخّص</h6>
+      <dl class="row mb-0">
+        <dt class="col-6 text-muted small">الفرعي</dt>
+        <dd class="col-6 text-end">{{ order.subtotal | money }}</dd>
+        {% if order.tax_amount > 0 %}
+        <dt class="col-6 text-muted small">الضريبة</dt>
+        <dd class="col-6 text-end">{{ order.tax_amount | money }}</dd>
+        {% endif %}
+        <dt class="col-6 text-muted small">الشحن</dt>
+        <dd class="col-6 text-end">{{ order.shipping_fee | money }}</dd>
+        <hr>
+        <dt class="col-6 fw-bold">الإجمالي</dt>
+        <dd class="col-6 text-end fw-bold" style="color:var(--dp-brand);">{{ order.total | money }}</dd>
+      </dl>
+    </div>
+
+    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px; margin-top:12px;">
+      <h6 style="font-weight:800; margin:0 0 12px;">
+        <i class="bi bi-geo-alt"></i> عنوان الشحن
+      </h6>
+      <div><strong>{{ order.shipping_city or '' }}</strong></div>
+      <div style="white-space:pre-line; color:var(--dp-ink-2);">{{ order.shipping_address }}</div>
+      {% if order.shipping_notes %}
+      <div class="small text-muted mt-2">📝 {{ order.shipping_notes }}</div>
+      {% endif %}
+    </div>
+
+    <div style="background:var(--dp-brand-tint); border:1px solid var(--dp-brand); border-radius:14px; padding:16px; margin-top:12px;">
+      <div style="font-size:0.8rem; color:var(--dp-brand-dark); margin-bottom:4px;">طريقة الدفع</div>
+      <div style="font-weight:700; color:var(--dp-brand-dark);">
+        {% if order.payment_method.value == 'cod' %}الدفع عند الاستلام{% else %}{{ order.payment_method.value }}{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

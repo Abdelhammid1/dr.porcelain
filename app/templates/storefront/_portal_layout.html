@@ -1,0 +1,51 @@
+{% extends "storefront/_base.html" %}
+
+{% block content %}
+<div style="max-width:1100px; margin:0 auto;">
+  <div style="display:grid; grid-template-columns:260px 1fr; gap:24px;">
+    <!-- Sidebar -->
+    <aside style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+      <div style="padding:20px; border-bottom:1px solid var(--dp-line);
+                  background:linear-gradient(135deg,var(--dp-brand-dark),var(--dp-brand)); color:white;">
+        <div style="width:56px; height:56px; border-radius:50%;
+                    background:rgba(255,255,255,0.15); display:grid; place-items:center;
+                    color:white; font-size:1.4rem; font-weight:700; margin-bottom:10px;">
+          {{ customer.name_ar[:1] }}
+        </div>
+        <div style="font-weight:700; font-size:1.05rem;">{{ customer.name_ar }}</div>
+        <div style="font-size:0.8rem; opacity:.85;" dir="ltr">{{ customer.phone or '' }}</div>
+      </div>
+
+      <nav>
+        {% set current_route = request.endpoint %}
+        {% for endpoint, icon, label in [
+          ('storefront.account_home',         'bi-speedometer2', 'الرئيسية'),
+          ('storefront.account_orders',       'bi-bag',          'طلباتي'),
+          ('storefront.account_installments', 'bi-calendar-week','أقساطي'),
+        ] %}
+          <a href="{{ url_for(endpoint) }}"
+             style="display:flex; align-items:center; gap:10px; padding:12px 20px;
+                    color:var(--dp-ink-2); text-decoration:none; font-weight:600;
+                    border-inline-start:3px solid {% if current_route == endpoint or (endpoint == 'storefront.account_orders' and current_route == 'storefront.account_order_view') or (endpoint == 'storefront.account_installments' and current_route == 'storefront.account_installment_view') %}var(--dp-brand){% else %}transparent{% endif %};
+                    background:{% if current_route == endpoint %}var(--dp-brand-tint){% else %}transparent{% endif %};">
+            <i class="bi {{ icon }}"></i>
+            <span>{{ label }}</span>
+          </a>
+        {% endfor %}
+        <a href="{{ url_for('storefront.account_logout') }}"
+           style="display:flex; align-items:center; gap:10px; padding:12px 20px;
+                  color:var(--dp-danger); text-decoration:none; font-weight:600;
+                  border-top:1px solid var(--dp-line); margin-top:6px;">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>تسجيل الخروج</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <div>
+      {% block portal_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

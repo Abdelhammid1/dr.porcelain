@@ -1,0 +1,106 @@
+{% extends "layouts/app.html" %}
+{% block title %}الطلبات الأونلاين{% endblock %}
+{% block page_title %}الطلبات الأونلاين{% endblock %}
+
+{% set status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>الطلبات الأونلاين</h1>
+    <div class="subtitle">{{ orders|length }} طلب</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('storefront.home') }}" target="_blank" class="btn-secondary">
+      <i class="bi bi-box-arrow-up-right"></i> عرض المتجر
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label">بحث</label>
+        <input name="q" value="{{ q }}" class="form-control"
+               placeholder="رقم طلب / اسم / هاتف">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">الحالة</label>
+        <select name="status" class="form-select">
+          <option value="">— الكل —</option>
+          {% for code, lbl in [('pending','قيد المعالجة'),('processing','قيد التجهيز'),('shipped','تم الشحن'),('delivered','تم التسليم'),('cancelled','ملغى'),('returned','مرتجع')] %}
+          <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>
+            {{ lbl }} ({{ status_counts.get(code, 0) }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تصفية</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>التاريخ</th>
+          <th>العميل</th>
+          <th>الهاتف</th>
+          <th>الإجمالي</th>
+          <th>طريقة الدفع</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        {% set st = status_labels.get(o.status.value, (o.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('orders.view', order_id=o.id) }}" class="text-decoration-none">
+              {{ o.doc_number }}
+            </a>
+          </td>
+          <td>{{ o.order_date | hdate }}</td>
+          <td>{{ o.customer_display_name }}</td>
+          <td dir="ltr" class="small">{{ o.customer_phone or '—' }}</td>
+          <td class="fw-bold">{{ o.total | money }}</td>
+          <td>
+            {% if o.payment_method.value == 'cod' %}الاستلام
+            {% else %}{{ o.payment_method.value }}{% endif %}
+          </td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('orders.view', order_id=o.id) }}"
+               class="btn-icon"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="empty-state-icon">📦</div>
+              <div class="empty-state-title">لا توجد طلبات بعد</div>
+              <div class="empty-state-sub">الطلبات ستظهر هنا فور استلامها من المتجر الإلكتروني.</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

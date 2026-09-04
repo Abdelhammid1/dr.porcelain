@@ -1,0 +1,125 @@
+{% extends "layouts/app.html" %}
+{% block title %}تقرير أعمار ديون العملاء{% endblock %}
+{% block page_title %}تقرير أعمار ديون العملاء (AR Aging){% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>أعمار ديون العملاء</h1>
+    <div class="subtitle">اعتبارًا من: {{ as_of.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <div class="page-actions">
+    <button onclick="window.print()" class="btn-secondary">
+      <i class="bi bi-printer"></i> طباعة
+    </button>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">اعتبارًا من تاريخ</label>
+        <input type="date" name="as_of" class="form-control"
+               value="{{ as_of.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-4">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-tile-label">لم تحن</div>
+        <div class="stat-tile-value">{{ data.totals.not_yet_due | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-warning">
+      <div class="stat-tile-icon">30</div>
+      <div>
+        <div class="stat-tile-label">0 - 30 يوم</div>
+        <div class="stat-tile-value">{{ data.totals.days_0_30 | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-warning">
+      <div class="stat-tile-icon">60</div>
+      <div>
+        <div class="stat-tile-label">31 - 60 يوم</div>
+        <div class="stat-tile-value">{{ data.totals.days_31_60 | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-tile stat-tile-with-icon tone-danger">
+      <div class="stat-tile-icon">60+</div>
+      <div>
+        <div class="stat-tile-label">أكثر من 60 يوم</div>
+        <div class="stat-tile-value">{{ data.totals.days_over_60 | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>العميل</th>
+          <th class="text-end">لم تحن</th>
+          <th class="text-end">0 - 30</th>
+          <th class="text-end">31 - 60</th>
+          <th class="text-end">60+</th>
+          <th class="text-end">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data.rows %}
+        <tr>
+          <td>
+            <a href="{{ url_for('parties.view', type_str='customer', party_id=row.party.id) }}"
+               class="text-decoration-none fw-semibold">{{ row.party.name_ar }}</a>
+            <div class="small text-muted" dir="ltr">{{ row.party.code }}</div>
+          </td>
+          <td class="text-end">{{ row.bucket.not_yet_due | money }}</td>
+          <td class="text-end">{{ row.bucket.days_0_30 | money }}</td>
+          <td class="text-end" style="color:var(--dp-warning)">{{ row.bucket.days_31_60 | money }}</td>
+          <td class="text-end" style="color:var(--dp-danger); font-weight:700">{{ row.bucket.days_over_60 | money }}</td>
+          <td class="text-end fw-bold">{{ row.bucket.total | money }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="empty-state-icon">✅</div>
+              <div class="empty-state-title">لا توجد ديون مستحقة على أي عميل</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if data.rows %}
+      <tfoot>
+        <tr class="fw-bold" style="background:#f0f9ff">
+          <td>الإجمالي</td>
+          <td class="text-end">{{ data.totals.not_yet_due | money }}</td>
+          <td class="text-end">{{ data.totals.days_0_30 | money }}</td>
+          <td class="text-end">{{ data.totals.days_31_60 | money }}</td>
+          <td class="text-end">{{ data.totals.days_over_60 | money }}</td>
+          <td class="text-end">{{ data.totals.total | money }}</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}

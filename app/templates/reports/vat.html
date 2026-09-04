@@ -1,0 +1,88 @@
+{% extends "layouts/app.html" %}
+{% block title %}تقرير ضريبة القيمة المضافة{% endblock %}
+{% block page_title %}تقرير ضريبة القيمة المضافة{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>ضريبة القيمة المضافة (VAT)</h1>
+    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <button onclick="window.print()" class="btn-secondary">
+    <i class="bi bi-printer"></i> طباعة
+  </button>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">من</label>
+        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">إلى</label>
+        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-up-right"></i></div>
+      <div>
+        <div class="stat-tile-label">ضريبة المخرجات (على المبيعات)</div>
+        <div class="stat-tile-value">{{ report.output_tax | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-arrow-down-left"></i></div>
+      <div>
+        <div class="stat-tile-label">ضريبة المدخلات (على المشتريات)</div>
+        <div class="stat-tile-value">{{ report.input_tax | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon {% if report.net_payable > 0 %}tone-danger{% elif report.net_payable < 0 %}tone-success{% else %}tone-brand{% endif %}">
+      <div class="stat-tile-icon"><i class="bi bi-calculator"></i></div>
+      <div>
+        <div class="stat-tile-label">
+          {% if report.net_payable > 0 %}الصافي المستحق للدفع
+          {% elif report.net_payable < 0 %}المستردّ من الضريبة
+          {% else %}الصافي{% endif %}
+        </div>
+        <div class="stat-tile-value">{{ report.net_payable | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <table class="table mb-0">
+      <tbody>
+        <tr>
+          <td>ضريبة المخرجات (2200) — من المبيعات</td>
+          <td class="text-end fw-bold">{{ report.output_tax | money }}</td>
+        </tr>
+        <tr>
+          <td>− ضريبة المدخلات (1300) — من المشتريات</td>
+          <td class="text-end fw-bold">({{ report.input_tax | money }})</td>
+        </tr>
+        <tr class="fw-bold" style="background:{% if report.net_payable > 0 %}var(--dp-danger-soft){% else %}var(--dp-success-soft){% endif %}; font-size:1.1rem">
+          <td>= صافي الضريبة {% if report.net_payable > 0 %}المستحقة للدفع{% else %}المستردّة{% endif %}</td>
+          <td class="text-end">{{ report.net_payable | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

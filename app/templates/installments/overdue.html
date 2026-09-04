@@ -1,0 +1,68 @@
+{% extends "layouts/app.html" %}
+{% block title %}الأقساط المتأخرة{% endblock %}
+{% block page_title %}الأقساط المتأخرة{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>الأقساط المتأخرة</h1>
+    <div class="subtitle">{{ lines|length }} قسط تجاوز تاريخ استحقاقه</div>
+  </div>
+  <a href="{{ url_for('installments.index') }}" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع لكل الخطط
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الخطة</th>
+          <th>العميل</th>
+          <th>القسط</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>المتبقي</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}">
+              {{ line.plan.doc_number }}
+            </a>
+          </td>
+          <td>
+            {{ line.plan.customer.name_ar }}
+            <div class="small text-muted" dir="ltr">{{ line.plan.customer.phone or '—' }}</div>
+          </td>
+          <td>#{{ line.number }} / {{ line.plan.installments_count }}</td>
+          <td>
+            {{ line.due_date.strftime('%Y/%m/%d') }}
+            <span class="badge badge-danger">متأخر</span>
+          </td>
+          <td class="fw-bold">{{ line.remaining | money }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}"
+               class="btn-primary btn-sm">
+              <i class="bi bi-cash"></i> تحصيل
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="empty-state-icon">✅</div>
+              <div class="empty-state-title">لا توجد أقساط متأخرة — كل شيء تحت السيطرة!</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

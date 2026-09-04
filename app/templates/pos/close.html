@@ -1,0 +1,111 @@
+{% extends "layouts/app.html" %}
+{% block title %}قفل وردية {{ session.doc_number }}{% endblock %}
+{% block page_title %}قفل الوردية{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>قفل وردية <span dir="ltr">{{ session.doc_number }}</span></h1>
+    <div class="subtitle">الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}</div>
+  </div>
+  <a href="{{ url_for('pos.terminal', session_id=session.id) }}" class="btn btn-light">
+    <i class="bi bi-arrow-right"></i> عودة للبيع
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+      <div>
+        <div class="kpi-label">افتتاحي</div>
+        <div class="kpi-value">{{ session.opening_cash | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
+      <div>
+        <div class="kpi-label">عدد الفواتير</div>
+        <div class="kpi-value">{{ summary.invoices_count }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-bar-chart"></i></div>
+      <div>
+        <div class="kpi-label">إجمالي المبيعات</div>
+        <div class="kpi-value">{{ summary.total_sales | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card" style="background: #f0f9ff; border-color: #0ea5e9;">
+      <div class="kpi-icon" style="background:#0ea5e9; color:white"><i class="bi bi-wallet2"></i></div>
+      <div>
+        <div class="kpi-label">المتوقع في العهدة</div>
+        <div class="kpi-value">{{ summary.current_custody_balance | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">تفصيل المبيعات حسب طريقة الدفع</div>
+      <div class="card-body">
+        <table class="table mb-0">
+          <tr>
+            <td><i class="bi bi-cash-stack text-success"></i> نقدي</td>
+            <td class="text-end fw-bold">{{ summary.cash_sales | money }}</td>
+          </tr>
+          <tr>
+            <td><i class="bi bi-credit-card text-primary"></i> بطاقة</td>
+            <td class="text-end fw-bold">{{ summary.card_sales | money }}</td>
+          </tr>
+          <tr>
+            <td><i class="bi bi-wallet2 text-warning"></i> محفظة</td>
+            <td class="text-end fw-bold">{{ summary.wallet_sales | money }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="card-header">عدّ النقدية الفعلية</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">الرصيد النقدي الفعلي في الدرج</label>
+            <input type="number" name="closing_cash_actual" class="form-control form-control-lg text-center"
+                   step="0.001" min="0" required autofocus
+                   style="font-size:1.8rem; font-weight:800;">
+            <div class="form-text">
+              عدّ النقدية الآن — سيقارن النظام بالمتوقع
+              (<strong>{{ summary.current_custody_balance | money }}</strong>)
+              ويسجّل أي فرق تلقائيًا.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ملاحظات (اختياري)</label>
+            <textarea name="notes" class="form-control" rows="2"
+                      placeholder="مثال: عجز 10 لتغطية شحن مندوب"></textarea>
+          </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+          <a href="{{ url_for('pos.terminal', session_id=session.id) }}" class="btn btn-light">إلغاء</a>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-power"></i> تأكيد قفل الوردية
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

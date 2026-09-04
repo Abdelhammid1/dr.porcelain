@@ -1,0 +1,62 @@
+{% extends "layouts/app.html" %}
+{% block title %}فتح وردية{% endblock %}
+{% block page_title %}فتح وردية جديدة{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>فتح وردية بيع جديدة</h1>
+    <div class="subtitle">أدخل الرصيد النقدي في الدرج قبل بدء البيع</div>
+  </div>
+  <a href="{{ url_for('pos.sessions_index') }}" class="btn btn-light">
+    <i class="bi bi-clock-history"></i> الورديات السابقة
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card">
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label">الكاشير</label>
+            <div class="form-control-plaintext fw-bold">{{ current_user.full_name }}</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">الرصيد النقدي الافتتاحي (بالجنيه)</label>
+            <input type="number" name="opening_cash" class="form-control form-control-lg text-center"
+                   step="0.001" min="0" value="0" required autofocus
+                   style="font-size:1.8rem; font-weight:800;">
+            <div class="form-text">
+              العهدة التي بحوزتك عند بدء الشيفت — سيُحوَّل هذا المبلغ من الصندوق الرئيسي إلى عهدتك.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ملاحظات (اختياري)</label>
+            <textarea name="notes" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-play-circle"></i> فتح الوردية وبدء البيع
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">تنبيهات مهمة</div>
+      <div class="card-body small">
+        <ul class="mb-0 ps-3">
+          <li>لا يمكن فتح أكثر من وردية مفتوحة لنفس الكاشير في نفس الوقت.</li>
+          <li>كل مبيعات النقدية خلال الوردية تُقيَّد على <strong>عهدتك</strong> وليس الصندوق الرئيسي.</li>
+          <li>عند القفل ستُطلب منك عدّ النقدية الفعلية ومقارنتها بالمتوقع.</li>
+          <li>أي فرق يُسجَّل تلقائيًا في حساب فروقات صندوق.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "layouts/app.html" %}
+{% block title %}جدول سداد — {{ invoice.doc_number }}{% endblock %}
+{% block page_title %}إرفاق جدول سداد{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>جدول سداد لفاتورة <span dir="ltr">{{ invoice.doc_number }}</span></h1>
+    <div class="subtitle">
+      المورد: {{ invoice.vendor.name_ar }} · إجمالي الفاتورة:
+      <strong>{{ invoice.total | money }}</strong>
+    </div>
+  </div>
+  <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع للفاتورة
+  </a>
+</div>
+
+<form method="post" id="scheduleForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>الدفعات المقررة</span>
+          <button type="button" class="btn-primary btn-sm" onclick="addRow()">
+            <i class="bi bi-plus"></i> إضافة دفعة
+          </button>
+        </div>
+        <div class="table-scroll">
+          <table class="table mb-0" id="linesTable">
+            <thead>
+              <tr>
+                <th style="width:10%">#</th>
+                <th style="width:35%">تاريخ الاستحقاق</th>
+                <th style="width:40%">المبلغ</th>
+                <th style="width:15%"></th>
+              </tr>
+            </thead>
+            <tbody id="linesBody"></tbody>
+            <tfoot>
+              <tr class="fw-bold" style="background:#f8fafc">
+                <td colspan="2" class="text-end">مجموع الأسطر</td>
+                <td colspan="2" id="linesSum">0.000</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <label class="form-label">ملاحظات (اختياري)</label>
+          <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="card-footer">
+          <div id="matchWarning" class="dp-callout tone-warn" style="display:none">
+            ⚠️ مجموع الدفعات لا يساوي إجمالي الفاتورة (<strong>{{ invoice.total | money }}</strong>).
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}" class="btn-light">إلغاء</a>
+            <button type="submit" class="btn-primary" id="saveBtn">
+              <i class="bi bi-check-lg"></i> حفظ الجدول
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">معلومات الفاتورة</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-6 text-muted">رقم الفاتورة</dt>
+            <dd class="col-6 text-end" dir="ltr">{{ invoice.doc_number }}</dd>
+            <dt class="col-6 text-muted">التاريخ</dt>
+            <dd class="col-6 text-end">{{ invoice.invoice_date | hdate }}</dd>
+            <dt class="col-6 text-muted">الإجمالي</dt>
+            <dd class="col-6 text-end fw-bold">{{ invoice.total | money }}</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="dp-callout tone-info mt-3">
+        <div>
+          <strong class="dp-callout-title">تلميح</strong>
+          يمكنك تقسيم الفاتورة على دفعات بمبالغ وتواريخ مختلفة.
+          المهم أن يكون <strong>مجموع الدفعات = إجمالي الفاتورة</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  const TOTAL = parseFloat("{{ invoice.total }}");
+  let lineIdx = 0;
+
+  function addRow(dueDate = "{{ today }}", amount = "") {
+    const idx = ++lineIdx;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="fw-bold text-center">${idx}</td>
+      <td><input type="date" name="line_due_date[]" class="form-control" value="${dueDate}"></td>
+      <td><input type="number" name="line_amount[]" class="form-control amount"
+                 step="0.001" min="0.001" value="${amount}" placeholder="0.000"></td>
+      <td><button type="button" class="btn-icon"
+                  onclick="this.closest('tr').remove(); recalc();"><i class="bi bi-x"></i></button></td>
+    `;
+    document.getElementById('linesBody').appendChild(tr);
+    tr.querySelector('.amount').addEventListener('input', recalc);
+    recalc();
+  }
+
+  function recalc() {
+    let sum = 0;
+    document.querySelectorAll('.amount').forEach(i => sum += parseFloat(i.value) || 0);
+    document.getElementById('linesSum').textContent = sum.toFixed(3);
+    const warn = document.getElementById('matchWarning');
+    const matches = Math.abs(sum - TOTAL) < 0.001;
+    warn.style.display = matches ? 'none' : 'flex';
+    document.getElementById('saveBtn').disabled = !matches || sum <= 0;
+  }
+
+  // ابدأ بصف واحد للفاتورة كاملة
+  addRow("{{ today }}", TOTAL.toFixed(3));
+</script>
+{% endblock %}

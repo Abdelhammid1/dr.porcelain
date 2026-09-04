@@ -1,0 +1,119 @@
+{% extends "layouts/app.html" %}
+{% block title %}كشف حساب {{ party.name_ar }}{% endblock %}
+{% block page_title %}كشف حساب — {{ party.name_ar }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      كشف حساب <span style="font-size:0.75em; font-weight:normal">— {{ party.name_ar }}</span>
+      <span class="text-muted" dir="ltr" style="font-size:0.65em">({{ party.code }})</span>
+    </h1>
+    <div class="subtitle">الحساب: <strong dir="ltr">{{ stmt.account.code }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('reports.party_statement_pdf_view', type_str=party_type.value, party_id=party.id, **request.args) }}"
+       target="_blank" class="btn btn-outline-primary">
+      <i class="bi bi-file-earmark-pdf"></i> تصدير PDF
+    </a>
+    <button onclick="window.print()" class="btn btn-outline-secondary">
+      <i class="bi bi-printer"></i> طباعة
+    </button>
+    <a href="{{ url_for('parties.view', type_str=party_type.value, party_id=party.id) }}" class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> رجوع
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">من تاريخ</label>
+        <input type="date" name="from" class="form-control"
+               value="{{ date_from.strftime('%Y-%m-%d') if date_from else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">إلى تاريخ</label>
+        <input type="date" name="to" class="form-control"
+               value="{{ date_to.strftime('%Y-%m-%d') if date_to else '' }}">
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> تصفية</button>
+        <a href="{{ url_for('reports.party_statement_view', type_str=party_type.value, party_id=party.id) }}"
+           class="btn btn-light">مسح</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+      <div>
+        <div class="kpi-label">الرصيد الافتتاحي</div>
+        <div class="kpi-value">{{ stmt.opening_balance | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-list-ul"></i></div>
+      <div>
+        <div class="kpi-label">عدد الحركات</div>
+        <div class="kpi-value">{{ stmt.movements|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+      <div>
+        <div class="kpi-label">الرصيد الختامي</div>
+        <div class="kpi-value">{{ stmt.closing_balance | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>المستند</th>
+          <th>البيان</th>
+          <th class="text-end">مدين</th>
+          <th class="text-end">دائن</th>
+          <th class="text-end">الرصيد</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fw-bold" style="background:#f8fafc">
+          <td colspan="5">الرصيد الافتتاحي</td>
+          <td class="text-end">{{ stmt.opening_balance | money }}</td>
+        </tr>
+        {% for m in stmt.movements %}
+        <tr>
+          <td>{{ m.date.strftime('%Y/%m/%d') }}</td>
+          <td>
+            <span class="badge-status info">{{ m.doc_type }}</span>
+            <span class="text-muted small ms-1" dir="ltr">{{ m.doc_number }}</span>
+          </td>
+          <td>{{ m.memo or "—" }}</td>
+          <td class="text-end">{{ m.debit | money if m.debit > 0 else '—' }}</td>
+          <td class="text-end">{{ m.credit | money if m.credit > 0 else '—' }}</td>
+          <td class="text-end fw-bold">{{ m.balance | money }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f0f9ff">
+          <td colspan="5">الرصيد الختامي</td>
+          <td class="text-end">{{ stmt.closing_balance | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

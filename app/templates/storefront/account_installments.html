@@ -1,0 +1,70 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}أقساطي{% endblock %}
+
+{% set plan_status_labels = {
+  'active':    ('نشطة',    'info'),
+  'completed': ('مكتملة',  'success'),
+  'cancelled': ('ملغاة',   'muted'),
+} %}
+
+{% block portal_content %}
+<h1 style="font-size:1.6rem; font-weight:800; margin:0 0 6px;">خطط التقسيط</h1>
+<p style="color:var(--dp-ink-3); margin:0 0 20px;">
+  {{ plans|length }} خطة تقسيط
+</p>
+
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الخطة</th>
+          <th>الإجمالي</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الأقساط</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in plans %}
+        {% set st = plan_status_labels.get(p.status.value, (p.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('storefront.account_installment_view', plan_id=p.id) }}"
+               class="text-decoration-none">{{ p.doc_number }}</a>
+          </td>
+          <td>{{ p.total_amount | money }}</td>
+          <td>{{ p.total_paid | money }}</td>
+          <td class="fw-bold">{{ p.total_remaining | money }}</td>
+          <td>
+            <span class="dp-chip tone-brand">{{ p.paid_installments_count }} / {{ p.installments_count }}</span>
+            {% if p.overdue_lines %}
+              <span class="dp-chip tone-danger">متأخر {{ p.overdue_lines|length }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('storefront.account_installment_view', plan_id=p.id) }}"
+               class="btn-icon"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-state-icon">📅</div>
+              <div class="empty-state-title">لا توجد خطط تقسيط</div>
+              <div class="empty-state-sub">
+                خطط التقسيط تُنشأ عند الشراء من محلنا الحضوري بنظام التقسيط.
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

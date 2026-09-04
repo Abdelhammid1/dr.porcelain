@@ -1,0 +1,70 @@
+{% extends "layouts/app.html" %}
+{% block title %}حركة المخزون — {{ variant.display_name }}{% endblock %}
+{% block page_title %}حركة المخزون{% endblock %}
+
+{% set move_labels = {
+  'purchase': ('شراء', 'success'),
+  'purchase_return': ('مرتجع شراء', 'warning'),
+  'sale': ('بيع', 'info'),
+  'sale_return': ('مرتجع بيع', 'warning'),
+  'adjustment_in': ('تسوية موجبة', 'success'),
+  'adjustment_out': ('تسوية سالبة', 'danger'),
+  'opening': ('رصيد افتتاحي', 'muted'),
+} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>حركة المخزون — {{ variant.display_name }}</h1>
+    <div class="subtitle">SKU: <strong dir="ltr">{{ variant.sku }}</strong> · الرصيد الحالي: <strong>{{ variant.stock_qty | qty }}</strong></div>
+  </div>
+  <a href="{{ url_for('products.view', product_id=variant.product_id) }}" class="btn btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع للمنتج
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>نوع الحركة</th>
+          <th>الكمية</th>
+          <th>تكلفة الوحدة</th>
+          <th>المصدر</th>
+          <th>البيان</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in movements %}
+        {% set label = move_labels.get(m.move_type.value, (m.move_type.value, 'muted')) %}
+        <tr>
+          <td>{{ m.move_date.strftime('%Y/%m/%d') }}</td>
+          <td><span class="badge-status {{ label[1] }}">{{ label[0] }}</span></td>
+          <td class="fw-bold {% if m.signed_qty < 0 %}text-danger{% else %}text-success{% endif %}">
+            {{ ('+' if m.signed_qty > 0 else '') }}{{ m.signed_qty | qty }}
+          </td>
+          <td>{{ m.unit_cost | money }}</td>
+          <td class="small text-muted" dir="ltr">
+            {% if m.source_type and m.source_id %}
+              {{ m.source_type }} #{{ m.source_id }}
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ m.memo or "—" }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="icon"><i class="bi bi-clock-history"></i></div>
+              <h5>لا توجد حركات بعد لهذا المتغير</h5>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "layouts/app.html" %}
+{% block title %}الميزانية العمومية{% endblock %}
+{% block page_title %}الميزانية العمومية{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>الميزانية العمومية</h1>
+    <div class="subtitle">اعتبارًا من {{ as_of.strftime('%Y/%m/%d') }}</div>
+  </div>
+  <button onclick="window.print()" class="btn-secondary">
+    <i class="bi bi-printer"></i> طباعة
+  </button>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">اعتبارًا من تاريخ</label>
+        <input type="date" name="as_of" class="form-control" value="{{ as_of.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-4">
+        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="dp-callout {% if bs.is_balanced %}tone-success{% else %}tone-danger{% endif %}">
+  {% if bs.is_balanced %}
+    <div><strong>الميزانية متوازنة ✓</strong> — إجمالي الأصول = الالتزامات + حقوق الملكية + صافي الربح</div>
+  {% else %}
+    <div><strong>غير متوازنة!</strong> الفرق = {{ bs.difference | money }}. راجع القيود.</div>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <!-- الأصول -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header" style="background:var(--dp-brand-tint)">
+        <span class="fw-bold">الأصول</span>
+      </div>
+      <div class="table-scroll">
+        <table class="table mb-0">
+          <tbody>
+            {% for l in bs.assets %}
+            <tr>
+              <td>{{ l.account.code }} · {{ l.account.name_ar }}</td>
+              <td class="text-end">{{ l.amount | money }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" class="text-center text-muted">لا توجد أصول</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold" style="background:var(--dp-brand-soft); font-size:1.05rem">
+              <td>إجمالي الأصول</td>
+              <td class="text-end">{{ bs.total_assets | money }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- الالتزامات + حقوق الملكية -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header" style="background:var(--dp-warning-soft)">
+        <span class="fw-bold">الالتزامات وحقوق الملكية</span>
+      </div>
+      <div class="table-scroll">
+        <table class="table mb-0">
+          <tbody>
+            <tr style="background:#fef3c7"><td colspan="2" class="fw-bold small">الالتزامات</td></tr>
+            {% for l in bs.liabilities %}
+            <tr>
+              <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+              <td class="text-end">{{ l.amount | money }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="small fw-bold"><td>مجموع الالتزامات</td><td class="text-end">{{ bs.total_liabilities | money }}</td></tr>
+
+            <tr style="background:#dbeafe"><td colspan="2" class="fw-bold small">حقوق الملكية</td></tr>
+            {% for l in bs.equity %}
+            <tr>
+              <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+              <td class="text-end">{{ l.amount | money }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td class="ps-4">صافي ربح الفترة (غير مقفول)</td>
+              <td class="text-end">{{ bs.period_net_profit | money }}</td>
+            </tr>
+            <tr class="small fw-bold"><td>مجموع حقوق الملكية</td><td class="text-end">{{ (bs.total_equity + bs.period_net_profit) | money }}</td></tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold" style="background:var(--dp-warning-soft); font-size:1.05rem">
+              <td>إجمالي الالتزامات + حقوق الملكية</td>
+              <td class="text-end">{{ bs.total_liabilities_equity | money }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

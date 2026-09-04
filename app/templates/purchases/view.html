@@ -1,0 +1,185 @@
+{% extends "layouts/app.html" %}
+{% block title %}فاتورة {{ invoice.doc_number }}{% endblock %}
+{% block page_title %}فاتورة شراء {{ invoice.doc_number }}{% endblock %}
+
+{% set status_labels = {
+  'posted': ('مرحّلة', 'success'),
+  'returned': ('مرتجعة كاملة', 'danger'),
+  'partial_returned': ('مرتجعة جزئيًا', 'warning'),
+} %}
+{% set st = status_labels.get(invoice.status.value, (invoice.status.value, 'muted')) %}
+{% set method_labels = {'cash':'نقدي فوري','bank':'بنك فوري','credit':'آجل بالكامل'} %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      فاتورة شراء <span dir="ltr">{{ invoice.doc_number }}</span>
+      <span class="badge-status {{ st[1] }} ms-2">{{ st[0] }}</span>
+    </h1>
+    <div class="subtitle">
+      {{ invoice.invoice_date | hdate }} · {{ invoice.vendor.name_ar }}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-outline-primary">
+      <i class="bi bi-printer"></i> طباعة
+    </button>
+    {% if invoice.status.value != 'returned' and current_user.can("purchases.return") %}
+    <a href="{{ url_for('purchases.return_form', invoice_id=invoice.id) }}" class="btn btn-outline-warning">
+      <i class="bi bi-arrow-counterclockwise"></i> مرتجع
+    </a>
+    {% endif %}
+    {% if invoice.payment_method.value == 'credit' and current_user.can("vendor_payments.manage") %}
+      {% set existing_sched = invoice.returns|first if False else None %}
+      <a href="{{ url_for('vendor_payments.attach', invoice_id=invoice.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-calendar-plus"></i> جدول سداد
+      </a>
+    {% endif %}
+    <a href="{{ url_for('purchases.index') }}" class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> رجوع
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">البنود</div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>SKU</th>
+              <th>الكمية</th>
+              <th>سعر التكلفة</th>
+              <th>المرتجع</th>
+              <th class="text-end">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in invoice.lines %}
+            {% set returned = invoice.total_returned_qty_per_line.get(line.id, 0) %}
+            <tr>
+              <td>{{ line.product_name }}</td>
+              <td dir="ltr" class="small text-muted">{{ line.sku }}</td>
+              <td>{{ line.qty | qty }}</td>
+              <td>{{ line.unit_cost | money }}</td>
+              <td>{% if returned > 0 %}<span class="badge-status warning">{{ returned | qty }}</span>{% else %}—{% endif %}</td>
+              <td class="text-end fw-bold">{{ line.line_total | money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">القيود المحاسبية</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>رقم القيد</th>
+              <th>البيان</th>
+              <th class="text-end">المدين</th>
+              <th class="text-end">الدائن</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in related_entries %}
+            <tr>
+              <td dir="ltr" class="fw-bold">{{ e.doc_number }}</td>
+              <td class="small">{{ e.memo }}</td>
+              <td class="text-end">{{ e.total_debit | money }}</td>
+              <td class="text-end">{{ e.total_credit | money }}</td>
+            </tr>
+            {% for line in e.lines %}
+            <tr class="table-light">
+              <td></td>
+              <td class="small">{{ line.account.code }} - {{ line.account.name_ar }}</td>
+              <td class="text-end small">{{ (line.debit if line.debit > 0 else '') | money if line.debit > 0 else '—' }}</td>
+              <td class="text-end small">{{ (line.credit if line.credit > 0 else '') | money if line.credit > 0 else '—' }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% if invoice.returns %}
+    <div class="card mt-3">
+      <div class="card-header">المرتجعات</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>رقم المرتجع</th><th>التاريخ</th><th>النوع</th><th>السبب</th>
+              <th class="text-end">المسترد</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in invoice.returns %}
+            <tr>
+              <td dir="ltr" class="fw-bold">{{ r.doc_number }}</td>
+              <td>{{ r.return_date | hdate }}</td>
+              <td>
+                {% if r.is_full_return %}<span class="badge-status danger">كامل</span>
+                {% else %}<span class="badge-status warning">جزئي</span>{% endif %}
+              </td>
+              <td>{{ r.reason }}</td>
+              <td class="text-end fw-bold">{{ r.refund_amount | money }}</td>
+              <td>
+                <a href="{{ url_for('purchases.return_view', return_id=r.id) }}"
+                   class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">الملخّص</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
+          <dd class="col-6 text-end">{{ invoice.subtotal | money }}</dd>
+          {% if invoice.freight > 0 %}
+          <dt class="col-6 text-muted">الشحن</dt>
+          <dd class="col-6 text-end">{{ invoice.freight | money }}</dd>
+          {% endif %}
+          {% if invoice.discount_amount > 0 %}
+          <dt class="col-6 text-muted">الخصم</dt>
+          <dd class="col-6 text-end text-danger">- {{ invoice.discount_amount | money }}</dd>
+          {% endif %}
+          {% if invoice.tax_amount > 0 %}
+          <dt class="col-6 text-muted">الضريبة ({{ invoice.tax_rate }}%)</dt>
+          <dd class="col-6 text-end">{{ invoice.tax_amount | money }}</dd>
+          {% endif %}
+          <hr>
+          <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
+          <dd class="col-6 text-end fs-5 fw-bold">{{ invoice.total | money }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body small text-muted">
+        <div>طريقة الدفع: <strong>{{ method_labels.get(invoice.payment_method.value, invoice.payment_method.value) }}</strong></div>
+        {% if invoice.bank_account %}
+        <div>البنك: {{ invoice.bank_account.code }} - {{ invoice.bank_account.name_ar }}</div>
+        {% endif %}
+        {% if invoice.vendor_ref %}<div>مرجع المورد: <span dir="ltr">{{ invoice.vendor_ref }}</span></div>{% endif %}
+        <div>أنشأها: {{ invoice.created_by.full_name if invoice.created_by else "—" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

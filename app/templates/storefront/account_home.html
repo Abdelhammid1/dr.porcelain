@@ -1,0 +1,149 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}حسابي{% endblock %}
+
+{% set order_status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+
+{% block portal_content %}
+<div style="margin-bottom:24px;">
+  <h1 style="font-size:1.6rem; font-weight:800; margin:0;">
+    مرحبًا، {{ customer.name_ar }} 👋
+  </h1>
+  <p style="color:var(--dp-ink-3); margin:6px 0 0;">نظرة سريعة على حسابك</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-bag-check"></i></div>
+      <div>
+        <div class="stat-tile-label">إجمالي طلباتي</div>
+        <div class="stat-tile-value">{{ orders|length if orders|length < 5 else '5+' }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-brand">
+      <div class="stat-tile-icon"><i class="bi bi-calendar-check"></i></div>
+      <div>
+        <div class="stat-tile-label">خطط تقسيط نشطة</div>
+        <div class="stat-tile-value">{{ active_plans|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon {% if balance > 0 %}tone-warning{% endif %}">
+      <div class="stat-tile-icon"><i class="bi bi-wallet2"></i></div>
+      <div>
+        <div class="stat-tile-label">الرصيد المستحق</div>
+        <div class="stat-tile-value">{{ balance | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent orders -->
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+  <div style="padding:14px 20px; border-bottom:1px solid var(--dp-line);
+              display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-weight:800;">آخر الطلبات</span>
+    <a href="{{ url_for('storefront.account_orders') }}"
+       style="color:var(--dp-brand); font-weight:600; font-size:0.9rem; text-decoration:none;">
+      عرض الكل <i class="bi bi-arrow-left"></i>
+    </a>
+  </div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>التاريخ</th>
+          <th>الإجمالي</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        {% set st = order_status_labels.get(o.status.value, (o.status.value, 'muted')) %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+               class="text-decoration-none">{{ o.doc_number }}</a>
+          </td>
+          <td>{{ o.order_date | hdate }}</td>
+          <td class="fw-bold">{{ o.total | money }}</td>
+          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
+          <td class="text-end">
+            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+               class="btn-icon"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-state-icon">🛍️</div>
+              <div class="empty-state-title">لا توجد طلبات بعد</div>
+              <div class="empty-state-sub">ابدأ التسوق من متجرنا الآن.</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if active_plans %}
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px;
+            overflow:hidden; margin-top:20px;">
+  <div style="padding:14px 20px; border-bottom:1px solid var(--dp-line);
+              display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-weight:800;">خطط التقسيط النشطة</span>
+    <a href="{{ url_for('storefront.account_installments') }}"
+       style="color:var(--dp-brand); font-weight:600; font-size:0.9rem; text-decoration:none;">
+      عرض الكل <i class="bi bi-arrow-left"></i>
+    </a>
+  </div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>رقم الخطة</th>
+          <th>الإجمالي</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الأقساط</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in active_plans %}
+        <tr>
+          <td dir="ltr" class="fw-bold">
+            <a href="{{ url_for('storefront.account_installment_view', plan_id=plan.id) }}"
+               class="text-decoration-none">{{ plan.doc_number }}</a>
+          </td>
+          <td>{{ plan.total_amount | money }}</td>
+          <td>{{ plan.total_paid | money }}</td>
+          <td class="fw-bold">{{ plan.total_remaining | money }}</td>
+          <td>
+            <span class="dp-chip tone-brand">
+              {{ plan.paid_installments_count }} / {{ plan.installments_count }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

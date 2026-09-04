@@ -1,0 +1,287 @@
+{% extends "layouts/app.html" %}
+{% block title %}فاتورة شراء جديدة{% endblock %}
+{% block page_title %}فاتورة شراء جديدة{% endblock %}
+
+{% block content %}
+<form method="post" id="purchaseForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="page-header">
+    <h1>فاتورة شراء جديدة</h1>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('purchases.index') }}" class="btn btn-light">إلغاء</a>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg"></i> حفظ الفاتورة
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">بيانات الفاتورة</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">المورد *</label>
+              <div class="position-relative">
+                <input type="hidden" name="vendor_id" id="vendor_id" required>
+                <input type="text" id="vendorSearch" class="form-control form-control-lg"
+                       placeholder="ابحث بالاسم أو الهاتف..." autocomplete="off">
+                <div id="vendorResults" class="list-group position-absolute w-100 shadow-sm"
+                     style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">التاريخ</label>
+              <input type="date" name="invoice_date" class="form-control" value="{{ today }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">رقم فاتورة المورد</label>
+              <input type="text" name="vendor_ref" class="form-control" dir="ltr">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">طريقة الدفع</label>
+              <select name="payment_method" id="paymentMethod" class="form-select" onchange="toggleBank()">
+                <option value="credit">آجل بالكامل</option>
+                <option value="cash">نقدي فوري</option>
+                <option value="bank">بنك فوري</option>
+              </select>
+            </div>
+            <div class="col-md-8" id="bankRow" style="display:none">
+              <label class="form-label">حساب البنك</label>
+              <select name="bank_account_id" class="form-select">
+                {% for b in bank_accounts %}
+                <option value="{{ b.id }}">{{ b.code }} - {{ b.name_ar }}</option>
+                {% else %}
+                <option value="">— لا يوجد حساب بنك مضاف —</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>البنود</span>
+          <div class="position-relative" style="width:280px">
+            <input type="text" id="productSearch" class="form-control form-control-sm"
+                   placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off">
+            <div id="productResults" class="list-group position-absolute w-100 shadow-sm"
+                 style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0" id="linesTable">
+            <thead>
+              <tr>
+                <th style="width:40%">المنتج</th>
+                <th style="width:15%">الكمية</th>
+                <th style="width:20%">سعر التكلفة</th>
+                <th style="width:20%" class="text-end">الإجمالي</th>
+                <th style="width:5%"></th>
+              </tr>
+            </thead>
+            <tbody id="linesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <label class="form-label">ملاحظات</label>
+          <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card" style="position:sticky; top:80px;">
+        <div class="card-header">الملخّص</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
+            <dd class="col-6 text-end" id="sumSubtotal">0.000</dd>
+
+            <dt class="col-6 text-muted">الشحن</dt>
+            <dd class="col-6">
+              <input type="number" name="freight" id="freightInput" class="form-control form-control-sm text-end"
+                     step="0.001" min="0" value="0">
+            </dd>
+
+            <dt class="col-6 text-muted">الخصم المكتسب</dt>
+            <dd class="col-6">
+              <input type="number" name="discount_amount" id="discountInput" class="form-control form-control-sm text-end"
+                     step="0.001" min="0" value="0">
+            </dd>
+
+            {% if tax_enabled %}
+            <dt class="col-6 text-muted">الضريبة ({{ tax_rate }}%)</dt>
+            <dd class="col-6 text-end" id="sumTax">0.000</dd>
+            {% endif %}
+
+            <hr>
+            <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
+            <dd class="col-6 text-end fs-5 fw-bold" id="sumTotal">0.000</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body small text-muted">
+          <ul class="mb-0 ps-3">
+            <li>القيد يعتمد على طريقة الدفع:
+              <ul class="mb-0">
+                <li>نقدي → دائن 1010</li>
+                <li>بنك → دائن حساب البنك المُختار</li>
+                <li>آجل → دائن حساب المورد</li>
+              </ul>
+            </li>
+            <li>الشحن يُضاف على تكلفة المخزون.</li>
+            <li>الخصم يُقيَّد كإيراد مكتسب (5120).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  const TAX_ENABLED = {{ 'true' if tax_enabled else 'false' }};
+  const TAX_RATE = parseFloat("{{ tax_rate }}") || 0;
+
+  const vendorSearch = document.getElementById('vendorSearch');
+  const vendorResults = document.getElementById('vendorResults');
+  let vendorDebounce;
+
+  vendorSearch.addEventListener('input', () => {
+    clearTimeout(vendorDebounce);
+    document.getElementById('vendor_id').value = '';
+    const q = vendorSearch.value.trim();
+    if (!q) { vendorResults.innerHTML = ''; return; }
+    vendorDebounce = setTimeout(async () => {
+      const r = await fetch(`/parties/api/search?type=vendor&q=${encodeURIComponent(q)}`);
+      const data = await r.json();
+      vendorResults.innerHTML = data.map(p => `
+        <button type="button" class="list-group-item list-group-item-action text-start"
+                data-id="${p.id}" data-name="${p.name_ar}">
+          <strong>${p.name_ar}</strong>
+          <span class="text-muted small ms-2" dir="ltr">${p.code}</span>
+          ${p.phone ? `<span class="text-muted small ms-2" dir="ltr">${p.phone}</span>` : ''}
+        </button>
+      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
+      vendorResults.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          document.getElementById('vendor_id').value = b.dataset.id;
+          vendorSearch.value = b.dataset.name;
+          vendorResults.innerHTML = '';
+        });
+      });
+    }, 250);
+  });
+
+  const productSearch = document.getElementById('productSearch');
+  const productResults = document.getElementById('productResults');
+  let productDebounce;
+
+  productSearch.addEventListener('input', () => {
+    clearTimeout(productDebounce);
+    const q = productSearch.value.trim();
+    if (!q) { productResults.innerHTML = ''; return; }
+    productDebounce = setTimeout(async () => {
+      const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
+      const data = await r.json();
+      productResults.innerHTML = data.map(v => `
+        <button type="button" class="list-group-item list-group-item-action text-start"
+                data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
+          <strong>${v.name}</strong>
+          <div class="small text-muted" dir="ltr">SKU: ${v.sku} — الرصيد: ${v.stock}</div>
+        </button>
+      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
+      productResults.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          const v = JSON.parse(b.dataset.payload);
+          addLine(v);
+          productSearch.value = '';
+          productResults.innerHTML = '';
+          productSearch.focus();
+        });
+      });
+    }, 250);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!vendorSearch.contains(e.target) && !vendorResults.contains(e.target)) vendorResults.innerHTML = '';
+    if (!productSearch.contains(e.target) && !productResults.contains(e.target)) productResults.innerHTML = '';
+  });
+
+  function addLine(v) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <input type="hidden" name="line_variant_id[]" value="${v.id}">
+        <div class="fw-semibold">${v.name}</div>
+        <div class="small text-muted" dir="ltr">SKU: ${v.sku}</div>
+      </td>
+      <td>
+        <input type="number" name="line_qty[]" class="form-control form-control-sm line-qty"
+               step="0.001" min="0.001" value="1">
+      </td>
+      <td>
+        <input type="number" name="line_cost[]" class="form-control form-control-sm line-cost"
+               step="0.001" min="0" value="0" placeholder="أدخل سعر التكلفة">
+      </td>
+      <td class="text-end fw-bold line-total">0.000</td>
+      <td>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove(); recalc();">
+          <i class="bi bi-x"></i>
+        </button>
+      </td>
+    `;
+    document.getElementById('linesBody').appendChild(tr);
+    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', recalc));
+    recalc();
+  }
+
+  function recalc() {
+    let subtotal = 0;
+    document.querySelectorAll('#linesBody tr').forEach(tr => {
+      const qty = parseFloat(tr.querySelector('.line-qty').value) || 0;
+      const cost = parseFloat(tr.querySelector('.line-cost').value) || 0;
+      const total = qty * cost;
+      tr.querySelector('.line-total').textContent = total.toFixed(3);
+      subtotal += total;
+    });
+    const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+    const freight = parseFloat(document.getElementById('freightInput').value) || 0;
+    const net = Math.max(0, subtotal - discount + freight);
+    const tax = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
+    const total = net + tax;
+    document.getElementById('sumSubtotal').textContent = subtotal.toFixed(3);
+    if (TAX_ENABLED) document.getElementById('sumTax').textContent = tax.toFixed(3);
+    document.getElementById('sumTotal').textContent = total.toFixed(3);
+  }
+
+  document.getElementById('discountInput').addEventListener('input', recalc);
+  document.getElementById('freightInput').addEventListener('input', recalc);
+
+  function toggleBank() {
+    const val = document.getElementById('paymentMethod').value;
+    document.getElementById('bankRow').style.display = (val === 'bank') ? '' : 'none';
+  }
+
+  document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+    if (!document.getElementById('vendor_id').value) {
+      e.preventDefault();
+      alert('اختر موردًا.');
+      return;
+    }
+    if (!document.querySelectorAll('#linesBody tr').length) {
+      e.preventDefault();
+      alert('أضف بندًا واحدًا على الأقل.');
+    }
+  });
+</script>
+{% endblock %}

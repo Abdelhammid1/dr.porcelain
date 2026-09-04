@@ -1,0 +1,45 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Flask
+instance/
+.webassets-cache
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts (previews folder + zip stay tracked as demo material)
+# but ignore the local generated tmp
+tmp_test*.db
+tmp_pos*.db
+mtgar_live_*.db
+
+# DB
+*.db
+*.sqlite3
+
+# Uploads and generated files
+app/static/uploads/
+app/static/generated/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db

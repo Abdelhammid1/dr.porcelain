@@ -1,0 +1,187 @@
+{% extends "layouts/app.html" %}
+{% block title %}جدول سداد {{ schedule.purchase_invoice.doc_number }}{% endblock %}
+{% block page_title %}جدول سداد المورد{% endblock %}
+
+{% set status_labels = {
+  'active':    ('نشط',    'info'),
+  'completed': ('مكتمل',  'success'),
+  'cancelled': ('ملغى',   'muted'),
+} %}
+{% set line_status = {
+  'pending': ('مستحق',   'muted'),
+  'partial': ('جزئي',    'warning'),
+  'paid':    ('مسدَّد',    'success'),
+  'overdue': ('متأخر',   'danger'),
+} %}
+{% set st = status_labels.get(schedule.status.value, (schedule.status.value, 'muted')) %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      جدول سداد لفاتورة <span dir="ltr">{{ schedule.purchase_invoice.doc_number }}</span>
+      <span class="badge badge-{{ st[1] }} ms-2">{{ st[0] }}</span>
+    </h1>
+    <div class="subtitle">
+      {{ schedule.vendor.name_ar }} · إجمالي:
+      <strong>{{ schedule.total_amount | money }}</strong>
+    </div>
+  </div>
+  <a href="{{ url_for('purchases.view', invoice_id=schedule.purchase_invoice.id) }}" class="btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع للفاتورة
+  </a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon">
+      <div class="stat-tile-icon"><i class="bi bi-cash"></i></div>
+      <div>
+        <div class="stat-tile-label">إجمالي الفاتورة</div>
+        <div class="stat-tile-value">{{ schedule.total_amount | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-success">
+      <div class="stat-tile-icon"><i class="bi bi-check2-all"></i></div>
+      <div>
+        <div class="stat-tile-label">المسدَّد</div>
+        <div class="stat-tile-value">{{ schedule.total_paid | money }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-tile stat-tile-with-icon tone-danger">
+      <div class="stat-tile-icon"><i class="bi bi-exclamation-circle"></i></div>
+      <div>
+        <div class="stat-tile-label">المتبقي</div>
+        <div class="stat-tile-value">{{ schedule.total_remaining | money }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">الدفعات المقررة</div>
+  <div class="table-scroll">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>المبلغ</th>
+          <th>المسدَّد</th>
+          <th>المتبقي</th>
+          <th>الحالة</th>
+          <th class="text-end">سداد</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in schedule.lines %}
+        {% set lst = line_status.get(line.status.value, (line.status.value, 'muted')) %}
+        <tr>
+          <td class="fw-bold">{{ line.number }}</td>
+          <td>{{ line.due_date.strftime('%Y/%m/%d') }}</td>
+          <td>{{ line.amount | money }}</td>
+          <td>{{ line.paid_amount | money }}</td>
+          <td class="fw-bold">{{ line.remaining | money }}</td>
+          <td><span class="badge badge-{{ lst[1] }}">{{ lst[0] }}</span></td>
+          <td class="text-end">
+            {% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
+            <button class="btn-primary btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#payModal{{ line.id }}">
+              <i class="bi bi-cash"></i> سداد
+            </button>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
+        <div class="modal fade" id="payModal{{ line.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <form method="post" action="{{ url_for('vendor_payments.pay', line_id=line.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">سداد دفعة {{ line.number }} — {{ schedule.vendor.name_ar }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="dp-callout tone-info">
+                    <div>
+                      <strong>المتبقي على الدفعة:</strong> {{ line.remaining | money }}<br>
+                      تاريخ الاستحقاق: {{ line.due_date.strftime('%Y/%m/%d') }}
+                    </div>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">المبلغ *</label>
+                      <input type="number" name="amount" class="form-control form-control-lg"
+                             step="0.001" min="0.001" max="{{ line.remaining }}"
+                             value="{{ line.remaining }}" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">تاريخ الدفع</label>
+                      <input type="date" name="payment_date" class="form-control" value="{{ today }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">طريقة الدفع</label>
+                      <select name="method" class="form-select">
+                        <option value="cash" selected>نقدي</option>
+                        <option value="bank">بنك</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">ملاحظة</label>
+                      <input type="text" name="memo" class="form-control">
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn-light" data-bs-dismiss="modal">إلغاء</button>
+                  <button type="submit" class="btn-primary">
+                    <i class="bi bi-check-lg"></i> تأكيد السداد
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if schedule.payments %}
+<div class="card mt-3">
+  <div class="card-header">سجل السدادات</div>
+  <div class="table-scroll">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr>
+          <th>رقم السند</th><th>التاريخ</th><th>الدفعة</th><th>المبلغ</th>
+          <th>طريقة الدفع</th><th>ملاحظة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in schedule.payments %}
+        <tr>
+          <td dir="ltr">{{ p.doc_number }}</td>
+          <td>{{ p.payment_date.strftime('%Y/%m/%d') }}</td>
+          <td>#{{ p.schedule_line.number }}</td>
+          <td class="fw-bold">{{ p.amount | money }}</td>
+          <td>{% if p.method == 'cash' %}نقدي{% elif p.method == 'bank' %}بنك{% else %}{{ p.method }}{% endif %}</td>
+          <td class="small text-muted">{{ p.memo or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

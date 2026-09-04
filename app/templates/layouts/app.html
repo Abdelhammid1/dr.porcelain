@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="flex min-h-screen">
+  {% include "partials/sidebar.html" %}
+
+  <!-- Backdrop for mobile drawer -->
+  <div id="sidebar-backdrop"
+       class="hidden fixed inset-0 bg-black/40 z-30"
+       style="display:none"
+       onclick="toggleSidebar(false)"></div>
+
+  <main class="app-main flex-1">
+    <header class="app-topbar">
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="toggleSidebar()"
+                class="btn-icon" title="القائمة الجانبية" aria-label="القائمة الجانبية">
+          <i class="bi bi-list" style="font-size:1.15rem"></i>
+        </button>
+        <div>
+          <h1>{% block page_title %}{% endblock %}</h1>
+          {% block page_subtitle %}{% endblock %}
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('auth.logout') }}" class="btn-icon" title="تسجيل الخروج">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </header>
+
+    <div class="app-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<style>
+  /* Backdrop mobile toggle */
+  body.sidebar-open-mobile #sidebar-backdrop { display: block !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "storefront/_base.html" %}
+{% block title %}تم استلام طلبك{% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin:40px auto; text-align:center;
+            background:white; border:1px solid var(--dp-line); border-radius:20px; padding:50px 30px;">
+  <div style="width:100px; height:100px; margin:0 auto 20px; border-radius:50%;
+              background:linear-gradient(135deg,var(--dp-success),#059669);
+              display:grid; place-items:center; color:white; font-size:3rem;
+              box-shadow:0 12px 30px rgba(22,163,74,0.3);">
+    <i class="bi bi-check-lg"></i>
+  </div>
+  <h1 style="font-size:1.8rem; font-weight:800; margin:0 0 12px;">شكرًا لطلبك!</h1>
+  <p style="color:var(--dp-ink-2); font-size:1.05rem; line-height:1.7; margin-bottom:30px;">
+    تم استلام طلبك بنجاح. سنتواصل معك على رقم <strong dir="ltr">{{ order.customer_phone }}</strong>
+    لتأكيد التفاصيل وموعد الشحن.
+  </p>
+
+  <div style="background:var(--dp-brand-tint); border:1px solid var(--dp-brand); border-radius:14px; padding:20px; margin-bottom:24px;">
+    <div style="font-size:0.9rem; color:var(--dp-brand-dark); margin-bottom:4px;">رقم الطلب</div>
+    <div dir="ltr" style="font-size:1.6rem; font-weight:800; color:var(--dp-brand-dark); letter-spacing:1px;">
+      {{ order.doc_number }}
+    </div>
+    <div style="margin-top:12px; font-size:0.85rem; color:var(--dp-ink-3);">
+      احتفظ بهذا الرقم للمراجعة عند التواصل.
+    </div>
+  </div>
+
+  <dl class="row text-start mb-4">
+    <dt class="col-5 text-muted">الاسم</dt>
+    <dd class="col-7">{{ order.customer_display_name }}</dd>
+    <dt class="col-5 text-muted">العنوان</dt>
+    <dd class="col-7">{{ order.shipping_address }}</dd>
+    <dt class="col-5 text-muted">طريقة الدفع</dt>
+    <dd class="col-7"><span class="badge badge-brand">الدفع عند الاستلام</span></dd>
+    <dt class="col-5 text-muted">الإجمالي</dt>
+    <dd class="col-7 fw-bold" style="color:var(--dp-brand);">{{ order.total | money }}</dd>
+    <dt class="col-5 text-muted">الحالة</dt>
+    <dd class="col-7"><span class="badge badge-info">قيد المعالجة</span></dd>
+  </dl>
+
+  <a href="{{ url_for('storefront.home') }}" class="sf-btn-primary">
+    <i class="bi bi-house"></i> العودة للرئيسية
+  </a>
+</div>
+{% endblock %}

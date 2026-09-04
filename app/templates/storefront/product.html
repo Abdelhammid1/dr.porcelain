@@ -1,0 +1,160 @@
+{% extends "storefront/_base.html" %}
+{% block title %}{{ product.name_ar }}{% endblock %}
+
+{% block content %}
+<div style="color:var(--dp-ink-3); font-size:0.85rem; margin-bottom:20px;">
+  <a href="{{ url_for('storefront.home') }}" style="color:var(--dp-ink-3);">الرئيسية</a>
+  <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
+  {% if product.category %}
+  <a href="{{ url_for('storefront.category', category_id=product.category.id) }}" style="color:var(--dp-ink-3);">
+    {{ product.category.name_ar }}
+  </a>
+  <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
+  {% endif %}
+  <span style="color:var(--dp-ink-1);">{{ product.name_ar }}</span>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:60px;">
+  <!-- Gallery -->
+  <div>
+    <div style="aspect-ratio:1; background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
+                border-radius:20px; display:grid; place-items:center;
+                font-size:8rem; color:var(--dp-brand);">
+      <i class="bi bi-box"></i>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px;">
+      {% for _ in range(4) %}
+      <div style="aspect-ratio:1; background:#f8fafc; border-radius:10px;
+                  display:grid; place-items:center; font-size:1.8rem;
+                  color:var(--dp-brand-mid); cursor:pointer;
+                  border:1px solid var(--dp-line);">
+        <i class="bi bi-box"></i>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Info + form -->
+  <div>
+    {% if product.category %}
+    <div style="font-size:0.85rem; color:var(--dp-brand); font-weight:600; margin-bottom:6px;">
+      {{ product.category.full_path_ar }}
+    </div>
+    {% endif %}
+    <h1 style="font-size:1.8rem; font-weight:800; margin:0 0 12px;">{{ product.name_ar }}</h1>
+
+    <!-- Rating placeholder -->
+    <div style="color:#f59e0b; margin-bottom:14px; font-size:0.95rem;">
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-half"></i>
+      <span style="color:var(--dp-ink-3); margin-inline-start:6px; font-size:0.85rem;">(4.5)</span>
+    </div>
+
+    <div style="font-size:2rem; font-weight:800; color:var(--dp-brand); margin-bottom:20px;">
+      {{ product.default_price | money }}
+    </div>
+
+    {% if product.description %}
+    <p style="color:var(--dp-ink-2); line-height:1.8; margin-bottom:24px;">
+      {{ product.description }}
+    </p>
+    {% endif %}
+
+    <!-- Variants (color) -->
+    {% if product.variants|length > 1 %}
+    <div style="margin-bottom:20px;">
+      <label class="form-label" style="font-weight:700;">اللون</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        {% for v in product.variants %}
+        <label style="cursor:pointer;">
+          <input type="radio" name="variant_id" value="{{ v.id }}"
+                 form="add-form" {% if loop.first %}checked{% endif %} style="display:none;"
+                 class="variant-radio" {% if v.stock_qty <= 0 %}disabled{% endif %}>
+          <span class="variant-chip" style="padding:8px 16px; border:2px solid var(--dp-line);
+                    border-radius:999px; font-weight:600; display:inline-block;
+                    {% if v.stock_qty <= 0 %}opacity:.5; text-decoration:line-through;{% endif %}">
+            {{ v.color or v.variant_name or 'افتراضي' }}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <input type="hidden" name="variant_id" value="{{ product.variants[0].id if product.variants else '' }}" form="add-form">
+    {% endif %}
+
+    <!-- Qty + add to cart -->
+    <form method="post" action="{{ url_for('storefront.cart_add') }}" id="add-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:end; margin-bottom:20px;">
+        <div>
+          <label class="form-label" style="font-weight:700;">الكمية</label>
+          <input type="number" name="qty" value="1" min="1"
+                 style="width:100px; padding:12px; border-radius:10px; border:1px solid var(--dp-line-strong); text-align:center; font-weight:700; font-size:1.1rem;">
+        </div>
+        <button type="submit" class="sf-btn-primary" style="padding:14px 30px; font-size:1rem;">
+          <i class="bi bi-basket-fill"></i> أضف للسلة
+        </button>
+      </div>
+    </form>
+
+    <!-- Trust badges -->
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:20px;
+                border-top:1px solid var(--dp-line); font-size:0.8rem; color:var(--dp-ink-2);">
+      <div style="text-align:center;">
+        <i class="bi bi-truck" style="font-size:1.5rem; color:var(--dp-brand);"></i>
+        <div style="margin-top:4px;">شحن سريع</div>
+      </div>
+      <div style="text-align:center;">
+        <i class="bi bi-arrow-counterclockwise" style="font-size:1.5rem; color:var(--dp-brand);"></i>
+        <div style="margin-top:4px;">14 يوم للإرجاع</div>
+      </div>
+      <div style="text-align:center;">
+        <i class="bi bi-shield-check" style="font-size:1.5rem; color:var(--dp-brand);"></i>
+        <div style="margin-top:4px;">ضمان جودة</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related products -->
+{% if related %}
+<section>
+  <div class="sf-section-header">
+    <h2>منتجات ذات صلة</h2>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
+    {% for v in related %}
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
+      <div class="sf-product-image"><i class="bi bi-box"></i></div>
+      <div class="sf-product-body">
+        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
+        <div class="sf-product-name">{{ v.display_name }}</div>
+        <div class="sf-product-price">{{ v.price | money }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<script>
+  document.querySelectorAll('.variant-radio').forEach(r => {
+    r.addEventListener('change', () => {
+      document.querySelectorAll('.variant-chip').forEach(c => {
+        c.style.borderColor = 'var(--dp-line)';
+        c.style.background = '';
+        c.style.color = '';
+      });
+      const chip = r.closest('label').querySelector('.variant-chip');
+      chip.style.borderColor = 'var(--dp-brand)';
+      chip.style.background = 'var(--dp-brand-tint)';
+      chip.style.color = 'var(--dp-brand-dark)';
+    });
+    if (r.checked) r.dispatchEvent(new Event('change'));
+  });
+</script>
+{% endblock %}

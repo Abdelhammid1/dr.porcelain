@@ -1,0 +1,121 @@
+{# Sidebar with collapsible sections. Each section auto-expands if any
+   of its links matches the current endpoint. Permission-gated per link. #}
+
+{% macro section(title, icon, items) %}
+  {# `items` is a list of tuples: (endpoint, label, emoji_icon, permission_code_or_None) #}
+  {% set ns = namespace(visible=[], active=false) %}
+  {% for endpoint, label, emoji, perm in items %}
+    {% if perm is none or current_user.can(perm) %}
+      {% set _ = ns.visible.append((endpoint, label, emoji)) %}
+      {% if request.endpoint and (request.endpoint == endpoint or request.endpoint.split('.')[0] == endpoint.split('.')[0]) %}
+        {% set ns.active = true %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if ns.visible %}
+  <div class="sidebar-section" data-section="{{ title }}">
+    <button type="button" class="section-toggle" onclick="toggleSection(this)">
+      <span class="flex items-center gap-2">
+        <span aria-hidden="true">{{ icon }}</span>
+        <span>{{ title }}</span>
+      </span>
+      <span class="section-chevron text-xs text-slate-500">▼</span>
+    </button>
+    <div class="section-body {% if not ns.active %}section-collapsed{% endif %}">
+      {% for endpoint, label, emoji in ns.visible %}
+        {% set is_active = request.endpoint and (request.endpoint == endpoint or request.endpoint.split('.')[0] == endpoint.split('.')[0]) %}
+        <a href="{{ url_for(endpoint) }}" class="nav-link {% if is_active %}active{% endif %}">
+          <span aria-hidden="true">{{ emoji }}</span>
+          <span>{{ label }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+{% endmacro %}
+
+<aside class="app-sidebar">
+  <div class="app-sidebar-brand">
+    <div class="brand-logo">د.ب</div>
+    <div class="min-w-0">
+      <div class="brand-name">دكتور بورسلين</div>
+      <div class="brand-sub">النظام المحاسبي</div>
+    </div>
+  </div>
+
+  <nav class="app-sidebar-nav">
+    {{ section('الرئيسية', '🏠', [
+      ('main.dashboard', 'لوحة المعلومات', '📊', None),
+      ('orders.index',   'الطلبات الأونلاين', '🛒', 'orders.view'),
+      ('storefront.home','عرض المتجر',      '🌐', None),
+    ]) }}
+
+    {{ section('المبيعات', '💰', [
+      ('sales.index',   'فواتير البيع',    '🧾', 'sales.view'),
+      ('sales.create',  'فاتورة جديدة',    '➕', 'sales.create'),
+      ('installments.index', 'خطط التقسيط', '📅', 'installments.view'),
+      ('installments.create','بيع بالتقسيط', '💳', 'installments.create'),
+      ('installments.overdue','أقساط متأخرة','⚠️', 'installments.view'),
+      ('pos.index',     'نقطة البيع',      '🛒', 'pos.use'),
+      ('pos.sessions_index', 'الورديات',   '🕐', 'pos.use'),
+    ]) }}
+
+    {{ section('المشتريات', '🛍️', [
+      ('purchases.index',  'فواتير الشراء',  '📥', 'purchases.view'),
+      ('purchases.create', 'فاتورة شراء جديدة', '➕', 'purchases.create'),
+      ('vendor_payments.index', 'جداول سداد الموردين', '📅', 'vendor_payments.view'),
+    ]) }}
+
+    {{ section('المخزون', '📦', [
+      ('products.index',            'المنتجات',   '📦', 'products.view'),
+      ('products.categories_index', 'التصنيفات',   '🏷️', 'products.view'),
+    ]) }}
+
+    {# العملاء والموردون — endpoints need type_str kwarg, so rendered manually #}
+    {% if current_user.can('parties.view') %}
+    {% set _parties_active = request.endpoint and request.endpoint.startswith('parties.') %}
+    <div class="sidebar-section" data-section="العملاء والموردون">
+      <button type="button" class="section-toggle" onclick="toggleSection(this)">
+        <span class="flex items-center gap-2">
+          <span aria-hidden="true">👥</span>
+          <span>العملاء والموردون</span>
+        </span>
+        <span class="section-chevron text-xs text-slate-500">▼</span>
+      </button>
+      <div class="section-body {% if not _parties_active %}section-collapsed{% endif %}">
+        {% set _cust_active = _parties_active and request.view_args and request.view_args.get('type_str') == 'customer' %}
+        {% set _vendor_active = _parties_active and request.view_args and request.view_args.get('type_str') == 'vendor' %}
+        <a href="{{ url_for('parties.index', type_str='customer') }}"
+           class="nav-link {% if _cust_active %}active{% endif %}">
+          <span aria-hidden="true">🧑</span><span>العملاء</span>
+        </a>
+        <a href="{{ url_for('parties.index', type_str='vendor') }}"
+           class="nav-link {% if _vendor_active %}active{% endif %}">
+          <span aria-hidden="true">🚚</span><span>الموردون</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {{ section('التقارير', '📈', [
+      ('reports.income_statement_view', 'قائمة الدخل',        '💵', 'reports.income_statement'),
+      ('reports.balance_sheet_view',    'الميزانية العمومية', '⚖️', 'reports.balance_sheet'),
+      ('reports.cash_flow_view',        'التدفق النقدي',      '💧', 'reports.cash_flow'),
+      ('reports.trial_balance_view',    'ميزان المراجعة',      '📋', 'reports.trial_balance'),
+      ('reports.vat_view',              'ضريبة القيمة المضافة', '🧾', 'reports.vat'),
+      ('reports.profitability_view',    'ربحية المنتجات',      '📊', 'reports.profitability'),
+      ('reports.ap_aging_view',         'أعمار ديون الموردين', '📉', 'reports.ap_aging'),
+      ('reports.ar_aging_view',         'أعمار ديون العملاء',  '📈', 'reports.ar_aging'),
+    ]) }}
+  </nav>
+
+  {% if current_user.is_authenticated %}
+  <div class="app-sidebar-user">
+    <div class="avatar">{{ current_user.full_name[:1] }}</div>
+    <div class="flex-1 min-w-0">
+      <div class="user-name truncate">{{ current_user.full_name }}</div>
+      <div class="user-role">{{ current_user.role.name_ar if current_user.role else "" }}</div>
+    </div>
+  </div>
+  {% endif %}
+</aside>
