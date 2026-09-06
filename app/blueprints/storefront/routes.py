@@ -527,6 +527,18 @@ def account_order_view(order_number):
                            customer=customer, order=order)
 
 
+@storefront_bp.route("/account/loyalty", methods=["GET"])
+@customer_required
+def account_loyalty():
+    """Ticket 3 Epic 10 — نقاط الولاء للعميل."""
+    from app.services import loyalty as loyalty_service
+    customer = current_customer()
+    bal = loyalty_service.balance(customer.id)
+    txns = loyalty_service.list_transactions(customer.id, limit=50)
+    return render_template("storefront/account_loyalty.html",
+                           customer=customer, balance=bal, txns=txns)
+
+
 @storefront_bp.route("/account/installments", methods=["GET"])
 @customer_required
 def account_installments():

@@ -44,6 +44,7 @@ class PaymentMethod(str, enum.Enum):
     BANK = "bank"           # تحويل بنكي
     CARD = "card"           # بطاقة (Phase 2 POS)
     WALLET = "wallet"       # محفظة إلكترونية (Phase 2 POS)
+    ON_CREDIT = "on_credit" # آجل (Ticket 3 Epic 7 — بيع لا يُحصَّل فورًا)
 
 
 class SalesInvoice(db.Model, TimestampMixin):
@@ -64,7 +65,10 @@ class SalesInvoice(db.Model, TimestampMixin):
     discount_amount = Column(MONEY, nullable=False, default=0)  # خصم على مستوى الفاتورة
     tax_rate = Column(MONEY, nullable=False, default=0)      # نسبة الضريبة وقت الفاتورة
     tax_amount = Column(MONEY, nullable=False, default=0)    # قيمة الضريبة المحسوبة
-    total = Column(MONEY, nullable=False, default=0)         # الإجمالي النهائي (المدفوع)
+    total = Column(MONEY, nullable=False, default=0)         # الإجمالي النهائي (المستحق)
+    # Ticket 3 Epic 7 — للفواتير الآجلة: المُحصَّل الفعلي من العميل حتى الآن.
+    # للفواتير النقدية = total (تُملأ تلقائيًا عند الإنشاء).
+    amount_paid = Column(MONEY, nullable=False, default=0)
 
     status = Column(
         Enum(InvoiceStatus, name="invoice_status", values_callable=lambda x: [e.value for e in x]),
@@ -105,6 +109,20 @@ class SalesInvoice(db.Model, TimestampMixin):
     def line_returnable_qty(self, line: "SalesInvoiceLine") -> Decimal:
         returned = self.total_returned_qty_per_line.get(line.id, Decimal("0"))
         return Decimal(str(line.qty)) - returned
+
+    # ---- Ticket 3 Epic 7 — بيع آجل ----
+    @property
+    def amount_due(self) -> Decimal:
+        """المبلغ المتبقي (للفواتير الآجلة). = total - amount_paid."""
+        return Decimal(str(self.total)) - Decimal(str(self.amount_paid or 0))
+
+    @property
+    def is_paid(self) -> bool:
+        return self.amount_due <= Decimal("0")
+
+    @property
+    def is_on_credit(self) -> bool:
+        return self.payment_method == PaymentMethod.ON_CREDIT
 
     def __repr__(self) -> str:
         return f"<SalesInvoice {self.doc_number} status={self.status.value} total={self.total}>"

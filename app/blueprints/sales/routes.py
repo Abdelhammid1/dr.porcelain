@@ -26,6 +26,7 @@ from app.services.sales import (
     SalesError,
     create_cash_sale,
     create_sales_return,
+    record_customer_receipt,
 )
 from app.services.security import require_permission
 
@@ -33,6 +34,55 @@ from app.services.security import require_permission
 # ============================================================
 # قائمة الفواتير
 # ============================================================
+
+# ============================================================
+# Ticket 3 Epic 7 — الفواتير غير المحصّلة (آجل)
+# ============================================================
+
+@sales_bp.route("/unpaid", methods=["GET"])
+@login_required
+@require_permission("sales.view")
+def unpaid():
+    """الفواتير الآجلة (ON_CREDIT) التي لم تُحصَّل بالكامل بعد."""
+    invoices = (
+        db.session.query(SalesInvoice)
+        .filter(SalesInvoice.payment_method == PaymentMethod.ON_CREDIT)
+        .filter(SalesInvoice.status.in_([InvoiceStatus.POSTED, InvoiceStatus.PARTIAL_RETURNED]))
+        .order_by(SalesInvoice.invoice_date, SalesInvoice.id)
+        .all()
+    )
+    # نُصفّي الفواتير المدفوعة بالكامل حتى لو ON_CREDIT
+    unpaid_only = [inv for inv in invoices if inv.amount_due > 0]
+    return render_template("sales/unpaid.html", invoices=unpaid_only)
+
+
+@sales_bp.route("/<int:invoice_id>/collect", methods=["POST"])
+@login_required
+@require_permission("collect.customer")
+def collect(invoice_id):
+    invoice = db.session.get(SalesInvoice, invoice_id) or abort(404)
+    amount = request.form.get("amount")
+    method_str = request.form.get("payment_method") or "cash"
+    try:
+        method = PaymentMethod(method_str)
+    except ValueError:
+        method = PaymentMethod.CASH
+    try:
+        record_customer_receipt(
+            invoice_id=invoice.id,
+            amount=Decimal(str(amount or "0")),
+            receipt_date=date.today(),
+            payment_method=method,
+            memo=request.form.get("memo") or None,
+            user_id=current_user.id,
+        )
+        db.session.commit()
+        flash(f"تم تحصيل {amount} من الفاتورة {invoice.doc_number}.", "success")
+    except SalesError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("sales.view", invoice_id=invoice.id))
+
 
 @sales_bp.route("/", methods=["GET"])
 @login_required

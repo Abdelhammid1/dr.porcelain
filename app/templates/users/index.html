@@ -1,0 +1,120 @@
+{% extends "layouts/app.html" %}
+{% block title %}المستخدمون{% endblock %}
+{% block page_title %}المستخدمون{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>المستخدمون</h1>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
+    <i class="bi bi-plus-circle"></i> مستخدم جديد
+  </button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>اسم المستخدم</th>
+          <th>الاسم الكامل</th>
+          <th>الدور</th>
+          <th>آخر دخول</th>
+          <th>الحالة</th>
+          <th class="text-end">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td dir="ltr" class="fw-semibold">{{ u.username }}</td>
+          <td>{{ u.full_name }}</td>
+          <td>{{ u.role.name_ar if u.role else "—" }}</td>
+          <td class="small text-muted">{{ u.last_login_at | hdate if u.last_login_at else "—" }}</td>
+          <td>
+            {% if u.is_active %}<span class="badge bg-success">نشط</span>
+            {% else %}<span class="badge bg-secondary">موقوف</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetPwd{{ u.id }}">
+              <i class="bi bi-key"></i>
+            </button>
+            <form method="post" action="{{ url_for('users.toggle', user_id=u.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if u.is_active else 'success' }}">
+                <i class="bi bi-{{ 'pause' if u.is_active else 'play' }}"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        <div class="modal fade" id="resetPwd{{ u.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <form method="post" action="{{ url_for('users.reset_password', user_id=u.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">تعديل كلمة مرور {{ u.username }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <input type="password" name="new_password" class="form-control" placeholder="كلمة مرور جديدة (6+ أحرف)" required>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+                  <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="newUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{{ url_for('users.create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">مستخدم جديد</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">اسم المستخدم</label>
+              <input name="username" class="form-control" dir="ltr" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">الاسم الكامل</label>
+              <input name="full_name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">كلمة المرور (6+ أحرف)</label>
+              <input type="password" name="password" class="form-control" required minlength="6">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">الدور</label>
+              <select name="role_id" class="form-select" required>
+                {% for r in roles %}
+                <option value="{{ r.id }}">{{ r.name_ar }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">البريد (اختياري)</label>
+              <input type="email" name="email" class="form-control" dir="ltr">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

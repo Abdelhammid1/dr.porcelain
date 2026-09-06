@@ -27,6 +27,7 @@ from app.models.party import Party, PartyType  # noqa: F401
 from app.models.pos import POSSession, SessionStatus  # noqa: F401
 from app.models.coupon import CouponUsage, DiscountCoupon, DiscountType  # noqa: F401
 from app.models.image import ProductImage  # noqa: F401
+from app.models.loyalty import LoyaltyPointsLedger, LoyaltyTxnType  # noqa: F401
 from app.models.product import Product, ProductVariant  # noqa: F401
 from app.models.product_extras import ProductCompositionLine, ProductFeature  # noqa: F401
 from app.models.product_relation import ProductRelation, RelationType  # noqa: F401
@@ -89,6 +90,8 @@ __all__ = [
     "DiscountType",
     "CouponUsage",
     "WishlistItem",
+    "LoyaltyPointsLedger",
+    "LoyaltyTxnType",
     "InventoryMovement",
     "MovementType",
     "SalesInvoice",

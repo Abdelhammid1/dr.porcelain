@@ -1,0 +1,56 @@
+{% extends "storefront/_portal_layout.html" %}
+{% block title %}نقاط الولاء{% endblock %}
+
+{% block portal_content %}
+<div style="margin-bottom:20px;">
+  <h1 style="font-size:1.5rem; font-weight:800; margin:0;">
+    <i class="bi bi-star-fill" style="color:#f59e0b"></i>
+    نقاط الولاء
+  </h1>
+</div>
+
+<div style="background:linear-gradient(135deg,#fbbf24,#f59e0b); color:white; padding:30px;
+            border-radius:14px; text-align:center; margin-bottom:20px;">
+  <div style="opacity:.85; font-size:0.9rem;">رصيد النقاط الحالي</div>
+  <div style="font-size:3rem; font-weight:800; margin-top:6px;">
+    {{ balance | qty }}
+  </div>
+  <div style="opacity:.85; font-size:0.85rem;">
+    نقطة — تُكتسب تلقائيًا مع كل طلب مسلَّم
+  </div>
+</div>
+
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+  <div style="padding:14px 20px; border-bottom:1px solid var(--dp-line); font-weight:800;">
+    السجل
+  </div>
+  <table class="table mb-0">
+    <thead>
+      <tr>
+        <th>التاريخ</th>
+        <th>النوع</th>
+        <th>البيان</th>
+        <th class="text-end">النقاط</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in txns %}
+      <tr>
+        <td class="small">{{ t.created_at | hdate }}</td>
+        <td>
+          {% if t.transaction_type.value == 'earn' %}<span class="badge bg-success">مكتسبة</span>
+          {% elif t.transaction_type.value == 'redeem' %}<span class="badge bg-danger">مستبدلة</span>
+          {% else %}<span class="badge bg-secondary">تعديل</span>{% endif %}
+        </td>
+        <td class="small text-muted">{{ t.memo or "—" }}</td>
+        <td class="text-end fw-bold {% if t.points > 0 %}text-success{% else %}text-danger{% endif %}">
+          {% if t.points > 0 %}+{% endif %}{{ t.points | qty }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted p-4">لا توجد حركات بعد.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

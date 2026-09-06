@@ -1,0 +1,124 @@
+{% extends "layouts/app.html" %}
+{% block title %}دليل الحسابات{% endblock %}
+{% block page_title %}دليل الحسابات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>دليل الحسابات</h1>
+  {% if current_user.can('accounts.manage') %}
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">
+    <i class="bi bi-plus-circle"></i> حساب جديد
+  </button>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>الكود</th>
+          <th>الاسم</th>
+          <th>النوع</th>
+          <th>ترحيل مباشر</th>
+          <th>الرصيد</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% macro row(acc, depth) %}
+        <tr>
+          <td dir="ltr" class="fw-semibold" style="padding-inline-start:{{ 20 * depth }}px;">
+            {{ acc.code }}
+          </td>
+          <td>{{ acc.name_ar }}</td>
+          <td><small>{{ acc.type.label_ar }}</small></td>
+          <td>
+            {% if acc.is_postable %}<span class="badge bg-success">نعم</span>
+            {% else %}<span class="badge bg-secondary">أب</span>{% endif %}
+          </td>
+          <td>
+            {% if acc.is_postable and balances.get(acc.id) is not none %}
+              {{ balances[acc.id] | money }}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if acc.is_active %}<span class="badge bg-success">نشط</span>
+            {% else %}<span class="badge bg-secondary">موقوف</span>{% endif %}
+            {% if acc.is_system %}<span class="badge bg-info ms-1">نظام</span>{% endif %}
+          </td>
+          <td class="text-end">
+            {% if current_user.can('accounts.manage') and not acc.is_system %}
+            <form method="post" action="{{ url_for('accounts.toggle', account_id=acc.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if acc.is_active else 'success' }}">
+                <i class="bi bi-{{ 'pause' if acc.is_active else 'play' }}"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endmacro %}
+
+        {% macro tree(acc, depth=0) %}
+          {{ row(acc, depth) }}
+          {% for child in acc.children | sort(attribute='code') %}
+            {{ tree(child, depth + 1) }}
+          {% endfor %}
+        {% endmacro %}
+
+        {% for root in roots | sort(attribute='code') %}
+          {{ tree(root) }}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if current_user.can('accounts.manage') %}
+<div class="modal fade" id="newAccountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{{ url_for('accounts.create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">حساب جديد</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">الكود</label>
+              <input name="code" class="form-control" dir="ltr" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">الاسم</label>
+              <input name="name_ar" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">الحساب الأب</label>
+              <select name="parent_id" class="form-select" required>
+                {% for a in all_accounts %}
+                <option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }} ({{ a.type.label_ar }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input type="checkbox" name="is_postable" class="form-check-input" id="postable" checked>
+                <label class="form-check-label" for="postable">قابل للترحيل المباشر</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

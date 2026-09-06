@@ -1,0 +1,92 @@
+{% extends "layouts/app.html" %}
+{% block title %}الأدوار والصلاحيات{% endblock %}
+{% block page_title %}الأدوار والصلاحيات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>الأدوار والصلاحيات</h1>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRoleModal">
+    <i class="bi bi-plus-circle"></i> دور جديد
+  </button>
+</div>
+
+<div class="accordion" id="rolesAccordion">
+  {% for role in roles %}
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+              data-bs-toggle="collapse" data-bs-target="#role{{ role.id }}">
+        <strong>{{ role.name_ar }}</strong>
+        <span class="text-muted small ms-2" dir="ltr">({{ role.code }})</span>
+        {% if role.is_system %}<span class="badge bg-info ms-2">نظام</span>{% endif %}
+      </button>
+    </h2>
+    <div id="role{{ role.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}">
+      <div class="accordion-body">
+        {% if role.code == 'owner' %}
+        <div class="alert alert-info">
+          دور <strong>المالك</strong> له كل الصلاحيات ضمنيًا في النظام — لا يُعدَّل.
+        </div>
+        {% else %}
+        <form method="post" action="{{ url_for('users.roles_edit_permissions', role_id=role.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% set role_perm_codes = role.permissions | map(attribute='code') | list %}
+          {% for group_name, perms in grouped.items() %}
+          <fieldset class="mb-3 border p-3 rounded">
+            <legend class="fs-6 fw-bold">{{ group_name }}</legend>
+            <div class="row">
+              {% for p in perms %}
+              <div class="col-md-6 mb-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="permissions" value="{{ p.code }}"
+                         id="p_{{ role.id }}_{{ p.id }}"
+                         {% if p.code in role_perm_codes %}checked{% endif %}>
+                  <label class="form-check-label small" for="p_{{ role.id }}_{{ p.id }}">
+                    {{ p.label_ar }} <span class="text-muted" dir="ltr">({{ p.code }})</span>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> حفظ الصلاحيات
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="modal fade" id="newRoleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" action="{{ url_for('users.roles_create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">دور جديد</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">الكود (بالإنجليزي، أحرف صغيرة)</label>
+            <input name="code" class="form-control" dir="ltr" required pattern="[a-z_]+">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">الاسم (بالعربي)</label>
+            <input name="name_ar" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -224,6 +224,20 @@ def create_invoice_from_delivered_order(*, order_id: int, user_id: int | None = 
     # 6) ربط الطلب بالفاتورة
     order.sales_invoice_id = invoice.id
     db.session.flush()
+
+    # 7) Ticket 3 Epic 10 — منح نقاط الولاء (عرض فقط، لا يمس القيد)
+    if order.customer_id is not None:
+        try:
+            from app.services.loyalty import award_points_for_order
+            award_points_for_order(
+                customer_id=order.customer_id,
+                order_id=order.id,
+                order_total=Decimal(str(order.total)),
+            )
+        except Exception:
+            # فشل النقاط لا يُفشل الفاتورة
+            pass
+
     return invoice
 
 

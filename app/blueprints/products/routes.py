@@ -419,6 +419,68 @@ def relations_delete(relation_id):
 
 
 # ============================================================
+# Ticket 3 Epic 6 — رصيد افتتاحي للمخزون
+# ============================================================
+
+@products_bp.route("/variants/<int:variant_id>/opening", methods=["POST"])
+@login_required
+@require_permission("inventory.adjust")
+def variant_opening(variant_id):
+    from datetime import date as _date
+    from app.models.inventory import InventoryMovement
+    from app.services.inventory import InventoryError, record_opening
+    from app.services.ledger import LedgerLineDraft, post_journal_entry
+    from app.models.journal import JournalSourceType
+    from app.models.account import Account
+
+    v = db.session.get(ProductVariant, variant_id) or abort(404)
+
+    # منع الإدخال لو أي حركات سابقة أو رصيد > 0
+    has_moves = db.session.query(InventoryMovement.id).filter_by(variant_id=v.id).first()
+    if has_moves is not None or Decimal(str(v.stock_qty or 0)) != Decimal("0"):
+        flash("لا يمكن إدخال رصيد افتتاحي لمنتج له حركات سابقة أو رصيد.", "danger")
+        return redirect(url_for("products.view", product_id=v.product_id))
+
+    try:
+        qty = Decimal(str(request.form.get("qty") or "0"))
+        unit_cost = Decimal(str(request.form.get("unit_cost") or "0"))
+        record_opening(
+            variant_id=v.id, qty=qty, unit_cost=unit_cost,
+            move_date=_date.today(),
+            user_id=current_user.id,
+        )
+
+        # قيد محاسبي مقابل: مدين المخزون 1100 / دائن الأرصدة الافتتاحية 3150
+        total_value = (qty * unit_cost).quantize(Decimal("0.001"))
+        if total_value > 0:
+            inv_acc = db.session.query(Account).filter_by(code="1100").one()
+            opening_acc = db.session.query(Account).filter_by(code="3150").one()
+            post_journal_entry(
+                entry_date=_date.today(),
+                source_type=JournalSourceType.OPENING,
+                source_id=v.id,
+                memo=f"رصيد افتتاحي للمنتج {v.display_name}",
+                lines=[
+                    LedgerLineDraft(inv_acc.id, debit=total_value,
+                                    memo=f"رصيد افتتاحي {v.sku}"),
+                    LedgerLineDraft(opening_acc.id, credit=total_value,
+                                    memo=f"رصيد افتتاحي {v.sku}"),
+                ],
+                user_id=current_user.id,
+            )
+        db.session.commit()
+        flash(f"تم تسجيل الرصيد الافتتاحي: {qty} × {unit_cost}.", "success")
+    except InventoryError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"تعذّر تسجيل الرصيد الافتتاحي: {e}", "danger")
+
+    return redirect(url_for("products.view", product_id=v.product_id))
+
+
+# ============================================================
 # حركة المخزون
 # ============================================================
 

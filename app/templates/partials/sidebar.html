@@ -79,6 +79,19 @@
       ('coupons.index', 'أكواد الخصم', '🏷️', 'coupons.view'),
     ]) }}
 
+    {{ section('المحاسبة', '📓', [
+      ('accounts.index', 'دليل الحسابات', '🧮', 'accounts.view'),
+      ('journal.index', 'سجل القيود', '📖', 'journal.view'),
+      ('journal.create', 'قيد يدوي جديد', '➕', 'journal.create'),
+      ('sales.unpaid', 'فواتير غير محصّلة', '⏳', 'sales.view'),
+    ]) }}
+
+    {{ section('النظام', '⚙️', [
+      ('users.index', 'المستخدمون', '👥', 'users.manage'),
+      ('users.roles_index', 'الأدوار والصلاحيات', '🔐', 'roles.manage'),
+      ('settings.index', 'الإعدادات', '⚙️', 'settings.manage'),
+    ]) }}
+
     {# العملاء والموردون — endpoints need type_str kwarg, so rendered manually #}
     {% if current_user.can('parties.view') %}
     {% set _parties_active = request.endpoint and request.endpoint.startswith('parties.') %}

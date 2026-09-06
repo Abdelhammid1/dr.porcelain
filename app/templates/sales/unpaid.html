@@ -1,0 +1,87 @@
+{% extends "layouts/app.html" %}
+{% block title %}الفواتير غير المحصّلة{% endblock %}
+{% block page_title %}الفواتير غير المحصّلة{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>الفواتير الآجلة غير المحصّلة</h1>
+  <div class="subtitle">{{ invoices|length }} فاتورة بمبالغ مستحقة.</div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>رقم الفاتورة</th>
+          <th>التاريخ</th>
+          <th>العميل</th>
+          <th>الإجمالي</th>
+          <th>المدفوع</th>
+          <th>المتبقي</th>
+          <th class="text-end">تحصيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td dir="ltr" class="fw-semibold">
+            <a href="{{ url_for('sales.view', invoice_id=inv.id) }}">{{ inv.doc_number }}</a>
+          </td>
+          <td class="small">{{ inv.invoice_date | hdate }}</td>
+          <td>{{ inv.customer.name_ar if inv.customer else "—" }}</td>
+          <td>{{ inv.total | money }}</td>
+          <td>{{ inv.amount_paid | money }}</td>
+          <td class="fw-bold text-danger">{{ inv.amount_due | money }}</td>
+          <td class="text-end">
+            {% if current_user.can("collect.customer") %}
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#collect{{ inv.id }}">
+              <i class="bi bi-cash-coin"></i> تحصيل
+            </button>
+            {% endif %}
+          </td>
+        </tr>
+
+        <div class="modal fade" id="collect{{ inv.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <form method="post" action="{{ url_for('sales.collect', invoice_id=inv.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">تحصيل من {{ inv.customer.name_ar if inv.customer else '' }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">المبلغ (المتبقي: {{ inv.amount_due | money }})</label>
+                    <input type="number" step="0.001" name="amount" class="form-control" required
+                           value="{{ inv.amount_due }}" max="{{ inv.amount_due }}">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">طريقة الدفع</label>
+                    <select name="payment_method" class="form-select">
+                      <option value="cash">نقدي</option>
+                      <option value="bank">بنك</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">ملاحظات (اختياري)</label>
+                    <input type="text" name="memo" class="form-control">
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+                  <button type="submit" class="btn btn-primary">تسجيل التحصيل</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted p-4">لا توجد فواتير آجلة مستحقة.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "layouts/app.html" %}
+{% block title %}قيد يدوي جديد{% endblock %}
+{% block page_title %}قيد يدوي جديد{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>
+    {% if template %}قالب: {{ template.label_ar }}{% else %}قيد يدوي جديد{% endif %}
+  </h1>
+  <a href="{{ url_for('journal.index') }}" class="btn btn-light">رجوع</a>
+</div>
+
+<form method="post" action="{{ url_for('journal.create') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card">
+    <div class="card-body">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">التاريخ</label>
+          <input type="date" name="entry_date" class="form-control"
+                 value="{{ today.strftime('%Y-%m-%d') if today else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">البيان</label>
+          <input type="text" name="memo" class="form-control"
+                 value="{{ template.memo_ar if template else '' }}">
+        </div>
+      </div>
+
+      <table class="table" id="linesTable">
+        <thead>
+          <tr>
+            <th>الحساب</th>
+            <th>البيان</th>
+            <th style="width:150px;">مدين</th>
+            <th style="width:150px;">دائن</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if prefilled %}
+            {% for row in prefilled %}
+            <tr>
+              <td>
+                <select name="line_account[]" class="form-select form-select-sm">
+                  {% for a in accounts %}
+                  <option value="{{ a.id }}" {% if a.id == row.account_id %}selected{% endif %}>
+                    {{ a.code }} — {{ a.name_ar }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="text" name="line_memo[]" class="form-control form-control-sm" value="{{ row.memo }}"></td>
+              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"
+                         {% if row.side == 'credit' %}value=""{% endif %}></td>
+              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"
+                         {% if row.side == 'debit' %}value=""{% endif %}></td>
+              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td><select name="line_account[]" class="form-select form-select-sm">{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}</select></td>
+              <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
+              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
+              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
+              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+            </tr>
+            <tr>
+              <td><select name="line_account[]" class="form-select form-select-sm">{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}</select></td>
+              <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
+              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
+              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
+              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+      <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLine()">
+        <i class="bi bi-plus"></i> إضافة سطر
+      </button>
+    </div>
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> حفظ القيد
+      </button>
+    </div>
+  </div>
+</form>
+
+<script>
+  const ACCOUNT_OPTIONS = `{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}`;
+  function addLine() {
+    const tbody = document.querySelector('#linesTable tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><select name="line_account[]" class="form-select form-select-sm">${ACCOUNT_OPTIONS}</select></td>
+      <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
+      <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
+      <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+</script>
+{% endblock %}

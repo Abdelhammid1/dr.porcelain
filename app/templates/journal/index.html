@@ -1,0 +1,99 @@
+{% extends "layouts/app.html" %}
+{% block title %}سجل القيود{% endblock %}
+{% block page_title %}سجل القيود{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>سجل القيود اليومية</h1>
+    <div class="subtitle">آخر 200 قيد.</div>
+  </div>
+  {% if current_user.can('journal.create') %}
+  <div class="d-flex gap-2">
+    <div class="dropdown">
+      <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-magic"></i> قوالب سريعة
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{{ url_for('journal.quick_template', template_key='add_capital') }}">إضافة رأس مال</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('journal.quick_template', template_key='owner_drawing') }}">سحب من رأس المال</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('journal.quick_template', template_key='deposit_received') }}">أمانة مستلمة</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('journal.quick_template', template_key='short_loan') }}">قرض قصير الأجل</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('journal.quick_template', template_key='long_loan') }}">قرض طويل الأجل</a></li>
+      </ul>
+    </div>
+    <a href="{{ url_for('journal.create') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> قيد يدوي جديد
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">من تاريخ</label>
+        <input type="date" name="date_from" value="{{ date_from or '' }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">إلى تاريخ</label>
+        <input type="date" name="date_to" value="{{ date_to or '' }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">نوع المصدر</label>
+        <select name="source_type" class="form-select form-select-sm">
+          <option value="">— الكل —</option>
+          {% for st in source_types %}
+          <option value="{{ st.value }}" {% if selected_source == st.value %}selected{% endif %}>{{ st.value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary btn-sm w-100">بحث</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>رقم القيد</th>
+          <th>التاريخ</th>
+          <th>المصدر</th>
+          <th>البيان</th>
+          <th>الإجمالي</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr class="{% if e.status.value == 'reversed' %}text-muted{% endif %}">
+          <td dir="ltr" class="fw-semibold">{{ e.doc_number }}</td>
+          <td class="small">{{ e.entry_date | hdate }}</td>
+          <td><small class="text-muted" dir="ltr">{{ e.source_type.value }}</small></td>
+          <td>{{ e.memo or "—" }}</td>
+          <td>{{ e.total_debit | money }}</td>
+          <td>
+            {% if e.status.value == 'posted' %}<span class="badge bg-success">مرحّل</span>
+            {% elif e.status.value == 'reversed' %}<span class="badge bg-danger">معكوس</span>
+            {% else %}<span class="badge bg-secondary">مسودة</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('journal.view', entry_id=e.id) }}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted p-4">لا توجد قيود.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

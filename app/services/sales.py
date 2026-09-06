@@ -57,6 +57,8 @@ from app.services.inventory import record_sale, record_sale_return
 from app.services.ledger import LedgerLineDraft, post_journal_entry, reverse_entry
 from app.services.numbering import next_document_number
 
+from app.models.journal import JournalEntry  # noqa: E402
+
 
 class SalesError(ValueError):
     pass
@@ -172,6 +174,8 @@ def create_cash_sale(
     invoice.tax_rate = tax_rate
     invoice.tax_amount = tax_amount
     invoice.total = total
+    # Ticket 3 Epic 7 — الفواتير النقدية مدفوعة كاملةً؛ الآجل يبدأ بـ صفر
+    invoice.amount_paid = total if payment_method != PaymentMethod.ON_CREDIT else ZERO
 
     # --- 3) إنشاء أسطر الفاتورة + خصم المخزون ---
     for variant, qty, unit_price in resolved_lines:
@@ -238,8 +242,10 @@ def create_cash_sale(
         user_id=user_id,
     )
 
-    # --- 5) قيد التحصيل الفوري (كاش) ---
-    if total > 0:
+    # --- 5) قيد التحصيل الفوري (كاش) — يُتخطى في الفواتير الآجلة ---
+    # Ticket 3 Epic 7: البيع الآجل يترك AR مدين بدون تحصيل. التحصيل لاحقًا
+    # يُنشَأ عبر `record_customer_receipt()` بقيد منفصل — لا نعدّل هذا القيد.
+    if total > 0 and payment_method != PaymentMethod.ON_CREDIT:
         cash_or_bank = _cash_or_bank_account(payment_method, pos_session=pos_session)
         post_journal_entry(
             entry_date=invoice_date,
@@ -275,6 +281,61 @@ def create_cash_sale(
 
     db.session.flush()
     return invoice
+
+
+# =====================================================
+# Ticket 3 Epic 7 — تحصيل من عميل على فاتورة آجلة
+# =====================================================
+
+def record_customer_receipt(
+    *,
+    invoice_id: int,
+    amount: Decimal | float | str,
+    receipt_date: date,
+    payment_method: PaymentMethod = PaymentMethod.CASH,
+    memo: str | None = None,
+    user_id: int | None = None,
+) -> JournalEntry:
+    """يُسجّل تحصيلاً من عميل على فاتورة آجلة (أو نقدية).
+
+    - يُنشئ قيدًا منفصلاً: مدين نقدية/بنك، دائن AR للعميل.
+    - يزيد `invoice.amount_paid` بالمبلغ المُحصَّل.
+    - لا يُعدِّل قيود الفاتورة الأصلية.
+    """
+    invoice = db.session.get(SalesInvoice, invoice_id)
+    if invoice is None:
+        raise SalesError("الفاتورة غير موجودة.")
+    if invoice.status not in (InvoiceStatus.POSTED, InvoiceStatus.PARTIAL_RETURNED):
+        raise SalesError(f"لا يمكن التحصيل على فاتورة بحالة {invoice.status.value}.")
+
+    amount = _as_dec(amount)
+    if amount <= 0:
+        raise SalesError("مبلغ التحصيل يجب أن يكون أكبر من صفر.")
+
+    due = Decimal(str(invoice.total)) - Decimal(str(invoice.amount_paid or 0))
+    if amount > due:
+        raise SalesError(f"مبلغ التحصيل ({amount}) أكبر من المتبقي على الفاتورة ({due}).")
+
+    ar_account = _customer_ar_account(invoice.customer)
+    cash_or_bank = _cash_or_bank_account(payment_method, pos_session=None)
+
+    entry = post_journal_entry(
+        entry_date=receipt_date,
+        source_type=JournalSourceType.CUSTOMER_RECEIPT,
+        source_id=invoice.id,
+        memo=(memo or f"تحصيل على فاتورة {invoice.doc_number}"),
+        lines=[
+            LedgerLineDraft(cash_or_bank.id, debit=amount,
+                            memo=f"تحصيل من {invoice.customer.name_ar}"),
+            LedgerLineDraft(ar_account.id, credit=amount,
+                            memo=f"سداد جزئي/كلي فاتورة {invoice.doc_number}"),
+        ],
+        user_id=user_id,
+    )
+
+    invoice.amount_paid = _q(Decimal(str(invoice.amount_paid or 0)) + amount)
+    db.session.flush()
+    return entry
 
 
 # =====================================================

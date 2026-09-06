@@ -1,0 +1,69 @@
+{% extends "layouts/app.html" %}
+{% block title %}الإعدادات{% endblock %}
+{% block page_title %}الإعدادات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>إعدادات النظام</h1>
+</div>
+
+<form method="post" action="{{ url_for('settings.save') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for group_name, items in grouped.items() %}
+  <div class="card mb-3">
+    <div class="card-header fw-bold">{{ group_name }}</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for item in items %}
+        <div class="col-md-6">
+          <label class="form-label">{{ item.label_ar }}</label>
+          {% if item.dtype == 'bool' %}
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch"
+                   name="{{ item.key }}"
+                   {% if item.value in ('true', '1', 'yes', 'on', True) %}checked{% endif %}>
+          </div>
+          {% elif item.dtype == 'int' %}
+          <input type="number" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          {% elif item.dtype == 'decimal' %}
+          <input type="number" step="0.001" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          {% else %}
+          <input type="text" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          {% endif %}
+          <div class="form-text small text-muted" dir="ltr">{{ item.key }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="d-flex justify-content-end">
+    <button type="submit" class="btn btn-primary btn-lg">
+      <i class="bi bi-save"></i> حفظ كل الإعدادات
+    </button>
+  </div>
+</form>
+
+<hr>
+
+<div class="card mt-3">
+  <div class="card-header fw-bold">اللوجو</div>
+  <div class="card-body">
+    {% if current_logo %}
+    <div class="mb-3">
+      <img src="{{ url_for('static', filename=current_logo) }}" alt="اللوجو الحالي"
+           style="max-height:80px; border:1px solid #e5e7eb; padding:8px; border-radius:8px;">
+    </div>
+    {% endif %}
+    <form method="post" action="{{ url_for('settings.upload_logo') }}" enctype="multipart/form-data"
+          class="d-flex gap-2 align-items-end">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="flex:1">
+        <label class="form-label">رفع لوجو جديد (png/jpg/webp/svg — 8 ميجا حد أقصى)</label>
+        <input type="file" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.webp,.gif,.svg">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> رفع</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

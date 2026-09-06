@@ -1,0 +1,75 @@
+{% extends "layouts/app.html" %}
+{% block title %}قيد {{ entry.doc_number }}{% endblock %}
+{% block page_title %}قيد {{ entry.doc_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>
+      قيد <span dir="ltr">{{ entry.doc_number }}</span>
+      {% if entry.status.value == 'reversed' %}<span class="badge bg-danger ms-2">معكوس</span>{% endif %}
+    </h1>
+    <div class="subtitle">
+      {{ entry.entry_date | hdate }} · <span dir="ltr">{{ entry.source_type.value }}</span>
+      {% if entry.memo %} · {{ entry.memo }}{% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('journal.index') }}" class="btn btn-light">
+    <i class="bi bi-arrow-right"></i> رجوع
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>الحساب</th>
+          <th>البيان</th>
+          <th class="text-end">مدين</th>
+          <th class="text-end">دائن</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ln in entry.lines %}
+        <tr>
+          <td dir="ltr" class="small">{{ ln.account.code }} — {{ ln.account.name_ar }}</td>
+          <td class="small text-muted">{{ ln.memo or "" }}</td>
+          <td class="text-end">{% if ln.debit %}{{ ln.debit | money }}{% endif %}</td>
+          <td class="text-end">{% if ln.credit %}{{ ln.credit | money }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f8fafc;">
+          <td></td>
+          <td class="text-end">الإجمالي</td>
+          <td class="text-end">{{ entry.total_debit | money }}</td>
+          <td class="text-end">{{ entry.total_credit | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if entry.reversal_of_id %}
+<div class="alert alert-danger mt-3">
+  <strong>هذا قيد عكسي</strong> — يرجع للقيد الأصلي.
+</div>
+{% elif entry.reversed_by_id %}
+<div class="alert alert-warning mt-3">
+  <strong>هذا القيد معكوس.</strong> سبب العكس: {{ entry.reversal_reason }}
+</div>
+{% elif entry.status.value == 'posted' and current_user.can('journal.reverse') %}
+<form method="post" action="{{ url_for('journal.reverse', entry_id=entry.id) }}"
+      class="mt-3 d-flex gap-2 align-items-end"
+      onsubmit="return confirm('عكس هذا القيد نهائيًا؟');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div style="flex:1">
+    <label class="form-label">سبب العكس</label>
+    <input type="text" name="reason" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-danger">
+    <i class="bi bi-arrow-counterclockwise"></i> عكس القيد
+  </button>
+</form>
+{% endif %}
+{% endblock %}

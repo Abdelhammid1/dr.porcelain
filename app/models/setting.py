@@ -189,6 +189,65 @@ SETTING_DEFAULTS: dict[str, dict] = {
         "label_ar": "الحد الأدنى للشحن المجاني",
         "group_ar": "المتجر الإلكتروني",
     },
+    # --- Ticket 3 Epic 8 — بيانات التحويل (كلها اختيارية، تظهر في الفاتورة الآجلة) ---
+    "payment.bank_name": {
+        "value": "", "dtype": "str",
+        "label_ar": "اسم البنك", "group_ar": "بيانات الدفع",
+    },
+    "payment.bank_account_number": {
+        "value": "", "dtype": "str",
+        "label_ar": "رقم الحساب البنكي", "group_ar": "بيانات الدفع",
+    },
+    "payment.bank_iban": {
+        "value": "", "dtype": "str",
+        "label_ar": "IBAN", "group_ar": "بيانات الدفع",
+    },
+    "payment.instapay_handle": {
+        "value": "", "dtype": "str",
+        "label_ar": "هاندل InstaPay", "group_ar": "بيانات الدفع",
+    },
+    "payment.ewallet_number": {
+        "value": "", "dtype": "str",
+        "label_ar": "رقم المحفظة الإلكترونية", "group_ar": "بيانات الدفع",
+    },
+    "payment.ewallet_provider": {
+        "value": "", "dtype": "str",
+        "label_ar": "مزود المحفظة (فودافون كاش، إتصالات، إلخ)",
+        "group_ar": "بيانات الدفع",
+    },
+    # --- Ticket 3 Epic 9 — تذكيرات الأقساط ---
+    "installments.reminders_enabled": {
+        "value": "false", "dtype": "bool",
+        "label_ar": "تفعيل تذكيرات الأقساط اليومية",
+        "group_ar": "الأقساط",
+    },
+    "installments.reminder_days_before": {
+        "value": "3", "dtype": "int",
+        "label_ar": "التذكير قبل استحقاق القسط بـ (أيام)",
+        "group_ar": "الأقساط",
+    },
+    # --- Ticket 3 Epic 10 — نقاط الولاء ---
+    "loyalty.enabled": {
+        "value": "false", "dtype": "bool",
+        "label_ar": "تفعيل نظام نقاط الولاء",
+        "group_ar": "نقاط الولاء",
+    },
+    "loyalty.points_per_currency_unit": {
+        "value": "1", "dtype": "decimal",
+        "label_ar": "عدد النقاط لكل جنيه (يُكتسب عند البيع)",
+        "group_ar": "نقاط الولاء",
+    },
+    "loyalty.redemption_value": {
+        "value": "0.010", "dtype": "decimal",
+        "label_ar": "قيمة النقطة الواحدة عند الاستبدال (بالجنيه)",
+        "group_ar": "نقاط الولاء",
+    },
+    # --- Ticket 3 Epic 11 — طريقة تقييم المخزون ---
+    "inventory.costing_method": {
+        "value": "weighted_average", "dtype": "str",
+        "label_ar": "طريقة تقييم المخزون (weighted_average / fifo)",
+        "group_ar": "المخزون",
+    },
 }
 
 
