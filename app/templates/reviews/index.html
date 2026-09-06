@@ -1,103 +1,104 @@
 {% extends "layouts/app.html" %}
-{% block title %}إدارة المراجعات{% endblock %}
-{% block page_title %}إدارة المراجعات{% endblock %}
+{% block title %}المراجعات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>مراجعات المنتجات</h1>
-    <div class="subtitle">مراجعة تقييمات العملاء والموافقة عليها قبل النشر.</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">star</span>
+        <span>إدارة المراجعات</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">مراجعات المنتجات</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">مراجعة تقييمات العملاء والموافقة عليها قبل النشر</p>
+    </div>
   </div>
-</div>
 
-<!-- Filter tabs -->
-<div class="btn-group mb-3" role="group">
-  <a href="{{ url_for('reviews.index', status='pending') }}"
-     class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-    قيد المراجعة ({{ counts.pending }})
-  </a>
-  <a href="{{ url_for('reviews.index', status='approved') }}"
-     class="btn {% if status_filter == 'approved' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-    معتمدة ({{ counts.approved }})
-  </a>
-  <a href="{{ url_for('reviews.index', status='all') }}"
-     class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-    الكل ({{ counts.all }})
-  </a>
-</div>
+  {# Filter chips #}
+  <div class="flex flex-wrap gap-space-xs">
+    {% for key, label, cnt in [('pending', 'قيد المراجعة', counts.pending), ('approved', 'معتمدة', counts.approved), ('all', 'الكل', counts.all)] %}
+    <a href="{{ url_for('reviews.index', status=key) }}"
+       class="px-space-sm py-1.5 rounded-full font-label-md text-label-md font-semibold flex items-center gap-space-2xs transition-colors
+              {% if status_filter == key %}bg-secondary text-on-secondary{% else %}bg-surface-container-lowest text-on-surface hover:bg-surface-container-low{% endif %}">
+      <span>{{ label }}</span>
+      <span class="px-1.5 py-0 rounded-full {% if status_filter == key %}bg-on-secondary/20{% else %}bg-surface-container-high{% endif %} text-[10px]">{{ cnt }}</span>
+    </a>
+    {% endfor %}
+  </div>
 
-<div class="card">
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>المنتج</th>
-          <th>العميل</th>
-          <th>التقييم</th>
-          <th>التعليق</th>
-          <th>التاريخ</th>
-          <th>الحالة</th>
-          <th class="text-end">إجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in reviews %}
-        <tr>
-          <td>
-            {% if r.product %}
-            <a href="{{ url_for('products.view', product_id=r.product.id) }}">{{ r.product.name_ar }}</a>
-            {% else %}—{% endif %}
-          </td>
-          <td>{{ r.customer.name_ar if r.customer else '—' }}</td>
-          <td>
-            <span style="color:#f59e0b;">
-              {% for _ in range(r.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
-              {% for _ in range(5 - r.rating) %}<i class="bi bi-star" style="color:#e5e7eb;"></i>{% endfor %}
-            </span>
-          </td>
-          <td style="max-width:300px;">
-            {% if r.comment %}<span style="white-space:pre-line">{{ r.comment }}</span>
-            {% else %}<span class="text-muted">(بدون تعليق)</span>{% endif %}
-          </td>
-          <td class="small text-muted">{{ r.created_at | hdate }}</td>
-          <td>
-            {% if r.is_approved %}
-            <span class="badge bg-success">معتمدة</span>
-            {% else %}
-            <span class="badge bg-warning">قيد المراجعة</span>
-            {% endif %}
-          </td>
-          <td class="text-end">
-            {% if current_user.can("reviews.moderate") %}
-              {% if not r.is_approved %}
-              <form method="post" action="{{ url_for('reviews.approve', review_id=r.id) }}" class="d-inline">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-sm btn-success" title="اعتماد">
-                  <i class="bi bi-check-lg"></i> اعتماد
-                </button>
-              </form>
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md">المنتج</th>
+            <th class="py-space-xs px-space-md">العميل</th>
+            <th class="py-space-xs px-space-md">التقييم</th>
+            <th class="py-space-xs px-space-md">التعليق</th>
+            <th class="py-space-xs px-space-md">التاريخ</th>
+            <th class="py-space-xs px-space-md">الحالة</th>
+            <th class="py-space-xs px-space-md text-left">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for r in reviews %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md">
+              {% if r.product %}
+              <a href="{{ url_for('products.view', product_id=r.product.id) }}" class="text-secondary hover:underline font-medium">{{ r.product.name_ar }}</a>
+              {% else %}—{% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface">{{ r.customer.name_ar if r.customer else '—' }}</td>
+            <td class="py-space-xs px-space-md">
+              <span style="color:#f59e0b;">
+                {% for _ in range(r.rating) %}<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>{% endfor %}
+                {% for _ in range(5 - r.rating) %}<span class="material-symbols-outlined text-[16px] text-outline-variant">star</span>{% endfor %}
+              </span>
+            </td>
+            <td class="py-space-xs px-space-md max-w-xs text-on-surface-variant">
+              {% if r.comment %}<span class="whitespace-pre-line line-clamp-2">{{ r.comment }}</span>
+              {% else %}<span class="italic">(بدون تعليق)</span>{% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]">{{ r.created_at | hdate }}</td>
+            <td class="py-space-xs px-space-md">
+              {% if r.is_approved %}
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">معتمدة</span>
+              {% else %}
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold">قيد المراجعة</span>
               {% endif %}
-              <form method="post" action="{{ url_for('reviews.reject', review_id=r.id) }}" class="d-inline"
-                    onsubmit="return confirm('حذف المراجعة نهائيًا؟');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            {% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="7" class="text-center text-muted p-4">
+            </td>
+            <td class="py-space-xs px-space-md text-left">
+              {% if current_user.can("reviews.moderate") %}
+              <div class="flex items-center gap-1 justify-end">
+                {% if not r.is_approved %}
+                <form method="post" action="{{ url_for('reviews.approve', review_id=r.id) }}" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="h-8 px-space-xs bg-secondary text-on-secondary hover:bg-secondary/90 rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">check</span>
+                    اعتماد
+                  </button>
+                </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('reviews.reject', review_id=r.id) }}" class="inline" onsubmit="return confirm('حذف المراجعة نهائيًا؟');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="h-8 w-8 rounded-md text-error hover:bg-error-container flex items-center justify-center" title="حذف">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
+                </form>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="py-space-lg text-center text-on-surface-variant">
             {% if status_filter == 'pending' %}لا توجد مراجعات قيد الانتظار حاليًا.
             {% elif status_filter == 'approved' %}لا توجد مراجعات معتمدة بعد.
             {% else %}لا توجد مراجعات.{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

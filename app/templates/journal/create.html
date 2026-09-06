@@ -1,92 +1,123 @@
 {% extends "layouts/app.html" %}
 {% block title %}قيد يدوي جديد{% endblock %}
-{% block page_title %}قيد يدوي جديد{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>
-    {% if template %}قالب: {{ template.label_ar }}{% else %}قيد يدوي جديد{% endif %}
-  </h1>
-  <a href="{{ url_for('journal.index') }}" class="btn btn-light">رجوع</a>
-</div>
-
-<form method="post" action="{{ url_for('journal.create') }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="card">
-    <div class="card-body">
-      <div class="row g-3 mb-3">
-        <div class="col-md-4">
-          <label class="form-label">التاريخ</label>
-          <input type="date" name="entry_date" class="form-control"
-                 value="{{ today.strftime('%Y-%m-%d') if today else '' }}">
-        </div>
-        <div class="col-md-8">
-          <label class="form-label">البيان</label>
-          <input type="text" name="memo" class="form-control"
-                 value="{{ template.memo_ar if template else '' }}">
-        </div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">post_add</span>
+        <span>قيد يدوي</span>
       </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+        {% if template %}قالب: {{ template.label_ar }}{% else %}قيد يومي جديد{% endif %}
+      </h1>
+    </div>
+    <a href="{{ url_for('journal.index') }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      <span>رجوع</span>
+    </a>
+  </div>
 
-      <table class="table" id="linesTable">
+  <form method="post" action="{{ url_for('journal.create') }}" class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">التاريخ</label>
+        <input type="date" name="entry_date"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div class="md:col-span-2">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">البيان</label>
+        <input type="text" name="memo" value="{{ template.memo_ar if template else '' }}"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-right" id="linesTable">
         <thead>
-          <tr>
-            <th>الحساب</th>
-            <th>البيان</th>
-            <th style="width:150px;">مدين</th>
-            <th style="width:150px;">دائن</th>
-            <th style="width:40px;"></th>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-sm">الحساب</th>
+            <th class="py-space-xs px-space-sm">البيان</th>
+            <th class="py-space-xs px-space-sm w-40">مدين</th>
+            <th class="py-space-xs px-space-sm w-40">دائن</th>
+            <th class="py-space-xs px-space-sm w-12"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-surface-container-low font-body-sm text-body-sm">
           {% if prefilled %}
             {% for row in prefilled %}
             <tr>
-              <td>
-                <select name="line_account[]" class="form-select form-select-sm">
-                  {% for a in accounts %}
-                  <option value="{{ a.id }}" {% if a.id == row.account_id %}selected{% endif %}>
-                    {{ a.code }} — {{ a.name_ar }}
-                  </option>
-                  {% endfor %}
+              <td class="py-space-xs px-space-sm">
+                <select name="line_account[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+                  {% for a in accounts %}<option value="{{ a.id }}" {% if a.id == row.account_id %}selected{% endif %}>{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}
                 </select>
               </td>
-              <td><input type="text" name="line_memo[]" class="form-control form-control-sm" value="{{ row.memo }}"></td>
-              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"
-                         {% if row.side == 'credit' %}value=""{% endif %}></td>
-              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"
-                         {% if row.side == 'debit' %}value=""{% endif %}></td>
-              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+              <td class="py-space-xs px-space-sm">
+                <input type="text" name="line_memo[]" value="{{ row.memo }}"
+                       class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <input type="number" step="0.001" name="line_debit[]"
+                       class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <input type="number" step="0.001" name="line_credit[]"
+                       class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <button type="button" onclick="this.closest('tr').remove()" class="p-1 text-on-surface-variant hover:text-error rounded">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </td>
             </tr>
             {% endfor %}
           {% else %}
+            {% for _ in range(2) %}
             <tr>
-              <td><select name="line_account[]" class="form-select form-select-sm">{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}</select></td>
-              <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
-              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
-              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
-              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+              <td class="py-space-xs px-space-sm">
+                <select name="line_account[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+                  {% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}
+                </select>
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <input type="text" name="line_memo[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <input type="number" step="0.001" name="line_debit[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <input type="number" step="0.001" name="line_credit[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+              </td>
+              <td class="py-space-xs px-space-sm">
+                <button type="button" onclick="this.closest('tr').remove()" class="p-1 text-on-surface-variant hover:text-error rounded">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </td>
             </tr>
-            <tr>
-              <td><select name="line_account[]" class="form-select form-select-sm">{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}</select></td>
-              <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
-              <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
-              <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
-              <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
-            </tr>
+            {% endfor %}
           {% endif %}
         </tbody>
       </table>
-      <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLine()">
-        <i class="bi bi-plus"></i> إضافة سطر
+    </div>
+
+    <div class="flex items-center justify-between mt-space-md">
+      <button type="button" onclick="addLine()"
+              class="h-10 px-space-md bg-surface-container-low text-secondary hover:bg-surface-container-high rounded-lg font-label-md text-label-md flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>إضافة سطر</span>
+      </button>
+      <button type="submit"
+              class="h-10 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        <span>حفظ القيد</span>
       </button>
     </div>
-    <div class="card-footer text-end">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save"></i> حفظ القيد
-      </button>
-    </div>
-  </div>
-</form>
+  </form>
+</div>
 
 <script>
   const ACCOUNT_OPTIONS = `{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }}</option>{% endfor %}`;
@@ -94,11 +125,11 @@
     const tbody = document.querySelector('#linesTable tbody');
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><select name="line_account[]" class="form-select form-select-sm">${ACCOUNT_OPTIONS}</select></td>
-      <td><input type="text" name="line_memo[]" class="form-control form-control-sm"></td>
-      <td><input type="number" step="0.001" name="line_debit[]" class="form-control form-control-sm"></td>
-      <td><input type="number" step="0.001" name="line_credit[]" class="form-control form-control-sm"></td>
-      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+      <td class="py-space-xs px-space-sm"><select name="line_account[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">${ACCOUNT_OPTIONS}</select></td>
+      <td class="py-space-xs px-space-sm"><input type="text" name="line_memo[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></td>
+      <td class="py-space-xs px-space-sm"><input type="number" step="0.001" name="line_debit[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="py-space-xs px-space-sm"><input type="number" step="0.001" name="line_credit[]" class="h-9 w-full px-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="py-space-xs px-space-sm"><button type="button" onclick="this.closest('tr').remove()" class="p-1 text-on-surface-variant hover:text-error rounded"><span class="material-symbols-outlined text-[18px]">close</span></button></td>
     `;
     tbody.appendChild(tr);
   }

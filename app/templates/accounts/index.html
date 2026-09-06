@@ -1,124 +1,139 @@
 {% extends "layouts/app.html" %}
 {% block title %}دليل الحسابات{% endblock %}
-{% block page_title %}دليل الحسابات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>دليل الحسابات</h1>
-  {% if current_user.can('accounts.manage') %}
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">
-    <i class="bi bi-plus-circle"></i> حساب جديد
-  </button>
-  {% endif %}
-</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">account_balance</span>
+        <span>الدليل المحاسبي</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">دليل الحسابات (Chart of Accounts)</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">شجرة هرمية بالأرصدة الحية لكل حساب قابل للترحيل</p>
+    </div>
+    {% if current_user.can('accounts.manage') %}
+    <button onclick="document.getElementById('newAccountModal').showModal()"
+            class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[20px]">add_circle</span>
+      <span>+ حساب جديد</span>
+    </button>
+    {% endif %}
+  </div>
 
-<div class="card">
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>الكود</th>
-          <th>الاسم</th>
-          <th>النوع</th>
-          <th>ترحيل مباشر</th>
-          <th>الرصيد</th>
-          <th>الحالة</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% macro row(acc, depth) %}
-        <tr>
-          <td dir="ltr" class="fw-semibold" style="padding-inline-start:{{ 20 * depth }}px;">
-            {{ acc.code }}
-          </td>
-          <td>{{ acc.name_ar }}</td>
-          <td><small>{{ acc.type.label_ar }}</small></td>
-          <td>
-            {% if acc.is_postable %}<span class="badge bg-success">نعم</span>
-            {% else %}<span class="badge bg-secondary">أب</span>{% endif %}
-          </td>
-          <td>
-            {% if acc.is_postable and balances.get(acc.id) is not none %}
-              {{ balances[acc.id] | money }}
-            {% else %}—{% endif %}
-          </td>
-          <td>
-            {% if acc.is_active %}<span class="badge bg-success">نشط</span>
-            {% else %}<span class="badge bg-secondary">موقوف</span>{% endif %}
-            {% if acc.is_system %}<span class="badge bg-info ms-1">نظام</span>{% endif %}
-          </td>
-          <td class="text-end">
-            {% if current_user.can('accounts.manage') and not acc.is_system %}
-            <form method="post" action="{{ url_for('accounts.toggle', account_id=acc.id) }}" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if acc.is_active else 'success' }}">
-                <i class="bi bi-{{ 'pause' if acc.is_active else 'play' }}"></i>
-              </button>
-            </form>
-            {% endif %}
-          </td>
-        </tr>
-        {% endmacro %}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md font-semibold">الكود</th>
+            <th class="py-space-xs px-space-md font-semibold">الاسم</th>
+            <th class="py-space-xs px-space-md font-semibold">النوع</th>
+            <th class="py-space-xs px-space-md font-semibold">قابل للترحيل</th>
+            <th class="py-space-xs px-space-md font-semibold">الرصيد</th>
+            <th class="py-space-xs px-space-md font-semibold">الحالة</th>
+            <th class="py-space-xs px-space-md font-semibold text-left"></th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% macro row(acc, depth) %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-semibold" dir="ltr" style="padding-inline-start: {{ 20 + 24 * depth }}px;">
+              {{ acc.code }}
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface font-medium">{{ acc.name_ar }}</td>
+            <td class="py-space-xs px-space-md">
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">{{ acc.type.label_ar }}</span>
+            </td>
+            <td class="py-space-xs px-space-md">
+              {% if acc.is_postable %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">نعم</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">أب</span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md">
+              {% if acc.is_postable and balances.get(acc.id) is not none %}
+                <span class="{% if balances[acc.id] < 0 %}text-error{% else %}text-on-surface{% endif %} font-bold">{{ balances[acc.id] | money }}</span>
+              {% else %}
+                <span class="text-on-surface-variant">—</span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md">
+              {% if acc.is_active %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>نشط
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">موقوف</span>
+              {% endif %}
+              {% if acc.is_system %}<span class="ms-1 px-space-2xs py-0.5 rounded bg-surface-container-highest text-secondary text-[10px] font-bold">نظام</span>{% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-left">
+              {% if current_user.can('accounts.manage') and not acc.is_system %}
+              <form method="post" action="{{ url_for('accounts.toggle', account_id=acc.id) }}" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="p-1 text-on-surface-variant hover:text-on-surface rounded" title="{{ 'تعطيل' if acc.is_active else 'تفعيل' }}">
+                  <span class="material-symbols-outlined text-[18px]">{{ 'pause_circle' if acc.is_active else 'play_circle' }}</span>
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endmacro %}
 
-        {% macro tree(acc, depth=0) %}
-          {{ row(acc, depth) }}
-          {% for child in acc.children | sort(attribute='code') %}
-            {{ tree(child, depth + 1) }}
+          {% macro tree(acc, depth=0) %}
+            {{ row(acc, depth) }}
+            {% for child in acc.children | sort(attribute='code') %}
+              {{ tree(child, depth + 1) }}
+            {% endfor %}
+          {% endmacro %}
+
+          {% for root in roots | sort(attribute='code') %}
+            {{ tree(root) }}
           {% endfor %}
-        {% endmacro %}
-
-        {% for root in roots | sort(attribute='code') %}
-          {{ tree(root) }}
-        {% endfor %}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 {% if current_user.can('accounts.manage') %}
-<div class="modal fade" id="newAccountModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="post" action="{{ url_for('accounts.create') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">حساب جديد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">الكود</label>
-              <input name="code" class="form-control" dir="ltr" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">الاسم</label>
-              <input name="name_ar" class="form-control" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">الحساب الأب</label>
-              <select name="parent_id" class="form-select" required>
-                {% for a in all_accounts %}
-                <option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }} ({{ a.type.label_ar }})</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="col-12">
-              <div class="form-check">
-                <input type="checkbox" name="is_postable" class="form-check-input" id="postable" checked>
-                <label class="form-check-label" for="postable">قابل للترحيل المباشر</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">إنشاء</button>
-        </div>
+<dialog id="newAccountModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-lg">
+  <form method="post" action="{{ url_for('accounts.create') }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">حساب جديد</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الكود</label>
+        <input name="code" required dir="ltr" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-    </form>
-  </div>
-</div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الاسم</label>
+        <input name="name_ar" required class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الحساب الأب</label>
+        <select name="parent_id" required class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          {% for a in all_accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name_ar }} ({{ a.type.label_ar }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="inline-flex items-center gap-space-xs cursor-pointer">
+          <input type="checkbox" name="is_postable" checked class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+          <span class="font-body-md text-body-md text-on-surface">قابل للترحيل المباشر (يمكن استخدامه في القيود)</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('newAccountModal').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">
+        إنشاء
+      </button>
+    </div>
+  </form>
+</dialog>
 {% endif %}
 {% endblock %}

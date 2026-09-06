@@ -1,120 +1,218 @@
 {% extends "layouts/app.html" %}
 {% block title %}المستخدمون{% endblock %}
-{% block page_title %}المستخدمون{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>المستخدمون</h1>
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
-    <i class="bi bi-plus-circle"></i> مستخدم جديد
-  </button>
-</div>
-
-<div class="card">
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>اسم المستخدم</th>
-          <th>الاسم الكامل</th>
-          <th>الدور</th>
-          <th>آخر دخول</th>
-          <th>الحالة</th>
-          <th class="text-end">إجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in users %}
-        <tr>
-          <td dir="ltr" class="fw-semibold">{{ u.username }}</td>
-          <td>{{ u.full_name }}</td>
-          <td>{{ u.role.name_ar if u.role else "—" }}</td>
-          <td class="small text-muted">{{ u.last_login_at | hdate if u.last_login_at else "—" }}</td>
-          <td>
-            {% if u.is_active %}<span class="badge bg-success">نشط</span>
-            {% else %}<span class="badge bg-secondary">موقوف</span>{% endif %}
-          </td>
-          <td class="text-end">
-            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetPwd{{ u.id }}">
-              <i class="bi bi-key"></i>
-            </button>
-            <form method="post" action="{{ url_for('users.toggle', user_id=u.id) }}" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if u.is_active else 'success' }}">
-                <i class="bi bi-{{ 'pause' if u.is_active else 'play' }}"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        <div class="modal fade" id="resetPwd{{ u.id }}" tabindex="-1">
-          <div class="modal-dialog">
-            <form method="post" action="{{ url_for('users.reset_password', user_id=u.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">تعديل كلمة مرور {{ u.username }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                  <input type="password" name="new_password" class="form-control" placeholder="كلمة مرور جديدة (6+ أحرف)" required>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-                  <button type="submit" class="btn btn-primary">حفظ</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="flex flex-col gap-space-lg">
+  {# Header banner #}
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+        <span>الحوكمة والأمان</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">إدارة المستخدمين والحسابات</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        الحسابات الممنوحة صلاحيات الدخول لنظام دكتور بورسلين المحاسبي
+      </p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('users.roles_index') }}"
+         class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md rounded-lg flex items-center gap-space-xs transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[20px] text-secondary">shield</span>
+        <span>الأدوار والصلاحيات</span>
+      </a>
+      <button onclick="document.getElementById('newUserModal').showModal()"
+              class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">person_add</span>
+        <span>+ إضافة مستخدم</span>
+      </button>
+    </div>
   </div>
-</div>
 
-<div class="modal fade" id="newUserModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="post" action="{{ url_for('users.create') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">مستخدم جديد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">اسم المستخدم</label>
-              <input name="username" class="form-control" dir="ltr" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">الاسم الكامل</label>
-              <input name="full_name" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">كلمة المرور (6+ أحرف)</label>
-              <input type="password" name="password" class="form-control" required minlength="6">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">الدور</label>
-              <select name="role_id" class="form-select" required>
-                {% for r in roles %}
-                <option value="{{ r.id }}">{{ r.name_ar }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label">البريد (اختياري)</label>
-              <input type="email" name="email" class="form-control" dir="ltr">
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">إنشاء</button>
+  {# KPI strip #}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+    <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي المستخدمين</span>
+        <div class="mt-1">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ users | length }}</span>
         </div>
       </div>
-    </form>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">groups</span>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مستخدمون نشطون</span>
+        <div class="mt-1">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">
+            {{ users | selectattr('is_active') | list | length }}
+          </span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+        <span class="material-symbols-outlined text-[24px]">check_circle</span>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">الأدوار المخصصة</span>
+        <div class="mt-1">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ roles | length }}</span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface">
+        <span class="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+      </div>
+    </div>
+  </div>
+
+  {# Users table #}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md flex items-center gap-space-xs bg-surface-container-lowest">
+      <span class="material-symbols-outlined text-secondary text-[22px]">badge</span>
+      <div>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">قائمة الحسابات</h2>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">إجمالي {{ users | length }} مستخدم مسجّل</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md font-semibold">المستخدم</th>
+            <th class="py-space-xs px-space-md font-semibold">الدور</th>
+            <th class="py-space-xs px-space-md font-semibold">آخر دخول</th>
+            <th class="py-space-xs px-space-md font-semibold">الحالة</th>
+            <th class="py-space-xs px-space-md font-semibold text-left">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for u in users %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md">
+              <div class="flex items-center gap-space-xs">
+                <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold ring-1 ring-secondary/30">
+                  {{ u.full_name[:1] }}
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-label-lg text-label-lg font-bold text-on-surface">{{ u.full_name }}</span>
+                  <span class="text-on-surface-variant text-[11px]" dir="ltr">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-space-xs px-space-md">
+              <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">
+                <span class="material-symbols-outlined text-[14px] text-secondary">
+                  {% if u.role and u.role.code == 'owner' %}account_balance
+                  {% elif u.role and u.role.code == 'accountant' %}calculate
+                  {% else %}point_of_sale{% endif %}
+                </span>
+                {{ u.role.name_ar if u.role else "—" }}
+              </span>
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface-variant font-fiscal-numeric-md text-fiscal-numeric-md">
+              {{ u.last_login_at | hdate if u.last_login_at else "—" }}
+            </td>
+            <td class="py-space-xs px-space-md">
+              {% if u.is_active %}
+              <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                نشط
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                موقوف
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-left">
+              <div class="inline-flex items-center gap-1">
+                <button onclick="document.getElementById('resetPwd{{ u.id }}').showModal()"
+                        class="px-space-xs py-1 text-secondary hover:bg-surface-container-high rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[16px]">key</span>
+                  كلمة المرور
+                </button>
+                <form method="post" action="{{ url_for('users.toggle', user_id=u.id) }}" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface rounded-md flex items-center gap-1" title="{{ 'تعطيل' if u.is_active else 'تفعيل' }}">
+                    <span class="material-symbols-outlined text-[16px]">{{ 'pause_circle' if u.is_active else 'play_circle' }}</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+{# New user modal — using native <dialog> #}
+<dialog id="newUserModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-lg">
+  <form method="post" action="{{ url_for('users.create') }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="flex items-center justify-between mb-space-md">
+      <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">مستخدم جديد</h3>
+      <button type="button" onclick="document.getElementById('newUserModal').close()" class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">اسم المستخدم</label>
+        <input name="username" required dir="ltr" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الاسم الكامل</label>
+        <input name="full_name" required class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">كلمة المرور (6+)</label>
+        <input name="password" type="password" required minlength="6" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الدور</label>
+        <select name="role_id" required class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          {% for r in roles %}<option value="{{ r.id }}">{{ r.name_ar }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">البريد (اختياري)</label>
+        <input name="email" type="email" dir="ltr" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('newUserModal').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">
+        إنشاء
+      </button>
+    </div>
+  </form>
+</dialog>
+
+{% for u in users %}
+<dialog id="resetPwd{{ u.id }}" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
+  <form method="post" action="{{ url_for('users.reset_password', user_id=u.id) }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">تعديل كلمة مرور {{ u.username }}</h3>
+    <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">كلمة مرور جديدة (6+ أحرف)</label>
+    <input type="password" name="new_password" required minlength="6" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary mb-space-md">
+    <div class="flex justify-end gap-space-xs">
+      <button type="button" onclick="document.getElementById('resetPwd{{ u.id }}').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">
+        حفظ
+      </button>
+    </div>
+  </form>
+</dialog>
+{% endfor %}
 {% endblock %}

@@ -1,59 +1,105 @@
 {% extends "layouts/app.html" %}
 {% block title %}الإشعارات{% endblock %}
-{% block page_title %}الإشعارات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>الإشعارات الداخلية</h1>
-    <div class="subtitle">{{ items|length }} إشعار.</div>
-  </div>
-  <form method="post" action="{{ url_for('notifications.mark_all') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-outline-secondary">
-      <i class="bi bi-check-all"></i> تعليم الكل كمقروء
-    </button>
-  </form>
-</div>
-
-<div class="mb-3 d-flex gap-2 flex-wrap">
-  <a href="{{ url_for('notifications.index') }}"
-     class="btn btn-sm {% if not filter_type and not unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}">الكل</a>
-  <a href="{{ url_for('notifications.index', unread=1) }}"
-     class="btn btn-sm {% if unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}">غير مقروء</a>
-  {% for t in types %}
-  <a href="{{ url_for('notifications.index', type=t) }}"
-     class="btn btn-sm {% if filter_type == t %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ t }}</a>
-  {% endfor %}
-</div>
-
-<div class="list-group">
-  {% for n in items %}
-  <div class="list-group-item d-flex justify-content-between align-items-center
-              {% if not n.is_read %}list-group-item-warning{% endif %}">
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
     <div>
-      <strong>{{ n.title }}</strong>
-      <small class="text-muted ms-2">{{ n.created_at | hdate }} · {{ n.notification_type }}</small>
-      {% if n.body %}<div class="small text-muted">{{ n.body }}</div>{% endif %}
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">notifications_active</span>
+        <span>مركز الإشعارات</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الإشعارات الداخلية</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ items|length }} إشعار في القائمة</p>
     </div>
-    <div class="d-flex gap-2">
-      {% if n.link %}
-      <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-eye"></i> فتح
-      </a>
-      {% endif %}
-      {% if not n.is_read %}
-      <form method="post" action="{{ url_for('notifications.mark_read', notif_id=n.id) }}" class="d-inline">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-check"></i>
-        </button>
-      </form>
-      {% endif %}
-    </div>
+    <form method="post" action="{{ url_for('notifications.mark_all') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">done_all</span>
+        <span>تعليم الكل كمقروء</span>
+      </button>
+    </form>
   </div>
-  {% else %}
-  <div class="list-group-item text-center text-muted p-4">لا توجد إشعارات.</div>
-  {% endfor %}
+
+  {# Filter chips #}
+  <div class="flex flex-wrap gap-space-xs">
+    <a href="{{ url_for('notifications.index') }}"
+       class="px-space-sm py-1.5 rounded-full font-label-md text-label-md font-semibold transition-colors
+              {% if not filter_type and not unread_only %}bg-secondary text-on-secondary{% else %}bg-surface-container-lowest text-on-surface hover:bg-surface-container-low{% endif %}">
+      الكل
+    </a>
+    <a href="{{ url_for('notifications.index', unread=1) }}"
+       class="px-space-sm py-1.5 rounded-full font-label-md text-label-md font-semibold transition-colors
+              {% if unread_only %}bg-secondary text-on-secondary{% else %}bg-surface-container-lowest text-on-surface hover:bg-surface-container-low{% endif %}">
+      غير مقروء
+    </a>
+    {% for t in types %}
+    <a href="{{ url_for('notifications.index', type=t) }}"
+       class="px-space-sm py-1.5 rounded-full font-label-md text-label-md font-semibold transition-colors
+              {% if filter_type == t %}bg-secondary text-on-secondary{% else %}bg-surface-container-lowest text-on-surface hover:bg-surface-container-low{% endif %}">
+      {{ t }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden divide-y divide-surface-container-low">
+    {% for n in items %}
+    <div class="p-space-md flex items-start justify-between gap-space-sm hover:bg-surface-container-low/50 transition-colors
+                {% if not n.is_read %}bg-secondary-fixed/30{% endif %}">
+      <div class="flex items-start gap-space-sm flex-1 min-w-0">
+        <div class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center
+                    {% if n.notification_type == 'new_order' %}bg-secondary/10 text-secondary
+                    {% elif n.notification_type == 'order_cancelled' %}bg-error-container text-on-error-container
+                    {% elif n.notification_type == 'low_stock' %}bg-tertiary-fixed text-on-tertiary-fixed-variant
+                    {% else %}bg-surface-container-high text-on-surface{% endif %}">
+          <span class="material-symbols-outlined text-[20px]">
+            {% if n.notification_type == 'new_order' %}shopping_bag
+            {% elif n.notification_type == 'order_cancelled' %}cancel
+            {% elif n.notification_type == 'low_stock' %}warning
+            {% else %}info{% endif %}
+          </span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-space-xs">
+            <span class="font-label-lg text-label-lg font-bold text-on-surface">{{ n.title }}</span>
+            {% if not n.is_read %}<span class="w-2 h-2 rounded-full bg-error"></span>{% endif %}
+          </div>
+          {% if n.body %}<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">{{ n.body }}</p>{% endif %}
+          <div class="flex items-center gap-space-xs text-[10px] text-on-surface-variant mt-1">
+            <span>{{ n.created_at | hdate }}</span>
+            <span>·</span>
+            <span dir="ltr">{{ n.notification_type }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-xs shrink-0">
+        {% if n.link %}
+        <a href="{{ n.link }}"
+           class="h-8 px-space-xs bg-surface-container-low text-secondary hover:bg-surface-container-high rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          فتح
+        </a>
+        {% endif %}
+        {% if not n.is_read %}
+        <form method="post" action="{{ url_for('notifications.mark_read', notif_id=n.id) }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="h-8 w-8 rounded-md bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center" title="تعليم كمقروء">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="p-space-3xl text-center">
+      <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-md">
+        <span class="material-symbols-outlined text-[32px]">notifications_off</span>
+      </div>
+      <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد إشعارات</p>
+      <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">ستظهر التنبيهات هنا عند حدوث أي نشاط جديد.</p>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

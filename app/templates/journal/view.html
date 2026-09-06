@@ -1,75 +1,94 @@
 {% extends "layouts/app.html" %}
 {% block title %}قيد {{ entry.doc_number }}{% endblock %}
-{% block page_title %}قيد {{ entry.doc_number }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      قيد <span dir="ltr">{{ entry.doc_number }}</span>
-      {% if entry.status.value == 'reversed' %}<span class="badge bg-danger ms-2">معكوس</span>{% endif %}
-    </h1>
-    <div class="subtitle">
-      {{ entry.entry_date | hdate }} · <span dir="ltr">{{ entry.source_type.value }}</span>
-      {% if entry.memo %} · {{ entry.memo }}{% endif %}
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold" dir="ltr">قيد {{ entry.doc_number }}</h1>
+        {% if entry.status.value == 'reversed' %}
+        <span class="px-space-xs py-0.5 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">معكوس</span>
+        {% endif %}
+      </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        {{ entry.entry_date | hdate }} · <span dir="ltr">{{ entry.source_type.value }}</span>
+        {% if entry.memo %} · {{ entry.memo }}{% endif %}
+      </p>
+    </div>
+    <a href="{{ url_for('journal.index') }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      <span>رجوع</span>
+    </a>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-sm px-space-md">الحساب</th>
+            <th class="py-space-sm px-space-md">البيان</th>
+            <th class="py-space-sm px-space-md text-end">مدين</th>
+            <th class="py-space-sm px-space-md text-end">دائن</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for ln in entry.lines %}
+          <tr>
+            <td class="py-space-sm px-space-md" dir="ltr">
+              <span class="font-semibold">{{ ln.account.code }}</span>
+              <span class="text-on-surface-variant"> — {{ ln.account.name_ar }}</span>
+            </td>
+            <td class="py-space-sm px-space-md text-on-surface-variant">{{ ln.memo or "" }}</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md {% if ln.debit %}text-on-surface font-semibold{% else %}text-on-surface-variant/40{% endif %}">
+              {% if ln.debit %}{{ ln.debit | money }}{% else %}—{% endif %}
+            </td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md {% if ln.credit %}text-on-surface font-semibold{% else %}text-on-surface-variant/40{% endif %}">
+              {% if ln.credit %}{{ ln.credit | money }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          <tr class="bg-primary-container/5 font-bold">
+            <td class="py-space-sm px-space-md"></td>
+            <td class="py-space-sm px-space-md text-end">الإجمالي</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md text-secondary">{{ entry.total_debit | money }}</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md text-secondary">{{ entry.total_credit | money }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-  <a href="{{ url_for('journal.index') }}" class="btn btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
 
-<div class="card">
-  <div class="table-responsive">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>الحساب</th>
-          <th>البيان</th>
-          <th class="text-end">مدين</th>
-          <th class="text-end">دائن</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ln in entry.lines %}
-        <tr>
-          <td dir="ltr" class="small">{{ ln.account.code }} — {{ ln.account.name_ar }}</td>
-          <td class="small text-muted">{{ ln.memo or "" }}</td>
-          <td class="text-end">{% if ln.debit %}{{ ln.debit | money }}{% endif %}</td>
-          <td class="text-end">{% if ln.credit %}{{ ln.credit | money }}{% endif %}</td>
-        </tr>
-        {% endfor %}
-        <tr class="fw-bold" style="background:#f8fafc;">
-          <td></td>
-          <td class="text-end">الإجمالي</td>
-          <td class="text-end">{{ entry.total_debit | money }}</td>
-          <td class="text-end">{{ entry.total_credit | money }}</td>
-        </tr>
-      </tbody>
-    </table>
+  {% if entry.reversal_of_id %}
+  <div class="p-space-md rounded-xl bg-error-container text-on-error-container flex items-center gap-space-sm">
+    <span class="material-symbols-outlined">undo</span>
+    <span class="font-body-md text-body-md"><strong>هذا قيد عكسي</strong> — يعكس قيدًا سابقًا.</span>
   </div>
-</div>
-
-{% if entry.reversal_of_id %}
-<div class="alert alert-danger mt-3">
-  <strong>هذا قيد عكسي</strong> — يرجع للقيد الأصلي.
-</div>
-{% elif entry.reversed_by_id %}
-<div class="alert alert-warning mt-3">
-  <strong>هذا القيد معكوس.</strong> سبب العكس: {{ entry.reversal_reason }}
-</div>
-{% elif entry.status.value == 'posted' and current_user.can('journal.reverse') %}
-<form method="post" action="{{ url_for('journal.reverse', entry_id=entry.id) }}"
-      class="mt-3 d-flex gap-2 align-items-end"
-      onsubmit="return confirm('عكس هذا القيد نهائيًا؟');">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div style="flex:1">
-    <label class="form-label">سبب العكس</label>
-    <input type="text" name="reason" class="form-control" required>
+  {% elif entry.reversed_by_id %}
+  <div class="p-space-md rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center gap-space-sm">
+    <span class="material-symbols-outlined">warning</span>
+    <span class="font-body-md text-body-md"><strong>هذا القيد معكوس.</strong> السبب: {{ entry.reversal_reason }}</span>
   </div>
-  <button type="submit" class="btn btn-danger">
-    <i class="bi bi-arrow-counterclockwise"></i> عكس القيد
-  </button>
-</form>
-{% endif %}
+  {% elif entry.status.value == 'posted' and current_user.can('journal.reverse') %}
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="post" action="{{ url_for('journal.reverse', entry_id=entry.id) }}"
+          class="flex flex-col sm:flex-row gap-space-sm items-end"
+          onsubmit="return confirm('عكس هذا القيد نهائيًا؟');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="flex-1">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">سبب العكس</label>
+        <input type="text" name="reason" required
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <button type="submit"
+              class="h-10 px-space-md bg-error text-on-error hover:bg-error/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">undo</span>
+        <span>عكس القيد</span>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

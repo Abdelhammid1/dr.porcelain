@@ -1,69 +1,128 @@
 {% extends "layouts/app.html" %}
 {% block title %}الإعدادات{% endblock %}
-{% block page_title %}الإعدادات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>إعدادات النظام</h1>
-</div>
+<div class="flex flex-col gap-space-lg pb-space-3xl">
+  {# Executive header #}
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm relative overflow-hidden">
+    <div class="absolute -left-12 -top-12 w-48 h-48 rounded-full bg-secondary-fixed/30 blur-2xl pointer-events-none"></div>
+    <div class="flex items-start gap-space-md z-10">
+      <div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-md shrink-0">
+        <span class="material-symbols-outlined text-[26px]">tune</span>
+      </div>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-space-xs">
+          <span class="font-headline-xl text-headline-xl text-on-surface font-bold">مركز الضبط والإعدادات</span>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">
+          المعايير المؤسسية، السياسات المحاسبية، تكاملات المدفوعات، إعدادات المتجر.
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-space-sm z-10 shrink-0">
+      <div class="hidden sm:flex flex-col text-left pl-space-sm border-l border-surface-variant">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">حالة النظام</span>
+        <span class="font-label-md text-label-md text-secondary font-bold flex items-center gap-1 justify-end">
+          <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+          متصل
+        </span>
+      </div>
+    </div>
+  </div>
 
-<form method="post" action="{{ url_for('settings.save') }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {% for group_name, items in grouped.items() %}
-  <div class="card mb-3">
-    <div class="card-header fw-bold">{{ group_name }}</div>
-    <div class="card-body">
-      <div class="row g-3">
-        {% for item in items %}
-        <div class="col-md-6">
-          <label class="form-label">{{ item.label_ar }}</label>
-          {% if item.dtype == 'bool' %}
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch"
-                   name="{{ item.key }}"
-                   {% if item.value in ('true', '1', 'yes', 'on', True) %}checked{% endif %}>
+  <form method="post" action="{{ url_for('settings.save') }}" class="flex flex-col gap-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for group_name, items in grouped.items() %}
+    <section class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <div class="flex items-start justify-between pb-space-md border-b border-surface-container-low mb-space-md">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[22px]">
+              {% if 'الضريبة' in group_name %}percent
+              {% elif 'الدفع' in group_name %}account_balance_wallet
+              {% elif 'المتجر' in group_name %}storefront
+              {% elif 'الأقساط' in group_name %}schedule
+              {% elif 'الولاء' in group_name %}card_membership
+              {% elif 'المخزون' in group_name %}inventory_2
+              {% elif 'السنة' in group_name %}calendar_month
+              {% elif 'المرتجعات' in group_name %}assignment_return
+              {% elif 'الإشعارات' in group_name %}notifications
+              {% else %}domain{% endif %}
+            </span>
           </div>
+          <div>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">{{ group_name }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+        {% for item in items %}
+        <div class="flex flex-col gap-1">
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium">{{ item.label_ar }}</label>
+          {% if item.dtype == 'bool' %}
+          <label class="inline-flex items-center gap-space-xs cursor-pointer">
+            <input type="checkbox" name="{{ item.key }}" class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary"
+                   {% if item.value in ('true', '1', 'yes', 'on', True) %}checked{% endif %}>
+            <span class="font-body-sm text-body-sm text-on-surface">مفعّل</span>
+          </label>
           {% elif item.dtype == 'int' %}
-          <input type="number" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          <input type="number" name="{{ item.key }}" value="{{ item.value or '' }}"
+                 class="h-[42px] px-space-sm rounded-lg bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md outline outline-1 outline-outline-variant/60 focus:outline-secondary">
           {% elif item.dtype == 'decimal' %}
-          <input type="number" step="0.001" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          <input type="number" step="0.001" name="{{ item.key }}" value="{{ item.value or '' }}"
+                 class="h-[42px] px-space-sm rounded-lg bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md outline outline-1 outline-outline-variant/60 focus:outline-secondary">
           {% else %}
-          <input type="text" name="{{ item.key }}" class="form-control" value="{{ item.value or '' }}">
+          <input type="text" name="{{ item.key }}" value="{{ item.value or '' }}"
+                 class="h-[42px] px-space-sm rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md outline outline-1 outline-outline-variant/60 focus:outline-secondary">
           {% endif %}
-          <div class="form-text small text-muted" dir="ltr">{{ item.key }}</div>
+          <span class="text-[10px] text-on-surface-variant/70" dir="ltr">{{ item.key }}</span>
         </div>
         {% endfor %}
       </div>
+    </section>
+    {% endfor %}
+
+    <div class="sticky bottom-space-md flex justify-end">
+      <button type="submit"
+              class="h-11 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-lg text-label-lg font-semibold shadow-lg flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[20px]">save</span>
+        <span>حفظ كل الإعدادات</span>
+      </button>
     </div>
-  </div>
-  {% endfor %}
-  <div class="d-flex justify-content-end">
-    <button type="submit" class="btn btn-primary btn-lg">
-      <i class="bi bi-save"></i> حفظ كل الإعدادات
-    </button>
-  </div>
-</form>
+  </form>
 
-<hr>
-
-<div class="card mt-3">
-  <div class="card-header fw-bold">اللوجو</div>
-  <div class="card-body">
+  {# Logo upload — always at the bottom #}
+  <section class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+    <div class="flex items-center gap-space-sm mb-space-md">
+      <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[22px]">image</span>
+      </div>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">شعار المتجر (لوجو)</h2>
+    </div>
     {% if current_logo %}
-    <div class="mb-3">
+    <div class="mb-space-md flex items-center gap-space-md">
       <img src="{{ url_for('static', filename=current_logo) }}" alt="اللوجو الحالي"
-           style="max-height:80px; border:1px solid #e5e7eb; padding:8px; border-radius:8px;">
+           class="w-24 h-24 rounded-xl object-contain bg-surface-container-low p-2 border border-outline-variant/60">
+      <div>
+        <p class="font-label-md text-label-md text-on-surface font-semibold">اللوجو الحالي</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant" dir="ltr">{{ current_logo }}</p>
+      </div>
     </div>
     {% endif %}
     <form method="post" action="{{ url_for('settings.upload_logo') }}" enctype="multipart/form-data"
-          class="d-flex gap-2 align-items-end">
+          class="flex flex-col sm:flex-row gap-space-sm items-end">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="flex:1">
-        <label class="form-label">رفع لوجو جديد (png/jpg/webp/svg — 8 ميجا حد أقصى)</label>
-        <input type="file" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.webp,.gif,.svg">
+      <div class="flex-1">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">رفع لوجو جديد (PNG/JPG/WebP/SVG — 8 ميجا)</label>
+        <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.gif,.svg"
+               class="h-[42px] w-full px-space-sm rounded-lg bg-surface-container-lowest outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> رفع</button>
+      <button type="submit"
+              class="h-[42px] px-space-md rounded-lg bg-primary-container text-on-primary hover:bg-inverse-surface font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">upload</span>
+        <span>رفع</span>
+      </button>
     </form>
-  </div>
+  </section>
 </div>
 {% endblock %}

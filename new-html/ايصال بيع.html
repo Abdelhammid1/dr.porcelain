@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>معاينة إيصال فاتورة مبيعات ضريبية - مقاس 80mm - دكتور بورسلين</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: IBM Plex Sans Arabic & Courier Prime for receipts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;family=Libre+Barcode+128&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0a0f1d',
+              navy: '#0f172a',
+              gold: '#c5a059',
+              goldLight: '#dfb76c',
+              paper: '#ffffff',
+              ink: '#111827'
+            }
+          },
+          fontFamily: {
+            arabic: ['IBM Plex Sans Arabic', 'sans-serif'],
+            receipt: ['Courier Prime', 'Courier', 'monospace'],
+            barcode: ['"Libre Barcode 128"', 'cursive']
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Receipt Styles -->
+<style data-purpose="thermal-receipt-simulation">
+    /* Receipt roll perforated edges */
+    .perforated-edge-top {
+      background-image: radial-gradient(circle at 10px -5px, transparent 12px, #ffffff 13px);
+      background-size: 20px 20px;
+      background-repeat: repeat-x;
+    }
+    .perforated-edge-bottom {
+      background-image: radial-gradient(circle at 10px 25px, transparent 12px, #ffffff 13px);
+      background-size: 20px 20px;
+      background-repeat: repeat-x;
+    }
+    .dashed-line {
+      border-bottom: 1.5px dashed #4b5563;
+    }
+    .dotted-line {
+      border-bottom: 1.5px dotted #6b7280;
+    }
+    .double-line {
+      border-bottom: 3px double #111827;
+    }
+    /* Thermal paper feel */
+    .receipt-paper {
+      width: 380px;
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .receipt-paper {
+        width: 80mm !important;
+        box-shadow: none !important;
+        margin: 0 auto !important;
+      }
+    }
+  </style>
+<!-- END: Custom Receipt Styles -->
+</head>
+<body class="bg-[#0b1120] text-slate-100 font-arabic min-h-screen flex flex-col items-center py-6 px-3 selection:bg-amber-500 selection:text-white">
+<!-- BEGIN: Top ActionBar / Preview Header -->
+<header class="no-print w-full max-w-4xl mb-6 bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 backdrop-blur shadow-2xl transition-all" data-purpose="action-bar">
+<div class="flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Title & Target Hardware Info -->
+<div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+<div class="w-10 h-10 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-sm md:text-base font-bold text-white tracking-wide">معاينة إيصال فاتورة مبيعات ضريبية</h1>
+<span class="bg-amber-500 text-slate-950 text-xs font-black px-2 py-0.5 rounded">مقاس 80mm</span>
+</div>
+<p class="text-xs text-slate-400 mt-0.5">طابعات الكاشير والمستودعات القياسية (Epson, Bixolon, Xprinter) • إيصال إلكتروني ETA</p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+<!-- Print Button -->
+<button class="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs md:text-sm rounded-lg shadow-md transition" onclick="window.print()" title="طباعة فورية للطابعة الحرارية">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>طباعة فورية</span>
+</button>
+<!-- WhatsApp Button -->
+<button class="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 font-medium text-xs rounded-lg transition" title="إرسال الفاتورة عبر واتساب">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"></path>
+</svg>
+<span>إرسال واتساب</span>
+</button>
+<!-- Gift Receipt Button -->
+<button class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium text-xs rounded-lg transition" title="طباعة فاتورة استبدال بدون أسعار">
+          إيصال استبدال / هدية
+        </button>
+<!-- PDF Export -->
+<button class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium text-xs rounded-lg transition">
+          تحميل PDF
+        </button>
+</div>
+</div>
+</header>
+<!-- END: Top ActionBar -->
+<!-- BEGIN: Thermal Receipt 80mm Simulation Container -->
+<main class="w-full flex justify-center items-center overflow-x-auto pb-12" data-purpose="receipt-viewport">
+<!-- Thermal Paper Wrapper -->
+<article class="receipt-paper bg-white text-brand-ink text-[12px] leading-tight font-receipt select-text antialiased transition-all" data-purpose="thermal-receipt-body" id="thermal-receipt">
+<!-- Top Perforated Pattern -->
+<div aria-hidden="true" class="h-3 w-full bg-slate-900 perforated-edge-top"></div>
+<!-- Main Receipt Content Area -->
+<div class="px-5 py-4 flex flex-col font-receipt">
+<!-- BEGIN: Store Header -->
+<header class="text-center mb-3">
+<!-- Logo & Brand Header -->
+<div class="flex flex-col items-center justify-center mb-1">
+<img alt="شعار دكتور بورسلين" class="h-16 w-16 object-contain mb-1 drop-shadow-sm filter grayscale contrast-125" src="https://lh3.googleusercontent.com/aida/AEtjO1XGefsRbYEOxYp8JnTaHFYSRJY0IPmAZWLsa2sU2gyP-hPV6yGBgVR9-WUUvJR_AXTHdOeoJjmbQt3zKPevfu-Ph6gIofyS8pHflDB4wpwfQfzeIlvHoxslAXlZXPiHvbQ3WaNd75NQWMS9p_6E1EVLv_NLx4rMbqbkPq7W8dwaY8E9blHGzKVPivydjl-bDuE5ajxZW84gjDp7uKrTWBWDXIzIHrsAwgj48DFNU17oBSjyZaYUcHm7HjE"/>
+<h2 class="font-arabic font-extrabold text-[19px] tracking-tight text-black">دكتور بـورسـلـيـن</h2>
+<p class="font-arabic text-[11px] text-gray-700 font-medium -mt-0.5">لتجهيزات المنزل والأطقم الفاخرة</p>
+</div>
+<div class="font-arabic text-[10.5px] text-gray-800 leading-snug space-y-0.5 mt-1.5">
+<p>معرض المعادي الرئيسي - برج الفخامة، شارع النصر</p>
+<p>هاتف: 01099238475 | س.ت: 1010894231</p>
+<p class="font-semibold text-gray-900">ب.ض: 884-301-492 (خاضع لضريبة القيمة المضافة 14%)</p>
+</div>
+<!-- Solid Title Banner -->
+<div class="mt-3 bg-black text-white py-1 px-2 rounded-sm text-center">
+<p class="font-bold text-[12px] tracking-wide font-arabic">*** فاتورة مبيعات ضريبية مبسطة ***</p>
+<p class="text-[9.5px] tracking-widest uppercase font-mono">TAX INVOICE - SIMPLIFIED</p>
+<p class="font-bold text-[11px] mt-0.5 font-mono">فاتورة رقم: POS-2025-0193</p>
+</div>
+</header>
+<!-- END: Store Header -->
+<div class="dashed-line my-1.5"></div>
+<!-- BEGIN: Transaction Metadata -->
+<section class="text-[11px] space-y-1 my-1 text-gray-900 font-arabic" data-purpose="receipt-meta">
+<div class="flex justify-between items-center">
+<span class="text-gray-600">تاريخ ووقت الحركة:</span>
+<span class="font-bold font-mono text-[11.5px]">23/01/2025 - 01:45:18 م</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">الكاشير المسئول:</span>
+<span class="font-semibold">محمود عزت شحاتة (ID: 0412)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">رقم الوردية:</span>
+<span class="font-mono">وردية #14 (POS-MAIN-01)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">مشرف المعرض المعتمد:</span>
+<span>أ. أحمد عبد الرحمن</span>
+</div>
+<div class="dashed-line my-1"></div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">اسم العميل:</span>
+<span class="font-bold">د. شريف مندور (01223456789)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">تصنيف العميل:</span>
+<span class="inline-block px-1.5 py-0.2 bg-black text-white text-[9.5px] font-bold rounded">عميل مميز (VIP CLUB)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-600">طريقة الاستلام:</span>
+<span>تسليم فوري مباشر (تغليف فاخر)</span>
+</div>
+</section>
+<!-- END: Transaction Metadata -->
+<!-- BEGIN: Items Section -->
+<section class="mt-2" data-purpose="invoice-line-items">
+<!-- Items Header Bar -->
+<div class="bg-gray-100 border-y border-gray-300 py-1 px-1 flex justify-between font-arabic text-[10.5px] font-bold text-black">
+<span class="w-7/12 text-right">بيان الصنف والمواصفة</span>
+<span class="w-2/12 text-center">الكمية</span>
+<span class="w-3/12 text-left">الإجمالي (ج.م)</span>
+</div>
+<div class="divide-y divide-gray-200 text-gray-950 font-arabic text-[11px]">
+<!-- Item 1 -->
+<div class="py-2">
+<div class="flex justify-between items-start">
+<div class="w-7/12 pr-0.5">
+<p class="font-bold text-[11.5px] leading-tight">طقم سفرة رويال إمبراطوري مذهب</p>
+<p class="text-[9.5px] text-gray-600 font-mono">كود: PRC-RYL-124 • 124 قطعة عظم صيني</p>
+</div>
+<div class="w-2/12 text-center font-mono font-bold pt-0.5">
+                  1×
+                </div>
+<div class="w-3/12 text-left font-mono font-bold text-[12px] pt-0.5">
+                  28,500.00
+                </div>
+</div>
+<div class="text-[9px] text-gray-500 mt-0.5">سعر الوحدة: 28,500.00 ج.م (شامل ضمان 10 سنوات)</div>
+</div>
+<!-- Item 2 -->
+<div class="py-2">
+<div class="flex justify-between items-start">
+<div class="w-7/12 pr-0.5">
+<p class="font-bold text-[11.5px] leading-tight">طقم مجات بورسلين بوهيمي فاخر</p>
+<p class="text-[9.5px] text-gray-600 font-mono">كود: PRC-MUG-006 • علبة هدايا (6 ق)</p>
+</div>
+<div class="w-2/12 text-center font-mono font-bold pt-0.5">
+                  2×
+                </div>
+<div class="w-3/12 text-left font-mono font-bold text-[12px] pt-0.5">
+                  1,780.00
+                </div>
+</div>
+<div class="text-[9px] text-gray-500 mt-0.5">سعر الوحدة: 890.00 ج.م × 2 طقم</div>
+</div>
+</div>
+</section>
+<!-- END: Items Section -->
+<div class="dashed-line my-1.5"></div>
+<!-- BEGIN: Financial & Tax Totals -->
+<section class="space-y-1.5 text-gray-900 font-arabic text-[11px]" data-purpose="financial-summary">
+<div class="flex justify-between items-center">
+<span class="text-gray-700">المجموع الفرعي (قبل الخصم والضريبة):</span>
+<span class="font-mono font-bold text-[12px]">30,280.00 ج.م</span>
+</div>
+<div class="flex justify-between items-center text-red-700">
+<span class="flex items-center gap-1">
+<span>(-) خصم ترويجي مميز:</span>
+<span class="text-[9.5px] bg-red-100 text-red-800 px-1 rounded font-mono font-semibold">VIP 5%</span>
+</span>
+<span class="font-mono font-bold text-[12px]">-1,514.00 ج.م</span>
+</div>
+<div class="flex justify-between items-center text-gray-700 text-[10.5px]">
+<span>الوعاء الخاضع لضريبة القيمة المضافة:</span>
+<span class="font-mono font-semibold">28,766.00 ج.م</span>
+</div>
+<div class="flex justify-between items-center text-emerald-800">
+<span>(+) ضريبة القيمة المضافة (14% VAT):</span>
+<span class="font-mono font-bold text-[12px]">+4,027.24 ج.م</span>
+</div>
+<!-- Final Grand Total Box -->
+<div class="mt-2 border-2 border-black p-2 rounded-sm bg-gray-50">
+<div class="flex justify-between items-center">
+<span class="text-[13px] font-black font-arabic tracking-tight text-black">إجمالي الفاتورة الصافي:</span>
+<div class="text-left font-mono">
+<span class="text-[18px] font-black text-black">32,793.24</span>
+<span class="text-[11px] font-bold font-arabic mr-0.5">ج.م</span>
+</div>
+</div>
+<p class="text-[9.5px] text-gray-800 font-arabic font-medium mt-1 text-center border-t border-gray-300 pt-1">
+              فقط اثنان وثلاثون ألفاً وسبعمائة وثلاثة وتسعون جنيهاً وأربعة وعشرون قرشاً لا غير.
+            </p>
+</div>
+</section>
+<!-- END: Financial & Tax Totals -->
+<!-- BEGIN: Payment Breakdown -->
+<section class="mt-2.5 bg-gray-50 p-2 border border-dashed border-gray-400 rounded-sm space-y-1 font-arabic text-[10.5px]" data-purpose="payment-details">
+<div class="flex justify-between items-center font-bold text-gray-900">
+<span>طريقة السداد:</span>
+<span class="font-mono bg-white px-1.5 py-0.5 border border-gray-300 rounded text-black">نقداً (Cash Drawer)</span>
+</div>
+<div class="flex justify-between items-center text-gray-800">
+<span>المبلغ المدفوع من العميل:</span>
+<span class="font-mono font-bold text-[11px]">33,000.00 ج.م</span>
+</div>
+<div class="flex justify-between items-center text-emerald-800 font-bold">
+<span>المتبقي المسترد للعميل:</span>
+<span class="font-mono text-[11px]">206.76 ج.م</span>
+</div>
+<div class="border-t border-dotted border-gray-300 pt-1 flex justify-between items-center text-amber-900 font-semibold text-[9.5px]">
+<span>نقاط الولاء المكتسبة (Porcelain Club):</span>
+<span class="font-mono font-bold text-[10.5px]">+655 نقطة</span>
+</div>
+</section>
+<!-- END: Payment Breakdown -->
+<!-- BEGIN: Signatures Box -->
+<section class="mt-3 border border-gray-300 rounded-sm p-2 text-center" data-purpose="receipt-signatures">
+<div class="grid grid-cols-2 gap-3 text-[10px] font-arabic text-gray-700">
+<div class="border-l border-gray-300 pl-2">
+<p class="font-bold text-black mb-1">المستلم / العميل:</p>
+<p class="text-gray-500 italic text-[9px] mb-4">استلمت البضاعة بحالة ممتازة</p>
+<div class="border-b border-gray-400 w-3/4 mx-auto"></div>
+<p class="text-[8.5px] text-gray-500 mt-1">توقيع العميل</p>
+</div>
+<div>
+<p class="font-bold text-black mb-1">الكاشير المسئول:</p>
+<p class="font-mono text-emerald-800 text-[9.5px] font-bold mb-4">بصمة إلكترونية POS-Verified</p>
+<div class="border-b border-gray-400 w-3/4 mx-auto"></div>
+<p class="text-[8.5px] text-gray-500 mt-1">محمود عزت شحاتة</p>
+</div>
+</div>
+</section>
+<!-- END: Signatures Box -->
+<!-- BEGIN: Return Policy Terms -->
+<section class="mt-3 text-center text-[9px] text-gray-700 font-arabic leading-relaxed bg-gray-50 p-2 rounded border border-gray-200" data-purpose="terms-and-conditions">
+<p class="font-bold text-gray-900 mb-0.5">شروط الاستبدال والاسترجاع المعتمدة:</p>
+<p>
+            يحق للعميل الاستبدال أو الاسترجاع خلال <span class="font-bold text-black">14 يوماً</span> من تاريخ الشراء بشرط إحضار أصل الفاتورة وسلامة التغليف وكرتونة المصنع الأصلية وعدم الاستخدام.
+          </p>
+<p class="text-[8px] text-gray-500 mt-1">يستثنى من ذلك الطلبات الخاصة والتفصيل بناءً على طلب العميل.</p>
+</section>
+<!-- END: Return Policy Terms -->
+<!-- BEGIN: Tax QR & Barcode Section -->
+<footer class="mt-4 flex flex-col items-center justify-center text-center font-arabic" data-purpose="fiscal-verification">
+<!-- ETA Compliant QR Code Simulation -->
+<div class="p-2 bg-white border border-black inline-block rounded-sm shadow-sm">
+<!-- Precise Vector QR Representation with Finder Patterns -->
+<svg class="w-24 h-24" fill="currentColor" viewbox="0 0 100 100">
+<!-- Top Left Finder Pattern -->
+<rect fill="#000000" height="28" rx="1" width="28" x="5" y="5"></rect>
+<rect fill="#ffffff" height="20" width="20" x="9" y="9"></rect>
+<rect fill="#000000" height="12" width="12" x="13" y="13"></rect>
+<!-- Top Right Finder Pattern -->
+<rect fill="#000000" height="28" rx="1" width="28" x="67" y="5"></rect>
+<rect fill="#ffffff" height="20" width="20" x="71" y="9"></rect>
+<rect fill="#000000" height="12" width="12" x="75" y="13"></rect>
+<!-- Bottom Left Finder Pattern -->
+<rect fill="#000000" height="28" rx="1" width="28" x="5" y="67"></rect>
+<rect fill="#ffffff" height="20" width="20" x="9" y="71"></rect>
+<rect fill="#000000" height="12" width="12" x="13" y="75"></rect>
+<!-- Random Data Modules Simulation (ZATCA / ETA standard) -->
+<rect height="5" width="5" x="38" y="6"></rect>
+<rect height="5" width="5" x="48" y="6"></rect>
+<rect height="5" width="5" x="58" y="6"></rect>
+<rect height="5" width="5" x="38" y="16"></rect>
+<rect height="5" width="5" x="48" y="16"></rect>
+<rect height="5" width="5" x="58" y="24"></rect>
+<rect height="5" width="5" x="38" y="26"></rect>
+<rect height="5" width="5" x="6" y="38"></rect>
+<rect height="5" width="5" x="16" y="38"></rect>
+<rect height="5" width="5" x="26" y="38"></rect>
+<rect height="5" width="5" x="6" y="48"></rect>
+<rect height="5" width="5" x="16" y="48"></rect>
+<rect height="5" width="5" x="26" y="56"></rect>
+<rect height="8" width="8" x="38" y="38"></rect>
+<rect height="6" width="6" x="50" y="38"></rect>
+<rect height="6" width="6" x="60" y="38"></rect>
+<rect height="6" width="6" x="70" y="38"></rect>
+<rect height="8" width="8" x="80" y="38"></rect>
+<rect height="6" width="6" x="38" y="50"></rect>
+<rect height="8" width="8" x="48" y="50"></rect>
+<rect height="6" width="6" x="62" y="50"></rect>
+<rect height="6" width="6" x="72" y="50"></rect>
+<rect height="6" width="6" x="82" y="50"></rect>
+<rect height="6" width="6" x="38" y="66"></rect>
+<rect height="6" width="6" x="48" y="66"></rect>
+<rect height="6" width="6" x="58" y="66"></rect>
+<rect height="8" width="8" x="68" y="66"></rect>
+<rect height="6" width="6" x="80" y="66"></rect>
+<rect height="8" width="8" x="38" y="78"></rect>
+<rect height="6" width="6" x="50" y="78"></rect>
+<rect height="6" width="6" x="60" y="78"></rect>
+<rect height="6" width="6" x="72" y="78"></rect>
+<rect height="8" width="8" x="82" y="78"></rect>
+<rect height="6" width="6" x="40" y="90"></rect>
+<rect height="8" width="8" x="52" y="90"></rect>
+<rect height="6" width="6" x="64" y="90"></rect>
+<rect height="6" width="6" x="76" y="90"></rect>
+<rect height="6" width="6" x="88" y="90"></rect>
+</svg>
+</div>
+<span class="font-mono text-[8px] text-gray-500 tracking-wider mt-1">ETA-INV-HASH: POS-2025-0193-EGP</span>
+<span class="text-[8.5px] text-gray-600 mt-0.5">رمز التحقق الإلكتروني لمصلحة الضرائب المصرية</span>
+<!-- Linear 1D Barcode -->
+<div class="mt-3 flex flex-col items-center">
+<!-- Simulated Barcode Lines -->
+<div class="flex items-center justify-center gap-[2px] h-9 w-52 overflow-hidden px-2 py-0.5 bg-white border border-gray-300">
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[4px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[5px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[4px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[4px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[4px] h-full bg-black"></span>
+<span class="w-[2px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+<span class="w-[3px] h-full bg-black"></span>
+<span class="w-[1px] h-full bg-black"></span>
+</div>
+<p class="font-mono text-[10px] tracking-widest text-black font-bold mt-0.5">* POS-2025-0193 *</p>
+</div>
+<!-- Bottom Kind Note -->
+<div class="mt-3 text-center">
+<p class="font-bold text-[10.5px] text-black">شكراً لزيارتكم واختياركم دكتور بورسلين</p>
+<p class="text-[9.5px] text-gray-700">نسعد بخدمتكم دائماً في كافة فروعنا</p>
+<p class="text-[8px] text-gray-500 font-mono mt-1">نظام دكتور بورسلين الموحد - إصدار 4.2 السحابي</p>
+<p class="text-[9px] text-gray-700 font-bold mt-0.5 tracking-wider">*** نهاية الإيصال الضريبي ***</p>
+</div>
+</footer>
+<!-- END: Tax QR & Barcode Section -->
+</div>
+<!-- Bottom Perforated Cut -->
+<div aria-hidden="true" class="h-3 w-full bg-slate-900 perforated-edge-bottom"></div>
+</article>
+</main>
+<!-- END: Thermal Receipt Container -->
+<!-- BEGIN: Bottom Hardware & Compliance Notice -->
+<aside class="no-print mt-4 text-center max-w-lg text-slate-400 text-xs flex items-center justify-center gap-2" data-purpose="device-compatibility-badge">
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<p>
+      مصمم بدقة هندسية وفق قياس الورق الحراري (80mm / 3.15 inch) ومتوافق مع محركات CSS Print وطابعات الفواتير الإيصالية.
+    </p>
+</aside>
+<!-- END: Bottom Notice -->
+</body></html>

@@ -1,92 +1,123 @@
 {% extends "layouts/app.html" %}
 {% block title %}الأدوار والصلاحيات{% endblock %}
-{% block page_title %}الأدوار والصلاحيات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>الأدوار والصلاحيات</h1>
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRoleModal">
-    <i class="bi bi-plus-circle"></i> دور جديد
-  </button>
-</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">shield</span>
+        <span>مصفوفة الصلاحيات</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأدوار والصلاحيات</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        تحكم دقيق بالوصول لكل قسم في النظام حسب الدور الوظيفي
+      </p>
+    </div>
+    <button onclick="document.getElementById('newRoleModal').showModal()"
+            class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[20px]">add_moderator</span>
+      <span>+ دور جديد</span>
+    </button>
+  </div>
 
-<div class="accordion" id="rolesAccordion">
-  {% for role in roles %}
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
-              data-bs-toggle="collapse" data-bs-target="#role{{ role.id }}">
-        <strong>{{ role.name_ar }}</strong>
-        <span class="text-muted small ms-2" dir="ltr">({{ role.code }})</span>
-        {% if role.is_system %}<span class="badge bg-info ms-2">نظام</span>{% endif %}
-      </button>
-    </h2>
-    <div id="role{{ role.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}">
-      <div class="accordion-body">
+  <div class="space-y-space-md">
+    {% for role in roles %}
+    <details class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden group" {% if loop.first %}open{% endif %}>
+      <summary class="p-space-md flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors list-none">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[22px]">
+              {% if role.code == 'owner' %}account_balance
+              {% elif role.code == 'accountant' %}calculate
+              {% else %}point_of_sale{% endif %}
+            </span>
+          </div>
+          <div>
+            <div class="flex items-center gap-space-xs">
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ role.name_ar }}</span>
+              <span class="text-on-surface-variant text-[11px]" dir="ltr">({{ role.code }})</span>
+              {% if role.is_system %}
+              <span class="px-space-2xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">نظام</span>
+              {% endif %}
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">
+              {{ role.permissions | length }} صلاحية ممنوحة
+            </p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+      </summary>
+
+      <div class="p-space-md border-t border-surface-container-low">
         {% if role.code == 'owner' %}
-        <div class="alert alert-info">
-          دور <strong>المالك</strong> له كل الصلاحيات ضمنيًا في النظام — لا يُعدَّل.
+        <div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed">
+          <span class="material-symbols-outlined">verified</span>
+          <span class="font-body-md text-body-md">دور المالك له كل الصلاحيات ضمنيًا — لا يُعدَّل.</span>
         </div>
         {% else %}
         <form method="post" action="{{ url_for('users.roles_edit_permissions', role_id=role.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           {% set role_perm_codes = role.permissions | map(attribute='code') | list %}
-          {% for group_name, perms in grouped.items() %}
-          <fieldset class="mb-3 border p-3 rounded">
-            <legend class="fs-6 fw-bold">{{ group_name }}</legend>
-            <div class="row">
-              {% for p in perms %}
-              <div class="col-md-6 mb-2">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox"
-                         name="permissions" value="{{ p.code }}"
-                         id="p_{{ role.id }}_{{ p.id }}"
-                         {% if p.code in role_perm_codes %}checked{% endif %}>
-                  <label class="form-check-label small" for="p_{{ role.id }}_{{ p.id }}">
-                    {{ p.label_ar }} <span class="text-muted" dir="ltr">({{ p.code }})</span>
-                  </label>
-                </div>
+          <div class="space-y-space-md">
+            {% for group_name, perms in grouped.items() %}
+            <div class="border border-outline-variant/40 rounded-lg p-space-md">
+              <div class="font-label-lg text-label-lg font-bold text-on-surface mb-space-sm flex items-center gap-space-xs">
+                <span class="material-symbols-outlined text-secondary text-[18px]">folder</span>
+                <span>{{ group_name }}</span>
               </div>
-              {% endfor %}
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-xs">
+                {% for p in perms %}
+                <label class="flex items-center gap-space-xs cursor-pointer p-space-2xs rounded hover:bg-surface-container-low">
+                  <input type="checkbox" name="permissions" value="{{ p.code }}"
+                         {% if p.code in role_perm_codes %}checked{% endif %}
+                         class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+                  <span class="font-body-sm text-body-sm text-on-surface">{{ p.label_ar }}</span>
+                </label>
+                {% endfor %}
+              </div>
             </div>
-          </fieldset>
-          {% endfor %}
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-save"></i> حفظ الصلاحيات
-          </button>
+            {% endfor %}
+          </div>
+          <div class="flex justify-end mt-space-md">
+            <button type="submit"
+                    class="h-10 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              <span>حفظ الصلاحيات</span>
+            </button>
+          </div>
         </form>
         {% endif %}
       </div>
-    </div>
+    </details>
+    {% endfor %}
   </div>
-  {% endfor %}
 </div>
 
-<div class="modal fade" id="newRoleModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="post" action="{{ url_for('users.roles_create') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">دور جديد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">الكود (بالإنجليزي، أحرف صغيرة)</label>
-            <input name="code" class="form-control" dir="ltr" required pattern="[a-z_]+">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">الاسم (بالعربي)</label>
-            <input name="name_ar" class="form-control" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">إنشاء</button>
-        </div>
+<dialog id="newRoleModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
+  <form method="post" action="{{ url_for('users.roles_create') }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">دور جديد</h3>
+    <div class="space-y-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الكود (إنجليزي، أحرف صغيرة)</label>
+        <input name="code" required pattern="[a-z_]+" dir="ltr"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-    </form>
-  </div>
-</div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الاسم (عربي)</label>
+        <input name="name_ar" required
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('newRoleModal').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">
+        إنشاء
+      </button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}
