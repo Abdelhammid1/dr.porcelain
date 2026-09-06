@@ -4,161 +4,253 @@
   <meta charset="utf-8">
   <title>إيصال {{ invoice.doc_number }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* شاشة العرض */
+    /* Thermal 80mm receipt — matches new-html/ايصال بيع.html */
     body {
-      font-family: "Cairo", "Tajawal", monospace;
-      background: #eef2f7; margin: 0; padding: 20px;
+      background: #0b1120;
+      margin: 0;
+      padding: 24px 12px;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      color: #f1f5f9;
     }
+    .actions {
+      max-width: 380px; width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .btn-print {
+      background: #f59e0b; color: #0f172a; font-weight: 700;
+      border: none; padding: 10px 20px; border-radius: 10px;
+      font-family: inherit; cursor: pointer; font-size: 14px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-print:hover { background: #fbbf24; }
+    .btn-secondary {
+      background: #1e293b; color: #cbd5e1;
+      border: 1px solid #334155; padding: 10px 16px;
+      border-radius: 10px; font-family: inherit; cursor: pointer; font-size: 13px;
+    }
+    .btn-secondary:hover { background: #334155; }
+
     .receipt {
-      width: 76mm;
-      margin: 0 auto;
-      background: white;
-      padding: 8mm 5mm;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      color: #000;
+      width: 380px; background: white; color: #111827;
+      font-family: 'Courier Prime', 'Courier', monospace;
+      font-size: 12px; line-height: 1.5;
+      box-shadow: 0 20px 35px -10px rgba(0,0,0,0.6);
+      padding: 20px;
+      position: relative;
     }
+    .receipt::before, .receipt::after {
+      content: ""; position: absolute; left: 0; right: 0;
+      height: 10px;
+      background-image: radial-gradient(circle at 10px -5px, transparent 6px, #ffffff 7px);
+      background-size: 20px 20px;
+      background-repeat: repeat-x;
+    }
+    .receipt::before { top: -10px; }
+    .receipt::after { bottom: -10px; transform: rotate(180deg); }
+
+    .dashed { border-bottom: 1.5px dashed #4b5563; margin: 6px 0; }
     .center { text-align: center; }
-    .row-flex { display: flex; justify-content: space-between; }
-    .divider { border-top: 1px dashed #666; margin: 6px 0; }
-    .store-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 3px; }
-    .small { font-size: 0.75rem; }
-    .doc-info { font-size: 0.85rem; margin: 8px 0; }
-    table { width: 100%; border-collapse: collapse; margin: 6px 0; }
-    table th { text-align: right; font-size: 0.7rem; padding: 3px 0; border-bottom: 1px solid #999; }
-    table td { padding: 4px 0; font-size: 0.8rem; vertical-align: top; }
-    table td.qty, table td.total { text-align: end; }
-    .totals { margin-top: 8px; }
-    .totals .row-flex { padding: 2px 0; font-size: 0.85rem; }
-    .totals .grand {
-      font-size: 1.1rem; font-weight: 800;
-      border-top: 2px solid #000; padding-top: 5px !important; margin-top: 5px;
+    .row { display: flex; justify-content: space-between; align-items: center; }
+    .arabic { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+
+    .brand {
+      text-align: center; margin-bottom: 8px;
     }
-    .footer { text-align: center; margin-top: 10px; font-size: 0.75rem; }
-    .thanks { font-weight: 700; margin: 8px 0; }
-    .actions { text-align: center; padding: 10px; }
-    .actions button {
-      background: #0ea5e9; color: white; border: none;
-      padding: 8px 18px; border-radius: 6px; cursor: pointer;
-      font-family: inherit;
+    .brand-name {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-weight: 800; font-size: 19px; letter-spacing: 1px;
+    }
+    .brand-tag {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 11px; color: #374151; font-weight: 500;
+    }
+    .brand-meta {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 10.5px; color: #1f2937; line-height: 1.5; margin-top: 4px;
+    }
+    .title-banner {
+      margin: 10px 0 6px; background: black; color: white;
+      padding: 4px 8px; border-radius: 2px; text-align: center;
+    }
+    .title-banner p { margin: 2px 0; }
+    .title-ar { font-weight: 700; font-size: 12px; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+    .title-en { font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; }
+    .title-num { font-weight: 700; font-size: 11px; }
+
+    .items-header {
+      background: #f3f4f6; border-top: 1px solid #d1d5db; border-bottom: 1px solid #d1d5db;
+      padding: 4px 0; font-weight: 700; font-size: 10.5px;
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      display: flex; justify-content: space-between;
+    }
+    .items-header .col-name { width: 60%; text-align: right; padding-right: 4px; }
+    .items-header .col-qty  { width: 15%; text-align: center; }
+    .items-header .col-tot  { width: 25%; text-align: left; padding-left: 4px; }
+
+    .item { padding: 6px 0; border-bottom: 1px solid #e5e7eb; }
+    .item:last-child { border-bottom: none; }
+    .item-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .item-name { font-weight: 700; font-size: 11.5px; font-family: 'IBM Plex Sans Arabic', sans-serif; line-height: 1.2; }
+    .item-code { font-size: 9.5px; color: #6b7280; margin-top: 2px; }
+    .item-qty  { width: 15%; text-align: center; font-weight: 700; font-size: 12px; }
+    .item-tot  { width: 25%; text-align: left; font-weight: 700; font-size: 12px; }
+
+    .totals { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 11px; margin-top: 6px; }
+    .totals .row { padding: 2px 0; }
+    .totals .label { color: #4b5563; }
+    .totals .val { font-family: 'Courier Prime', monospace; font-weight: 700; font-size: 12px; }
+    .grand-box {
+      margin-top: 10px; border: 2px solid black; padding: 8px;
+      background: #f9fafb; border-radius: 2px;
+    }
+    .grand-row { display: flex; justify-content: space-between; align-items: center; }
+    .grand-label { font-weight: 900; font-size: 13px; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+    .grand-val { font-family: 'Courier Prime', monospace; font-weight: 900; font-size: 18px; }
+
+    .payment {
+      margin-top: 10px; background: #f9fafb; padding: 8px;
+      border: 1px dashed #9ca3af; border-radius: 2px;
+      font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 10.5px;
+    }
+    .payment .row { padding: 2px 0; }
+
+    .footer {
+      text-align: center; margin-top: 12px;
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    .footer-thanks { font-weight: 700; font-size: 10.5px; color: black; }
+    .footer-sub { font-size: 9.5px; color: #374151; }
+    .footer-sys { font-size: 8px; color: #9ca3af; font-family: 'Courier Prime', monospace; margin-top: 4px; }
+    .footer-end {
+      font-size: 9px; color: #374151; font-weight: 700;
+      letter-spacing: 2px; margin-top: 2px;
     }
 
-    /* الطباعة على طابعة حرارية 80mm */
     @media print {
-      body { background: white; padding: 0; }
-      .receipt { width: 76mm; box-shadow: none; padding: 3mm 2mm; }
+      body { background: white; padding: 0; margin: 0; }
       .actions { display: none; }
+      .receipt {
+        width: 80mm; box-shadow: none; padding: 4mm 3mm; margin: 0 auto;
+      }
+      .receipt::before, .receipt::after { display: none; }
       @page { size: 80mm auto; margin: 0; }
     }
   </style>
 </head>
 <body>
   <div class="actions">
-    <button onclick="window.print()">🖨 طباعة</button>
-    <button onclick="window.close()" style="background:#64748b; margin-inline-start:4px">إغلاق</button>
+    <button class="btn-print" onclick="window.print()">
+      🖨 طباعة فورية
+    </button>
+    <button class="btn-secondary" onclick="window.close()">إغلاق</button>
   </div>
 
   <div class="receipt">
-    <div class="center">
-      <div class="store-name">{{ store_name }}</div>
-      {% if store_addr %}<div class="small">{{ store_addr }}</div>{% endif %}
-      {% if store_phone %}<div class="small" dir="ltr">{{ store_phone }}</div>{% endif %}
-      {% if tax_number %}<div class="small">الرقم الضريبي: {{ tax_number }}</div>{% endif %}
+    <div class="brand">
+      <div class="brand-name">دكتور بورسلين</div>
+      <div class="brand-tag">لتجهيزات المنزل والأطقم الفاخرة</div>
+      <div class="brand-meta">
+        {% if store_addr %}<div>{{ store_addr }}</div>{% endif %}
+        {% if store_phone %}<div>هاتف: {{ store_phone }}{% if store_cr %} | س.ت: {{ store_cr }}{% endif %}</div>{% endif %}
+        {% if tax_number %}<div><strong>ب.ض: {{ tax_number }}</strong> (خاضع لضريبة القيمة المضافة {{ tax_rate or '14' }}%)</div>{% endif %}
+      </div>
+      <div class="title-banner">
+        <p class="title-ar">*** فاتورة مبيعات ضريبية مبسطة ***</p>
+        <p class="title-en">TAX INVOICE — SIMPLIFIED</p>
+        <p class="title-num">فاتورة رقم: {{ invoice.doc_number }}</p>
+      </div>
     </div>
 
-    <div class="divider"></div>
-
-    <div class="doc-info">
-      <div class="row-flex">
-        <span>رقم الفاتورة</span>
-        <strong dir="ltr">{{ invoice.doc_number }}</strong>
-      </div>
-      <div class="row-flex">
-        <span>التاريخ</span>
-        <span>{{ invoice.invoice_date.strftime('%Y/%m/%d') }} {{ invoice.created_at.strftime('%H:%M') }}</span>
-      </div>
-      <div class="row-flex">
-        <span>الكاشير</span>
-        <span>{{ invoice.created_by.full_name if invoice.created_by else "—" }}</span>
-      </div>
-      {% if invoice.customer.code != 'C-WALKIN' %}
-      <div class="row-flex">
-        <span>العميل</span>
-        <span>{{ invoice.customer.name_ar }}</span>
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="divider"></div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>الصنف</th>
-          <th class="qty">الكمية</th>
-          <th class="qty">السعر</th>
-          <th class="total">الإجمالي</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for line in invoice.lines %}
-        <tr>
-          <td>
-            {{ line.product_name }}
-          </td>
-          <td class="qty">{{ line.qty | qty }}</td>
-          <td class="qty">{{ line.unit_price | money }}</td>
-          <td class="total">{{ line.line_total | money }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="divider"></div>
+    <div class="dashed"></div>
 
     <div class="totals">
-      <div class="row-flex">
-        <span>الإجمالي الفرعي</span>
-        <span>{{ invoice.subtotal | money }}</span>
+      <div class="row"><span class="label">تاريخ ووقت الحركة:</span><span class="val">{{ invoice.invoice_date.strftime('%d/%m/%Y') }} — {{ invoice.created_at.strftime('%I:%M:%S %p') }}</span></div>
+      <div class="row"><span class="label">الكاشير المسئول:</span><span class="arabic" style="font-weight:600;">{{ invoice.created_by.full_name if invoice.created_by else '—' }}</span></div>
+      {% if invoice.pos_session %}
+      <div class="row"><span class="label">رقم الوردية:</span><span class="val">{{ invoice.pos_session.doc_number }}</span></div>
+      {% endif %}
+      <div class="dashed"></div>
+      <div class="row"><span class="label">اسم العميل:</span><span class="arabic" style="font-weight:700;">{{ invoice.customer.name_ar }}{% if invoice.customer.phone %} ({{ invoice.customer.phone }}){% endif %}</span></div>
+    </div>
+
+    <div class="items-header">
+      <span class="col-name">بيان الصنف والمواصفة</span>
+      <span class="col-qty">الكمية</span>
+      <span class="col-tot">الإجمالي (ج.م)</span>
+    </div>
+
+    {% for line in invoice.lines %}
+    <div class="item">
+      <div class="item-row">
+        <div style="width:60%;">
+          <div class="item-name">{{ line.product_name }}</div>
+          <div class="item-code">كود: {{ line.sku }}</div>
+        </div>
+        <div class="item-qty">{{ line.qty | qty }}×</div>
+        <div class="item-tot">{{ line.line_total | money }}</div>
       </div>
+      <div style="font-size:9px; color:#6b7280; margin-top:2px; font-family:'IBM Plex Sans Arabic', sans-serif;">
+        سعر الوحدة: {{ line.unit_price | money }}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="dashed"></div>
+
+    <div class="totals">
+      <div class="row"><span class="label">المجموع الفرعي:</span><span class="val">{{ invoice.subtotal | money }}</span></div>
       {% if invoice.discount_amount > 0 %}
-      <div class="row-flex">
-        <span>الخصم</span>
-        <span>- {{ invoice.discount_amount | money }}</span>
-      </div>
+      <div class="row" style="color:#b91c1c;"><span>(-) الخصم:</span><span class="val">-{{ invoice.discount_amount | money }}</span></div>
       {% endif %}
       {% if invoice.tax_amount > 0 %}
-      <div class="row-flex">
-        <span>الضريبة ({{ invoice.tax_rate }}%)</span>
-        <span>{{ invoice.tax_amount | money }}</span>
-      </div>
+      <div class="row" style="color:#065f46;"><span>(+) ضريبة القيمة المضافة ({{ invoice.tax_rate }}%):</span><span class="val">+{{ invoice.tax_amount | money }}</span></div>
       {% endif %}
-      <div class="row-flex grand">
-        <span>الإجمالي</span>
-        <span>{{ invoice.total | money }}</span>
-      </div>
-      <div class="row-flex" style="margin-top: 4px; font-size:0.8rem;">
-        <span>طريقة الدفع</span>
-        <strong>
-          {% if invoice.payment_method.value == 'cash' %}نقدي
-          {% elif invoice.payment_method.value == 'card' %}بطاقة
-          {% elif invoice.payment_method.value == 'wallet' %}محفظة
-          {% else %}{{ invoice.payment_method.value }}{% endif %}
-        </strong>
+
+      <div class="grand-box">
+        <div class="grand-row">
+          <span class="grand-label">إجمالي الفاتورة الصافي:</span>
+          <span class="grand-val">{{ invoice.total | money }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div class="payment">
+      <div class="row" style="font-weight:700;">
+        <span>طريقة السداد:</span>
+        <span style="background:white; padding:2px 6px; border:1px solid #d1d5db; border-radius:2px; font-family:'Courier Prime', monospace;">
+          {% if invoice.payment_method.value == 'cash' %}نقداً (Cash)
+          {% elif invoice.payment_method.value == 'card' %}بطاقة (Card)
+          {% elif invoice.payment_method.value == 'wallet' %}محفظة إلكترونية
+          {% elif invoice.payment_method.value == 'bank' %}تحويل بنكي
+          {% elif invoice.payment_method.value == 'on_credit' %}آجل
+          {% else %}{{ invoice.payment_method.value }}{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="dashed"></div>
 
     <div class="footer">
-      <div class="thanks">شكرًا لتسوقك معنا</div>
-      <div class="small">هذا الإيصال دليل الشراء — احتفظ به.</div>
+      <div class="footer-thanks">شكراً لزيارتكم واختياركم دكتور بورسلين</div>
+      <div class="footer-sub">نسعد بخدمتكم دائماً في كافة فروعنا</div>
+      <div class="footer-sys">نظام دكتور بورسلين الموحد</div>
+      <div class="footer-end">*** نهاية الإيصال الضريبي ***</div>
     </div>
   </div>
 
   <script>
-    // طباعة تلقائية عند الفتح لو تم فتحه من نافذة POS
+    // Auto-print when opened from POS
     if (window.opener) {
       setTimeout(() => window.print(), 300);
     }

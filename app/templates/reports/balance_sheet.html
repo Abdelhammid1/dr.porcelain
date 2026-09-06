@@ -1,110 +1,117 @@
 {% extends "layouts/app.html" %}
 {% block title %}الميزانية العمومية{% endblock %}
-{% block page_title %}الميزانية العمومية{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>الميزانية العمومية</h1>
-    <div class="subtitle">اعتبارًا من {{ as_of.strftime('%Y/%m/%d') }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">balance</span>
+        <span>التقارير المالية</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الميزانية العمومية</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">اعتبارًا من {{ as_of.strftime('%Y/%m/%d') }}</p>
+    </div>
+    <button onclick="window.print()"
+            class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+    </button>
   </div>
-  <button onclick="window.print()" class="btn-secondary">
-    <i class="bi bi-printer"></i> طباعة
-  </button>
-</div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-4">
-        <label class="form-label">اعتبارًا من تاريخ</label>
-        <input type="date" name="as_of" class="form-control" value="{{ as_of.strftime('%Y-%m-%d') }}">
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">اعتبارًا من تاريخ</label>
+        <input type="date" name="as_of" value="{{ as_of.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-4">
-        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
-      </div>
+      <button type="submit"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+      </button>
     </form>
   </div>
-</div>
 
-<div class="dp-callout {% if bs.is_balanced %}tone-success{% else %}tone-danger{% endif %}">
-  {% if bs.is_balanced %}
-    <div><strong>الميزانية متوازنة ✓</strong> — إجمالي الأصول = الالتزامات + حقوق الملكية + صافي الربح</div>
-  {% else %}
-    <div><strong>غير متوازنة!</strong> الفرق = {{ bs.difference | money }}. راجع القيود.</div>
-  {% endif %}
-</div>
-
-<div class="row g-3">
-  <!-- الأصول -->
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header" style="background:var(--dp-brand-tint)">
-        <span class="fw-bold">الأصول</span>
-      </div>
-      <div class="table-scroll">
-        <table class="table mb-0">
-          <tbody>
-            {% for l in bs.assets %}
-            <tr>
-              <td>{{ l.account.code }} · {{ l.account.name_ar }}</td>
-              <td class="text-end">{{ l.amount | money }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="2" class="text-center text-muted">لا توجد أصول</td></tr>
-            {% endfor %}
-          </tbody>
-          <tfoot>
-            <tr class="fw-bold" style="background:var(--dp-brand-soft); font-size:1.05rem">
-              <td>إجمالي الأصول</td>
-              <td class="text-end">{{ bs.total_assets | money }}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+  <div class="p-space-md rounded-xl {% if bs.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} flex items-start gap-space-sm">
+    <span class="material-symbols-outlined text-[24px]">{{ 'verified' if bs.is_balanced else 'warning' }}</span>
+    <div class="font-body-md text-body-md">
+      {% if bs.is_balanced %}
+      <strong>الميزانية متوازنة ✓</strong> — إجمالي الأصول = الالتزامات + حقوق الملكية + صافي الربح
+      {% else %}
+      <strong>غير متوازنة!</strong> الفرق = {{ bs.difference | money }}. راجع القيود.
+      {% endif %}
     </div>
   </div>
 
-  <!-- الالتزامات + حقوق الملكية -->
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header" style="background:var(--dp-warning-soft)">
-        <span class="fw-bold">الالتزامات وحقوق الملكية</span>
-      </div>
-      <div class="table-scroll">
-        <table class="table mb-0">
-          <tbody>
-            <tr style="background:#fef3c7"><td colspan="2" class="fw-bold small">الالتزامات</td></tr>
-            {% for l in bs.liabilities %}
-            <tr>
-              <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
-              <td class="text-end">{{ l.amount | money }}</td>
-            </tr>
-            {% endfor %}
-            <tr class="small fw-bold"><td>مجموع الالتزامات</td><td class="text-end">{{ bs.total_liabilities | money }}</td></tr>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+      <div class="p-space-md bg-secondary-fixed text-on-secondary-fixed font-bold">الأصول</div>
+      <table class="w-full text-right">
+        <tbody class="font-body-md text-body-md">
+          {% for l in bs.assets %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" class="py-space-md text-center text-on-surface-variant">لا توجد أصول</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="bg-primary-container text-on-primary font-bold text-headline-sm">
+            <td class="py-space-sm px-space-md">إجمالي الأصول</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ bs.total_assets | money }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
 
-            <tr style="background:#dbeafe"><td colspan="2" class="fw-bold small">حقوق الملكية</td></tr>
-            {% for l in bs.equity %}
-            <tr>
-              <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
-              <td class="text-end">{{ l.amount | money }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-              <td class="ps-4">صافي ربح الفترة (غير مقفول)</td>
-              <td class="text-end">{{ bs.period_net_profit | money }}</td>
-            </tr>
-            <tr class="small fw-bold"><td>مجموع حقوق الملكية</td><td class="text-end">{{ (bs.total_equity + bs.period_net_profit) | money }}</td></tr>
-          </tbody>
-          <tfoot>
-            <tr class="fw-bold" style="background:var(--dp-warning-soft); font-size:1.05rem">
-              <td>إجمالي الالتزامات + حقوق الملكية</td>
-              <td class="text-end">{{ bs.total_liabilities_equity | money }}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+      <div class="p-space-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">الالتزامات وحقوق الملكية</div>
+      <table class="w-full text-right">
+        <tbody class="font-body-md text-body-md">
+          <tr class="bg-tertiary-fixed/50 text-on-tertiary-fixed-variant font-bold text-body-sm">
+            <td colspan="2" class="py-space-xs px-space-md">الالتزامات</td>
+          </tr>
+          {% for l in bs.liabilities %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="bg-surface-container-low font-bold text-body-sm">
+            <td class="py-space-xs px-space-md">مجموع الالتزامات</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ bs.total_liabilities | money }}</td>
+          </tr>
+
+          <tr class="bg-secondary-fixed/40 text-on-secondary-fixed font-bold text-body-sm">
+            <td colspan="2" class="py-space-xs px-space-md">حقوق الملكية</td>
+          </tr>
+          {% for l in bs.equity %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl">صافي ربح الفترة (غير مقفول)</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ bs.period_net_profit | money }}</td>
+          </tr>
+          <tr class="bg-surface-container-low font-bold text-body-sm">
+            <td class="py-space-xs px-space-md">مجموع حقوق الملكية</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ (bs.total_equity + bs.period_net_profit) | money }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="bg-primary-container text-on-primary font-bold text-headline-sm">
+            <td class="py-space-sm px-space-md">إجمالي الالتزامات + حقوق الملكية</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ bs.total_liabilities_equity | money }}</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
 </div>
+
+<style media="print">aside, header { display: none !important; } main { padding: 0 !important; } .pr-\[280px\] { padding-right: 0 !important; }</style>
 {% endblock %}

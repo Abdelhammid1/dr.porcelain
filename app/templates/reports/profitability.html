@@ -1,116 +1,132 @@
 {% extends "layouts/app.html" %}
 {% block title %}ربحية المنتجات{% endblock %}
-{% block page_title %}تقرير ربحية المنتجات{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>ربحية المنتجات</h1>
-    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">insights</span>
+        <span>التقارير المالية</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">ربحية المنتجات</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('reports.profitability_csv', **request.args) }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">table_view</span><span>Excel</span>
+      </a>
+      <button onclick="window.print()"
+              class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+      </button>
+    </div>
   </div>
-  <div class="page-actions">
-    <a href="{{ url_for('reports.profitability_csv', **request.args) }}" class="btn-secondary">
-      <i class="bi bi-file-earmark-excel"></i> Excel
-    </a>
-    <button onclick="window.print()" class="btn-secondary">
-      <i class="bi bi-printer"></i> طباعة
-    </button>
-  </div>
-</div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label">من</label>
-        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من</label>
+        <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">إلى</label>
-        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى</label>
+        <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
-      </div>
+      <button type="submit"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+      </button>
     </form>
   </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    {% for label, val, icon, is_pct in [
+      ('الإيراد',        report.total_revenue,        'payments',      False),
+      ('التكلفة',         report.total_cost,           'inventory_2',   False),
+      ('الربح',           report.total_gross_profit,   'trending_up',   False),
+      ('الهامش الإجمالي', report.total_margin_percent, 'percent',       True),
+    ] %}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
+        <div class="mt-1">
+          {% if is_pct %}
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ '%.2f'|format(val) }}%</span>
+          {% else %}
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold {% if 'الربح' in label %}text-secondary{% endif %}">{{ val | money }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md">#</th>
+            <th class="py-space-xs px-space-md">المنتج</th>
+            <th class="py-space-xs px-space-md text-end">الكمية</th>
+            <th class="py-space-xs px-space-md text-end">الإيراد</th>
+            <th class="py-space-xs px-space-md text-end">التكلفة</th>
+            <th class="py-space-xs px-space-md text-end">الربح</th>
+            <th class="py-space-xs px-space-md text-end">الهامش</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for r in report.rows %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md font-bold text-on-surface-variant">{{ loop.index }}</td>
+            <td class="py-space-xs px-space-md">
+              <a href="{{ url_for('products.view', product_id=r.product.id) }}"
+                 class="font-label-lg text-label-lg font-bold text-on-surface hover:text-secondary">{{ r.product.name_ar }}</a>
+            </td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ r.qty_sold | qty }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ r.revenue | money }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md text-on-surface-variant">{{ r.cost | money }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold text-secondary">{{ r.gross_profit | money }}</td>
+            <td class="py-space-xs px-space-md text-end">
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-full font-label-sm text-label-sm font-semibold
+                {% if r.margin_percent >= 30 %}bg-secondary-fixed text-on-secondary-fixed
+                {% elif r.margin_percent >= 10 %}bg-surface-container-highest text-on-surface
+                {% else %}bg-tertiary-fixed text-on-tertiary-fixed-variant{% endif %}">
+                {{ '%.1f'|format(r.margin_percent) }}%
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="py-space-3xl text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-md">
+              <span class="material-symbols-outlined text-[32px]">insights</span>
+            </div>
+            <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد مبيعات في هذه الفترة</p>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+        {% if report.rows %}
+        <tfoot>
+          <tr class="bg-primary-container text-on-primary font-bold">
+            <td colspan="3" class="py-space-sm px-space-md text-end">الإجمالي</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ report.total_revenue | money }}</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ report.total_cost | money }}</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ report.total_gross_profit | money }}</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ '%.2f'|format(report.total_margin_percent) }}%</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
 </div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-brand">
-      <div class="stat-tile-icon"><i class="bi bi-cash-coin"></i></div>
-      <div><div class="stat-tile-label">الإيراد</div><div class="stat-tile-value">{{ report.total_revenue | money }}</div></div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-warning">
-      <div class="stat-tile-icon"><i class="bi bi-box"></i></div>
-      <div><div class="stat-tile-label">التكلفة</div><div class="stat-tile-value">{{ report.total_cost | money }}</div></div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-success">
-      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
-      <div><div class="stat-tile-label">الربح</div><div class="stat-tile-value">{{ report.total_gross_profit | money }}</div></div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-percent"></i></div>
-      <div><div class="stat-tile-label">الهامش الإجمالي</div><div class="stat-tile-value">{{ '%.2f'|format(report.total_margin_percent) }}%</div></div>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>المنتج</th>
-          <th class="text-end">الكمية</th>
-          <th class="text-end">الإيراد</th>
-          <th class="text-end">التكلفة</th>
-          <th class="text-end">الربح</th>
-          <th class="text-end">الهامش</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in report.rows %}
-        <tr>
-          <td class="fw-bold">{{ loop.index }}</td>
-          <td>
-            <a href="{{ url_for('products.view', product_id=r.product.id) }}"
-               class="text-decoration-none fw-semibold">{{ r.product.name_ar }}</a>
-          </td>
-          <td class="text-end">{{ r.qty_sold | qty }}</td>
-          <td class="text-end">{{ r.revenue | money }}</td>
-          <td class="text-end text-muted">{{ r.cost | money }}</td>
-          <td class="text-end fw-bold" style="color:var(--dp-success)">{{ r.gross_profit | money }}</td>
-          <td class="text-end">
-            <span class="dp-chip {% if r.margin_percent >= 30 %}tone-success{% elif r.margin_percent >= 10 %}tone-brand{% else %}tone-warn{% endif %}">
-              {{ '%.1f'|format(r.margin_percent) }}%
-            </span>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">لا توجد مبيعات في هذه الفترة</div></div></td></tr>
-        {% endfor %}
-      </tbody>
-      {% if report.rows %}
-      <tfoot>
-        <tr class="fw-bold" style="background:var(--dp-brand-tint)">
-          <td colspan="3" class="text-end">الإجمالي</td>
-          <td class="text-end">{{ report.total_revenue | money }}</td>
-          <td class="text-end">{{ report.total_cost | money }}</td>
-          <td class="text-end">{{ report.total_gross_profit | money }}</td>
-          <td class="text-end">{{ '%.2f'|format(report.total_margin_percent) }}%</td>
-        </tr>
-      </tfoot>
-      {% endif %}
-    </table>
-  </div>
-</div>
+<style media="print">aside, header { display: none !important; } main { padding: 0 !important; } .pr-\[280px\] { padding-right: 0 !important; }</style>
 {% endblock %}

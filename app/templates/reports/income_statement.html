@@ -1,120 +1,146 @@
 {% extends "layouts/app.html" %}
 {% block title %}قائمة الدخل{% endblock %}
-{% block page_title %}قائمة الدخل{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>قائمة الدخل</h1>
-    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">query_stats</span>
+        <span>التقارير المالية</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">قائمة الدخل</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('reports.income_statement_csv', **request.args) }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">table_view</span><span>Excel</span>
+      </a>
+      <button onclick="window.print()"
+              class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+      </button>
+    </div>
   </div>
-  <div class="page-actions">
-    <a href="{{ url_for('reports.income_statement_csv', **request.args) }}" class="btn-secondary">
-      <i class="bi bi-file-earmark-excel"></i> Excel
-    </a>
-    <button onclick="window.print()" class="btn-secondary">
-      <i class="bi bi-printer"></i> طباعة
-    </button>
-  </div>
-</div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label">من</label>
-        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من</label>
+        <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">إلى</label>
-        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى</label>
+        <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
-      </div>
+      <button type="submit"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+      </button>
     </form>
   </div>
-</div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon tone-brand">
-      <div class="stat-tile-icon"><i class="bi bi-cash-coin"></i></div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+    <div class="p-space-md rounded-xl bg-secondary-fixed text-on-secondary-fixed shadow-sm flex items-center justify-between">
       <div>
-        <div class="stat-tile-label">الإيرادات</div>
-        <div class="stat-tile-value">{{ stmt.total_revenue | money }}</div>
+        <span class="font-label-md text-label-md font-medium">الإيرادات</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ stmt.total_revenue | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">trending_up</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md font-medium">التكلفة + المصروفات</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ (stmt.total_cost + stmt.total_expense) | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-on-tertiary-container">
+        <span class="material-symbols-outlined text-[24px]">trending_down</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl {% if stmt.net_profit >= 0 %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md font-medium">صافي الربح</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ stmt.net_profit | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center {% if stmt.net_profit >= 0 %}text-secondary{% else %}text-error{% endif %}">
+        <span class="material-symbols-outlined text-[24px]">{{ 'insights' if stmt.net_profit >= 0 else 'warning' }}</span>
       </div>
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon tone-warning">
-      <div class="stat-tile-icon"><i class="bi bi-box"></i></div>
-      <div>
-        <div class="stat-tile-label">تكلفة البضاعة + المصروفات</div>
-        <div class="stat-tile-value">{{ (stmt.total_cost + stmt.total_expense) | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon {% if stmt.net_profit >= 0 %}tone-success{% else %}tone-danger{% endif %}">
-      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
-      <div>
-        <div class="stat-tile-label">صافي الربح</div>
-        <div class="stat-tile-value">{{ stmt.net_profit | money }}</div>
-      </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <tbody class="font-body-md text-body-md">
+          <tr class="bg-secondary-fixed text-on-secondary-fixed font-bold">
+            <td colspan="2" class="py-space-sm px-space-md">الإيرادات</td>
+          </tr>
+          {% for l in stmt.revenues %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl text-on-surface" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" class="py-space-md text-center text-on-surface-variant">لا توجد حركات</td></tr>
+          {% endfor %}
+          <tr class="bg-surface-container-low font-bold">
+            <td class="py-space-sm px-space-md">إجمالي الإيرادات</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-secondary">{{ stmt.total_revenue | money }}</td>
+          </tr>
+
+          <tr class="bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">
+            <td colspan="2" class="py-space-sm px-space-md">تكلفة البضاعة المباعة</td>
+          </tr>
+          {% for l in stmt.costs %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl text-on-surface" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md text-error">({{ l.amount | money }})</td>
+          </tr>
+          {% endfor %}
+          <tr class="bg-surface-container-low font-bold">
+            <td class="py-space-sm px-space-md">إجمالي التكلفة</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-error">({{ stmt.total_cost | money }})</td>
+          </tr>
+
+          <tr class="bg-primary-container text-on-primary font-bold text-headline-sm">
+            <td class="py-space-sm px-space-md">= الربح الإجمالي</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md">{{ stmt.gross_profit | money }}</td>
+          </tr>
+
+          <tr class="bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">
+            <td colspan="2" class="py-space-sm px-space-md">المصروفات التشغيلية</td>
+          </tr>
+          {% for l in stmt.expenses %}
+          <tr class="border-b border-surface-container-low">
+            <td class="py-space-xs px-space-md ps-space-2xl text-on-surface" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md text-error">({{ l.amount | money }})</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" class="py-space-md text-center text-on-surface-variant">لا توجد مصروفات</td></tr>
+          {% endfor %}
+          <tr class="bg-surface-container-low font-bold">
+            <td class="py-space-sm px-space-md">إجمالي المصروفات</td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-error">({{ stmt.total_expense | money }})</td>
+          </tr>
+
+          <tr class="{% if stmt.net_profit >= 0 %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} font-bold text-headline-lg">
+            <td class="py-space-md px-space-md">= صافي الربح</td>
+            <td class="py-space-md px-space-md text-end font-fiscal-numeric-lg">{{ stmt.net_profit | money }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<div class="card">
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <tbody>
-        <!-- الإيرادات -->
-        <tr style="background:var(--dp-brand-tint);"><td colspan="2" class="fw-bold">الإيرادات</td></tr>
-        {% for l in stmt.revenues %}
-        <tr>
-          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
-          <td class="text-end">{{ l.amount | money }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="2" class="text-center text-muted">لا توجد حركات</td></tr>
-        {% endfor %}
-        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي الإيرادات</td><td class="text-end">{{ stmt.total_revenue | money }}</td></tr>
-
-        <!-- تكلفة البضاعة -->
-        <tr style="background:var(--dp-warning-soft);"><td colspan="2" class="fw-bold">تكلفة البضاعة المباعة</td></tr>
-        {% for l in stmt.costs %}
-        <tr>
-          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
-          <td class="text-end">({{ l.amount | money }})</td>
-        </tr>
-        {% endfor %}
-        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي التكلفة</td><td class="text-end">({{ stmt.total_cost | money }})</td></tr>
-
-        <!-- الربح الإجمالي -->
-        <tr class="fw-bold" style="background:var(--dp-info-soft); font-size:1.05rem">
-          <td>= الربح الإجمالي</td><td class="text-end">{{ stmt.gross_profit | money }}</td>
-        </tr>
-
-        <!-- المصروفات -->
-        <tr style="background:var(--dp-warning-soft);"><td colspan="2" class="fw-bold">المصروفات التشغيلية</td></tr>
-        {% for l in stmt.expenses %}
-        <tr>
-          <td class="ps-4">{{ l.account.code }} · {{ l.account.name_ar }}</td>
-          <td class="text-end">({{ l.amount | money }})</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="2" class="text-center text-muted">لا توجد مصروفات</td></tr>
-        {% endfor %}
-        <tr class="fw-bold" style="background:#f8fafc"><td>إجمالي المصروفات</td><td class="text-end">({{ stmt.total_expense | money }})</td></tr>
-
-        <!-- صافي الربح -->
-        <tr class="fw-bold" style="background:{% if stmt.net_profit >= 0 %}var(--dp-success-soft){% else %}var(--dp-danger-soft){% endif %}; font-size:1.15rem">
-          <td>= صافي الربح</td><td class="text-end">{{ stmt.net_profit | money }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+<style media="print">
+  aside, header { display: none !important; }
+  main { padding: 0 !important; }
+  .pr-\[280px\] { padding-right: 0 !important; }
+</style>
 {% endblock %}

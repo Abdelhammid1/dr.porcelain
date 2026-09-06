@@ -1,88 +1,95 @@
 {% extends "layouts/app.html" %}
 {% block title %}تقرير ضريبة القيمة المضافة{% endblock %}
-{% block page_title %}تقرير ضريبة القيمة المضافة{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>ضريبة القيمة المضافة (VAT)</h1>
-    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">percent</span>
+        <span>التقارير المالية</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">ضريبة القيمة المضافة (VAT)</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</p>
+    </div>
+    <button onclick="window.print()"
+            class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+    </button>
   </div>
-  <button onclick="window.print()" class="btn-secondary">
-    <i class="bi bi-printer"></i> طباعة
-  </button>
-</div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label">من</label>
-        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من</label>
+        <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">إلى</label>
-        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى</label>
+        <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
-      </div>
+      <button type="submit"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+      </button>
     </form>
   </div>
-</div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-up-right"></i></div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
       <div>
-        <div class="stat-tile-label">ضريبة المخرجات (على المبيعات)</div>
-        <div class="stat-tile-value">{{ report.output_tax | money }}</div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">ضريبة المخرجات (على المبيعات)</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ report.output_tax | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">north_east</span>
       </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-down-left"></i></div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
       <div>
-        <div class="stat-tile-label">ضريبة المدخلات (على المشتريات)</div>
-        <div class="stat-tile-value">{{ report.input_tax | money }}</div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">ضريبة المدخلات (على المشتريات)</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ report.input_tax | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">south_west</span>
       </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon {% if report.net_payable > 0 %}tone-danger{% elif report.net_payable < 0 %}tone-success{% else %}tone-brand{% endif %}">
-      <div class="stat-tile-icon"><i class="bi bi-calculator"></i></div>
+    <div class="p-space-md rounded-xl {% if report.net_payable > 0 %}bg-error-container text-on-error-container{% elif report.net_payable < 0 %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-surface-container-lowest{% endif %} shadow-sm flex items-center justify-between">
       <div>
-        <div class="stat-tile-label">
+        <span class="font-label-md text-label-md font-medium opacity-80">
           {% if report.net_payable > 0 %}الصافي المستحق للدفع
           {% elif report.net_payable < 0 %}المستردّ من الضريبة
           {% else %}الصافي{% endif %}
-        </div>
-        <div class="stat-tile-value">{{ report.net_payable | money }}</div>
+        </span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ report.net_payable | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest/40 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[24px]">calculate</span>
       </div>
     </div>
   </div>
-</div>
 
-<div class="card">
-  <div class="card-body">
-    <table class="table mb-0">
-      <tbody>
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-right">
+      <tbody class="font-body-md text-body-md divide-y divide-surface-container-low">
         <tr>
-          <td>ضريبة المخرجات (2200) — من المبيعات</td>
-          <td class="text-end fw-bold">{{ report.output_tax | money }}</td>
+          <td class="py-space-sm px-space-md">ضريبة المخرجات (2200) — من المبيعات</td>
+          <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md font-bold">{{ report.output_tax | money }}</td>
         </tr>
         <tr>
-          <td>− ضريبة المدخلات (1300) — من المشتريات</td>
-          <td class="text-end fw-bold">({{ report.input_tax | money }})</td>
+          <td class="py-space-sm px-space-md">− ضريبة المدخلات (1300) — من المشتريات</td>
+          <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md font-bold text-error">({{ report.input_tax | money }})</td>
         </tr>
-        <tr class="fw-bold" style="background:{% if report.net_payable > 0 %}var(--dp-danger-soft){% else %}var(--dp-success-soft){% endif %}; font-size:1.1rem">
-          <td>= صافي الضريبة {% if report.net_payable > 0 %}المستحقة للدفع{% else %}المستردّة{% endif %}</td>
-          <td class="text-end">{{ report.net_payable | money }}</td>
+        <tr class="{% if report.net_payable > 0 %}bg-error-container text-on-error-container{% else %}bg-secondary-fixed text-on-secondary-fixed{% endif %} font-bold text-headline-sm">
+          <td class="py-space-md px-space-md">= صافي الضريبة {% if report.net_payable > 0 %}المستحقة للدفع{% else %}المستردّة{% endif %}</td>
+          <td class="py-space-md px-space-md text-end font-fiscal-numeric-lg">{{ report.net_payable | money }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
+
+<style media="print">aside, header { display: none !important; } main { padding: 0 !important; } .pr-\[280px\] { padding-right: 0 !important; }</style>
 {% endblock %}

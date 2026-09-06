@@ -1,110 +1,106 @@
 {% extends "layouts/app.html" %}
 {% block title %}التدفق النقدي{% endblock %}
-{% block page_title %}تقرير التدفق النقدي{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>التدفق النقدي التشغيلي</h1>
-    <div class="subtitle">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">water_drop</span>
+        <span>التقارير المالية</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">التدفق النقدي التشغيلي</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</p>
+    </div>
+    <button onclick="window.print()"
+            class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+    </button>
   </div>
-  <button onclick="window.print()" class="btn-secondary">
-    <i class="bi bi-printer"></i> طباعة
-  </button>
-</div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label">من</label>
-        <input type="date" name="from" class="form-control" value="{{ date_from.strftime('%Y-%m-%d') }}">
+  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من</label>
+        <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <label class="form-label">إلى</label>
-        <input type="date" name="to" class="form-control" value="{{ date_to.strftime('%Y-%m-%d') }}">
+      <div>
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى</label>
+        <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') }}"
+               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
-      <div class="col-md-3">
-        <button class="btn-primary"><i class="bi bi-funnel"></i> تحديث</button>
-      </div>
+      <button type="submit"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+      </button>
     </form>
   </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    {% for label, val, icon, bg, tint in [
+      ('رصيد افتتاحي', cf.opening_balance,  'arrow_upward',   'bg-surface-container-lowest', 'text-on-surface'),
+      ('إجمالي الدخول', cf.total_inflow,    'south_west',     'bg-secondary-fixed',           'text-on-secondary-fixed'),
+      ('إجمالي الخروج', cf.total_outflow,   'north_east',     'bg-error-container',           'text-on-error-container'),
+      ('رصيد ختامي',    cf.closing_balance, 'arrow_downward', 'bg-primary-container',         'text-on-primary'),
+    ] %}
+    <div class="p-space-md rounded-xl {{ bg }} {{ tint }} shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md font-medium opacity-80">{{ label }}</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ val | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">حركات النقدية والبنك</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+            <th class="py-space-xs px-space-md">التاريخ</th>
+            <th class="py-space-xs px-space-md">المستند</th>
+            <th class="py-space-xs px-space-md">الحساب</th>
+            <th class="py-space-xs px-space-md">البيان</th>
+            <th class="py-space-xs px-space-md text-end">دخول</th>
+            <th class="py-space-xs px-space-md text-end">خروج</th>
+            <th class="py-space-xs px-space-md text-end">الرصيد</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          <tr class="bg-surface-container-low/50 font-bold">
+            <td colspan="6" class="py-space-xs px-space-md">الرصيد الافتتاحي</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ cf.opening_balance | money }}</td>
+          </tr>
+          {% for m in cf.movements %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md text-on-surface-variant">{{ m.date.strftime('%Y/%m/%d') }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ m.doc_number }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ m.account_code }}</td>
+            <td class="py-space-xs px-space-md text-on-surface">{{ m.memo or "—" }}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md text-secondary">{% if m.inflow > 0 %}{{ m.inflow | money }}{% else %}<span class="text-on-surface-variant/40">—</span>{% endif %}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md text-error">{% if m.outflow > 0 %}{{ m.outflow | money }}{% else %}<span class="text-on-surface-variant/40">—</span>{% endif %}</td>
+            <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold">{{ m.running_balance | money }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="py-space-3xl text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-md">
+              <span class="material-symbols-outlined text-[32px]">inbox</span>
+            </div>
+            <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد حركات نقدية في هذه الفترة</p>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-up-circle"></i></div>
-      <div>
-        <div class="stat-tile-label">رصيد افتتاحي</div>
-        <div class="stat-tile-value">{{ cf.opening_balance | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-success">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-down-left"></i></div>
-      <div>
-        <div class="stat-tile-label">إجمالي الدخول</div>
-        <div class="stat-tile-value">{{ cf.total_inflow | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-danger">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-up-right"></i></div>
-      <div>
-        <div class="stat-tile-label">إجمالي الخروج</div>
-        <div class="stat-tile-value">{{ cf.total_outflow | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-brand">
-      <div class="stat-tile-icon"><i class="bi bi-arrow-down-circle"></i></div>
-      <div>
-        <div class="stat-tile-label">رصيد ختامي</div>
-        <div class="stat-tile-value">{{ cf.closing_balance | money }}</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">حركات النقدية والبنك</div>
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>التاريخ</th>
-          <th>المستند</th>
-          <th>الحساب</th>
-          <th>البيان</th>
-          <th class="text-end">دخول</th>
-          <th class="text-end">خروج</th>
-          <th class="text-end">الرصيد</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="fw-bold" style="background:#f8fafc">
-          <td colspan="6">الرصيد الافتتاحي</td>
-          <td class="text-end">{{ cf.opening_balance | money }}</td>
-        </tr>
-        {% for m in cf.movements %}
-        <tr>
-          <td>{{ m.date.strftime('%Y/%m/%d') }}</td>
-          <td dir="ltr" class="small text-muted">{{ m.doc_number }}</td>
-          <td dir="ltr" class="small">{{ m.account_code }}</td>
-          <td class="small">{{ m.memo or "—" }}</td>
-          <td class="text-end" style="color:var(--dp-success)">{{ m.inflow | money if m.inflow > 0 else '—' }}</td>
-          <td class="text-end" style="color:var(--dp-danger)">{{ m.outflow | money if m.outflow > 0 else '—' }}</td>
-          <td class="text-end fw-bold">{{ m.running_balance | money }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">لا توجد حركات نقدية في هذه الفترة</div></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<style media="print">aside, header { display: none !important; } main { padding: 0 !important; } .pr-\[280px\] { padding-right: 0 !important; }</style>
 {% endblock %}
