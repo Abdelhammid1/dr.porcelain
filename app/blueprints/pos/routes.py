@@ -249,6 +249,26 @@ def session_view(session_id):
     return render_template("pos/session_view.html", session=sess, summary=summary)
 
 
+@pos_bp.route("/session/<int:session_id>/z-report", methods=["GET"])
+@login_required
+@require_permission("pos.use")
+def session_close_receipt(session_id):
+    """Z-Report حراري (80mm) لطباعة تسوية الوردية."""
+    sess = db.session.get(POSSession, session_id) or abort(404)
+    if sess.cashier_id != current_user.id and not current_user.can("pos.view_all"):
+        abort(403)
+    summary = session_summary(sess.id)
+    return render_template(
+        "pos/session_close_receipt.html",
+        session=sess,
+        summary=summary,
+        store_name=str(get_setting("store.name", "دكتور بورسلين") or "دكتور بورسلين"),
+        store_addr=str(get_setting("store.address", "") or ""),
+        store_phone=str(get_setting("store.phone", "") or ""),
+        tax_number=str(get_setting("store.tax_number", "") or ""),
+    )
+
+
 # ============ Helpers ============
 
 def _ensure_default_walkin_customer() -> Party:

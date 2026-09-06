@@ -31,6 +31,12 @@
         <span class="material-symbols-outlined text-[18px]">power_settings_new</span><span>قفل الوردية</span>
       </a>
       {% endif %}
+      {% if session.status.value == 'closed' %}
+      <a href="{{ url_for('pos.session_close_receipt', session_id=session.id) }}" target="_blank"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة Z-Report</span>
+      </a>
+      {% endif %}
       <a href="{{ url_for('pos.sessions_index') }}"
          class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
         <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع</span>

@@ -2,79 +2,152 @@
 {% block title %}ربحية المنتجات{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex items-center justify-between">
-    <div>
-      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">insights</span>
-        <span>التقارير المالية</span>
-      </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">ربحية المنتجات</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">من {{ date_from.strftime('%Y/%m/%d') }} إلى {{ date_to.strftime('%Y/%m/%d') }}</p>
-    </div>
-    <div class="flex items-center gap-space-xs">
-      <a href="{{ url_for('reports.profitability_csv', **request.args) }}"
-         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">table_view</span><span>Excel</span>
-      </a>
-      <button onclick="window.print()"
-              class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
-      </button>
-    </div>
-  </div>
+<div class="flex flex-col w-full space-y-space-xl pb-space-3xl">
 
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
-      <div>
-        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من</label>
+  {# ======================== HERO BANNER ======================== #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-secondary/5 blur-2xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+      <div class="space-y-space-2xs max-w-2xl">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            تقييم الأطقم الأكثر مبيعاً
+          </span>
+          <span class="text-outline-variant text-[12px]">•</span>
+          <span class="text-on-surface-variant font-label-sm text-label-sm">REP-INV-PRF · Product Profitability</span>
+        </div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">ربحية المنتجات وأطقم البورسلين</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          الإيراد والتكلفة والربح الإجمالي وهامش كل صنف/طقم مع فترات الركود والدوران
+          للفترة من <strong class="text-on-surface">{{ date_from | hdate }}</strong>
+          إلى <strong class="text-on-surface">{{ date_to | hdate }}</strong>.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-space-xs shrink-0">
+        <a href="{{ url_for('reports.profitability_csv', **request.args) }}"
+           class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all duration-200">
+          <span class="material-symbols-outlined text-[18px]">table_view</span>
+          <span>تصدير Excel</span>
+        </a>
+        <button onclick="window.print()" type="button"
+                class="h-10 px-space-md bg-surface-container-low text-on-surface hover:bg-surface-container-high rounded-lg font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+          <span class="material-symbols-outlined text-[18px]">print</span>
+          <span>طباعة</span>
+        </button>
+      </div>
+    </div>
+
+    <form method="get" class="mt-space-lg pt-space-md grid grid-cols-1 md:grid-cols-12 gap-space-sm items-end bg-surface-container-low/60 p-space-sm rounded-lg">
+      <div class="md:col-span-5">
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من تاريخ</label>
         <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <div>
-        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى</label>
+      <div class="md:col-span-5">
+        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى تاريخ</label>
         <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <button type="submit"
-              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
-        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
-      </button>
+      <div class="md:col-span-2 flex justify-end">
+        <button type="submit"
+                class="w-full h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+        </button>
+      </div>
     </form>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
-    {% for label, val, icon, is_pct in [
-      ('الإيراد',        report.total_revenue,        'payments',      False),
-      ('التكلفة',         report.total_cost,           'inventory_2',   False),
-      ('الربح',           report.total_gross_profit,   'trending_up',   False),
-      ('الهامش الإجمالي', report.total_margin_percent, 'percent',       True),
-    ] %}
-    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
-      <div>
-        <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
-        <div class="mt-1">
-          {% if is_pct %}
-          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ '%.2f'|format(val) }}%</span>
-          {% else %}
-          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold {% if 'الربح' in label %}text-secondary{% endif %}">{{ val | money }}</span>
-          {% endif %}
+  {# ======================== EXECUTIVE METRIC CARDS ======================== #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الإيراد</span>
+        <div class="w-9 h-9 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">payments</span>
         </div>
       </div>
-      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
-        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ report.total_revenue | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary w-full"></div>
       </div>
     </div>
-    {% endfor %}
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي التكلفة</span>
+        <div class="w-9 h-9 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ report.total_cost | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-tertiary-fixed-dim w-2/3"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الربح</span>
+        <div class="w-9 h-9 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">trending_up</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ report.total_gross_profit | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary w-4/5"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-primary-container text-on-primary p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md opacity-80 font-medium">الهامش الإجمالي</span>
+        <div class="w-9 h-9 rounded-lg bg-surface-container-lowest/20 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">percent</span>
+        </div>
+      </div>
+      <div class="mt-space-sm flex items-baseline justify-between">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ '%.2f'|format(report.total_margin_percent) }}%</span>
+        <span class="px-space-2xs py-0.5 rounded-full bg-surface-container-lowest/20 font-label-sm text-label-sm font-semibold">
+          {% if report.total_margin_percent >= 30 %}ممتاز{% elif report.total_margin_percent >= 10 %}جيد{% else %}متدني{% endif %}
+        </span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-lowest/20 rounded-full overflow-hidden">
+        <div class="h-full bg-secondary-container" style="width: {{ [report.total_margin_percent, 100] | min | round(1) }}%"></div>
+      </div>
+    </div>
   </div>
 
+  {# ======================== PROFITABILITY DETAIL TABLE ======================== #}
   <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low flex items-center justify-between flex-wrap gap-space-xs">
+      <div class="flex items-center gap-space-xs">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high text-on-tertiary-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[22px]">insights</span>
+        </div>
+        <div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل ربحية المنتجات</h3>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">{{ report.rows | length }} صنف/طقم — مرتبة حسب الربحية</span>
+        </div>
+      </div>
+      <span class="px-space-xs py-0.5 rounded text-[10px] bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">PRF-{{ date_from.strftime('%Y%m%d') }}</span>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-right">
         <thead>
           <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
             <th class="py-space-xs px-space-md">#</th>
-            <th class="py-space-xs px-space-md">المنتج</th>
+            <th class="py-space-xs px-space-md">المنتج / الطقم</th>
             <th class="py-space-xs px-space-md text-end">الكمية</th>
             <th class="py-space-xs px-space-md text-end">الإيراد</th>
             <th class="py-space-xs px-space-md text-end">التكلفة</th>

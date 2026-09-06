@@ -1,0 +1,331 @@
+{#
+  Thermal 80mm return receipt — port of new-html/ايصال مرتجع.html.
+  Standalone print page (does NOT extend the app layout).
+  Uses `ret` = SalesReturn with .invoice, .lines[], .refund_amount, .refund_tax, .reason, .return_date, .doc_number.
+#}<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>إيصال مرتجع {{ ret.doc_number }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0b101b; margin: 0; padding: 24px 12px; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      font-family: 'IBM Plex Sans Arabic', sans-serif; color: #f1f5f9;
+    }
+    .actions {
+      max-width: 780px; width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 16px; padding: 16px 20px; margin-bottom: 24px;
+      display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .actions .title { display: flex; align-items: center; gap: 12px; }
+    .actions .badge {
+      background: rgba(245, 158, 11, 0.1); color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .actions h1 { margin: 0; font-size: 15px; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+    .actions .paper-size {
+      background: rgba(245, 158, 11, 0.2); color: #fcd34d;
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .actions p { margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; }
+    .btn-print {
+      background: #f59e0b; color: #0f172a; font-weight: 700;
+      border: none; padding: 10px 20px; border-radius: 12px;
+      font-family: inherit; cursor: pointer; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2);
+    }
+    .btn-print:hover { background: #fbbf24; }
+    .btn-secondary {
+      background: #1e293b; color: #cbd5e1;
+      border: 1px solid #334155; padding: 10px 16px;
+      border-radius: 12px; font-family: inherit; cursor: pointer; font-size: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary:hover { background: #334155; }
+    .btn-secondary a { color: inherit; text-decoration: none; }
+
+    /* Thermal receipt — jagged perforated edges */
+    .receipt-container {
+      width: 380px; position: relative; background: #FFFFFF;
+      color: #000; font-family: 'Courier Prime', 'Courier New', monospace;
+      font-size: 11px; line-height: 1.5; padding: 16px; margin: 8px 0;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      user-select: text;
+    }
+    .receipt-container::before, .receipt-container::after {
+      content: ""; position: absolute; left: 0; right: 0; height: 10px;
+      background: radial-gradient(circle, transparent, transparent 50%, #ffffff 50%, #ffffff 100%);
+      background-size: 14px 14px;
+    }
+    .receipt-container::before { top: -10px; }
+    .receipt-container::after { bottom: -10px; transform: rotate(180deg); }
+    .dashed-line { border-bottom: 1.5px dashed #1e293b; margin: 8px 0; }
+    .dashed-dense { border-bottom: 1px dashed #64748b; margin: 4px 0; }
+    .row { display: flex; justify-content: space-between; }
+    .center { text-align: center; }
+    .mono { font-family: 'Courier Prime', monospace; }
+    .sans { font-family: 'IBM Plex Sans Arabic', sans-serif; color: #000; }
+    .gray { color: #4a5568; }
+    .bold { font-weight: 700; }
+    .black-badge {
+      background: #000; color: #fff; text-align: center;
+      padding: 4px 8px; border-radius: 2px; margin: 10px 0;
+    }
+    .black-badge .title-en { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; }
+    .gray-100 { background: #f1f5f9; padding: 4px 8px; border: 1px dashed #94a3b8; }
+
+    .items-header { background: #f1f5f9; padding: 4px 6px; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; font-weight: 700; font-size: 9.5px; }
+    .item-block { padding: 6px 0; border-bottom: 1px dashed #cbd5e1; }
+    .item-title { font-weight: 700; display: flex; justify-content: space-between; }
+    .item-note { font-size: 9px; color: #4a5568; display: flex; justify-content: space-between; padding-right: 8px; margin-top: 1px; }
+    .item-tax { font-size: 9px; color: #4a5568; display: flex; justify-content: space-between; padding-right: 8px; }
+
+    .summary-box {
+      margin: 10px 0; padding: 8px 10px; background: #f8fafc;
+      border: 1px solid #000; border-radius: 2px;
+    }
+    .summary-total { display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 12px; }
+    .summary-total .amount { font-size: 14px; text-decoration: underline; text-decoration-style: double; letter-spacing: -0.5px; }
+
+    .checklist {
+      border: 1px solid #94a3b8; padding: 6px 8px; border-radius: 2px; margin: 10px 0;
+      background: #fff;
+    }
+    .checklist .h { display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 9.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 4px; }
+    .checklist .h .ok { color: #047857; font-weight: 700; font-size: 8.5px; }
+    .checklist .row { font-size: 9px; padding: 1px 0; gap: 6px; justify-content: flex-start; }
+    .checklist .row .mark { font-weight: 900; }
+
+    .settlement {
+      background: #f1f5f9; padding: 8px 10px; border-radius: 2px;
+      border-right: 3px solid #000; margin: 10px 0;
+      font-size: 9.5px;
+    }
+    .settlement .row { padding: 1px 0; }
+    .settlement .badge { background: #000; color: #fff; padding: 1px 6px; font-size: 8.5px; border-radius: 2px; }
+
+    .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 8px 0; text-align: center; }
+    .signatures > div { border: 1px dashed #94a3b8; padding: 6px 4px; border-radius: 4px; }
+    .signatures .role { font-weight: 700; color: #475569; font-size: 8.5px; margin-bottom: 24px; }
+    .signatures .name { color: #94a3b8; font-size: 8px; }
+
+    .policy { border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 0; margin: 6px 0; text-align: center; font-size: 8px; color: #4a5568; line-height: 1.6; }
+
+    .qr {
+      width: 80px; height: 80px; border: 1px solid #000; padding: 4px; margin: 6px auto;
+      background: #fff;
+    }
+    .qr-grid {
+      width: 100%; height: 100%; background: #000;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; padding: 1px;
+    }
+    .qr-cell { background: #fff; }
+    .qr-cell.b { background: #000; }
+    .qr-cell.s2 { grid-column: span 2; }
+    .qr-cell.s2r2 { grid-column: span 2; grid-row: span 2; }
+
+    .barcode { display: flex; justify-content: center; align-items: end; gap: 1px; height: 34px; padding: 0 8px; margin: 6px 0 2px; }
+    .barcode span { background: #000; }
+
+    .footer { text-align: center; font-size: 8.5px; color: #64748b; padding-top: 6px; }
+    .footer .brand { color: #1e293b; font-weight: 700; margin-bottom: 2px; }
+
+    .compat {
+      max-width: 780px; margin-top: 16px; text-align: center;
+      color: #94a3b8; font-size: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .compat .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 2s infinite; }
+
+    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
+
+    @page { size: 80mm auto; margin: 0; }
+    @media print {
+      body { background: transparent !important; padding: 0 !important; margin: 0 !important; }
+      .no-print { display: none !important; }
+      .receipt-container {
+        width: 80mm !important; max-width: 80mm !important;
+        box-shadow: none !important; margin: 0 auto !important; padding: 4mm 3mm !important;
+      }
+      .receipt-container::before, .receipt-container::after { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="actions no-print">
+    <div class="title">
+      <div class="badge">📄</div>
+      <div>
+        <h1>
+          إيصال مرتجع واستلام بضاعة الحراري
+          <span class="paper-size">مقاس 80mm</span>
+        </h1>
+        <p>طابعات الكاشير (Epson, Bixolon, Xprinter) — إشعار دائن ضريبي</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-print" onclick="window.print()">🖨️ طباعة فورية</button>
+      <button class="btn-secondary"><a href="{{ url_for('sales.return_view', return_id=ret.id) }}">← عودة للمرتجع</a></button>
+    </div>
+  </div>
+
+  <main class="receipt-container">
+    {# Store identity #}
+    <div class="center">
+      <div style="display: flex; justify-content: center; margin-bottom: 6px;">
+        <div style="width: 44px; height: 44px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; transform: rotate(45deg); border-radius: 2px; padding: 4px;">
+          <span style="transform: rotate(-45deg); font-size: 9px; font-weight: 900; line-height: 1; text-align: center;">DR.<br>PORC</span>
+        </div>
+      </div>
+      <h2 style="font-size: 15px; font-weight: 900; letter-spacing: 2px; margin: 0;" class="sans">{{ store_name or 'دكتور بورسلين' }}</h2>
+      <p style="font-size: 10px; font-weight: 700; color: #333; margin: 2px 0;" class="sans">لتجهيزات المنزل والأطقم الفاخرة</p>
+      {% if store_addr %}<p style="font-size: 9.5px; color: #555; margin: 1px 0;" class="sans">{{ store_addr }}</p>{% endif %}
+      {% if store_phone %}<p style="font-size: 9.5px; color: #555; margin: 1px 0;" class="sans">هاتف: <span dir="ltr">{{ store_phone }}</span></p>{% endif %}
+      {% if tax_number %}<p style="font-size: 9.5px; color: #555; margin: 1px 0;" class="sans">ب.ض: {{ tax_number }} (خاضع لضريبة القيمة المضافة)</p>{% endif %}
+    </div>
+
+    <div class="black-badge">
+      <div style="font-weight: 800; font-size: 12px; letter-spacing: 1px;">*** إيصال مرتجع واستلام بضاعة ***</div>
+      <div class="title-en">GOODS RETURN & CREDIT NOTE</div>
+      <div style="font-size: 9.5px; font-weight: 700; color: #fbbf24; margin-top: 2px;" dir="ltr">سند مرتجع رقم: {{ ret.doc_number }}</div>
+    </div>
+
+    <div class="gray-100 center" style="font-size: 10px; font-weight: 700; margin: 4px 0;">
+      مرتبط بأصل فاتورة: <span class="mono" dir="ltr">{{ ret.invoice.doc_number }}</span>
+    </div>
+
+    <div class="dashed-line"></div>
+
+    {# Metadata #}
+    <div style="font-size: 10px;">
+      <div class="row"><span class="gray sans">تاريخ الحركة:</span><span class="bold mono">{{ ret.return_date.strftime('%Y/%m/%d') if ret.return_date else '—' }}</span></div>
+      {% if ret.created_by %}<div class="row"><span class="gray sans">المستلم:</span><span class="bold sans">{{ ret.created_by.full_name }}</span></div>{% endif %}
+      <div class="row"><span class="gray sans">العميل:</span><span class="bold sans">{{ ret.invoice.customer.name_ar if ret.invoice.customer else 'عميل نقدي' }}{% if ret.invoice.customer and ret.invoice.customer.phone %} (<span dir="ltr">{{ ret.invoice.customer.phone }}</span>){% endif %}</span></div>
+      <div class="row" style="align-items: flex-start; padding-top: 2px;">
+        <span class="gray sans" style="flex-shrink: 0;">سبب الإرجاع:</span>
+        <span class="bold sans" style="text-align: left; font-size: 9px;">{{ ret.reason }}</span>
+      </div>
+    </div>
+
+    <div class="dashed-line"></div>
+
+    {# Items table #}
+    <div class="items-header sans">
+      <span>بيان الأصناف المرتجعة</span>
+      <span>الصافي (ج.م)</span>
+    </div>
+    {% for line in ret.lines %}
+    <div class="item-block">
+      <div class="item-title">
+        <span class="sans">{{ line.qty | qty }}× {{ line.invoice_line.product_name }}</span>
+        <span class="mono">{{ (line.qty * line.unit_price) | money }}</span>
+      </div>
+      <div class="item-note">
+        <span class="sans">سعر الوحدة: {{ line.unit_price | money }}</span>
+        <span class="sans">الكمية: {{ line.qty | qty }}</span>
+      </div>
+    </div>
+    {% endfor %}
+
+    {# Summary #}
+    <div class="summary-box">
+      <div class="row" style="font-size: 10px; padding-bottom: 3px; border-bottom: 1px dashed #94a3b8;">
+        <span class="sans gray">القيمة قبل الضريبة:</span>
+        <span class="mono bold">{{ (ret.refund_amount - ret.refund_tax) | money }}</span>
+      </div>
+      {% if ret.refund_tax and ret.refund_tax > 0 %}
+      <div class="row" style="font-size: 10px; padding: 3px 0;">
+        <span class="sans gray">ضريبة القيمة المضافة المستردة:</span>
+        <span class="mono bold">+{{ ret.refund_tax | money }}</span>
+      </div>
+      {% endif %}
+      <div class="summary-total sans" style="padding-top: 4px;">
+        <span>إجمالي المستحق للمرتجع:</span>
+        <span class="amount mono">{{ ret.refund_amount | money }} ج.م</span>
+      </div>
+    </div>
+
+    {# Settlement #}
+    <div class="settlement sans">
+      <div class="row bold" style="justify-content: space-between;">
+        <span>طريقة رد القيمة:</span>
+        <span class="badge">
+          {%- if ret.invoice.payment_method and ret.invoice.payment_method.value == 'cash' -%}
+            نقدي فوري
+          {%- elif ret.invoice.payment_method and ret.invoice.payment_method.value == 'on_credit' -%}
+            خصم من الذمة
+          {%- else -%}
+            رد بنفس وسيلة الدفع
+          {%- endif -%}
+        </span>
+      </div>
+      <div class="row"><span class="gray">إشعار دائن رقم:</span><span class="bold mono" dir="ltr">CN-{{ ret.doc_number }}</span></div>
+    </div>
+
+    <div class="dashed-line"></div>
+
+    {# Signatures #}
+    <div class="signatures sans">
+      <div>
+        <div class="role">أمين المخزن / الفاحص</div>
+        <div class="name">توقيع</div>
+      </div>
+      <div>
+        <div class="role">الكاشير المستلم</div>
+        <div class="name">{% if ret.created_by %}{{ ret.created_by.full_name }}{% else %}بصمة إلكترونية{% endif %}</div>
+      </div>
+      <div>
+        <div class="role">توقيع العميل</div>
+        <div class="name">{{ ret.invoice.customer.name_ar if ret.invoice.customer else '—' }}</div>
+      </div>
+    </div>
+
+    <div class="policy sans">
+      <strong>شروط الاستبدال والاسترجاع:</strong>
+      يتم الاسترجاع خلال 14 يومًا من تاريخ الشراء بشرط إحضار أصل الفاتورة وسلامة التغليف والكرتونة وعدم الاستخدام. يُرد المبلغ بنفس وسيلة الدفع الأصلية.
+    </div>
+
+    {# QR + Barcode #}
+    <div class="center" style="padding-top: 6px; display: flex; flex-direction: column; align-items: center;">
+      <div class="qr">
+        <div class="qr-grid">
+          <div class="qr-cell s2r2"></div><div class="qr-cell b"></div><div class="qr-cell s2r2"></div>
+          <div class="qr-cell b"></div><div class="qr-cell"></div>
+          <div class="qr-cell"></div><div class="qr-cell s2"></div><div class="qr-cell b"></div>
+          <div class="qr-cell"></div><div class="qr-cell b"></div>
+          <div class="qr-cell s2r2"></div><div class="qr-cell b"></div><div class="qr-cell s2r2"></div>
+        </div>
+      </div>
+      <p style="font-size: 8px; margin: 4px 0; color: #4a5568;" class="mono">ETA CREDIT-NOTE HASH: {{ ret.doc_number }}</p>
+      <div class="barcode">
+        {% for w in [2,1,3,1,2,4,1,2,3,1,3,2,1,4,2,1,3,1,2,4,1,3] %}<span style="width:{{ w }}px; height:100%;"></span>{% endfor %}
+      </div>
+      <span style="font-size: 9px; font-weight: 700; letter-spacing: 2px; margin-top: 2px;" class="mono" dir="ltr">* {{ ret.doc_number }} *</span>
+    </div>
+
+    <div class="footer sans">
+      <p class="brand">نسعد بخدمتكم دائمًا في {{ store_name or 'دكتور بورسلين' }} — شكرًا لثقتكم</p>
+      <p style="margin: 1px 0;">نظام دكتور بورسلين الموحد — إصدار 4.2</p>
+      <p style="margin: 1px 0; font-size: 7.5px;" class="mono">*** نهاية إشعار المرتجع والاستلام ***</p>
+    </div>
+  </main>
+
+  <footer class="compat no-print">
+    <div class="dot"></div>
+    <span>مصمم بدقة هندسية وفق قياس الورق الحراري (80mm / 3.15 inch) — متوافق مع طابعات الفواتير الإيصالية.</span>
+  </footer>
+
+</body>
+</html>

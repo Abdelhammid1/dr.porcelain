@@ -2,93 +2,176 @@
 {% block title %}قيد {{ entry.doc_number }}{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
-    <div>
-      <div class="flex items-center gap-space-xs">
-        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold" dir="ltr">قيد {{ entry.doc_number }}</h1>
-        {% if entry.status.value == 'reversed' %}
-        <span class="px-space-xs py-0.5 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">معكوس</span>
-        {% endif %}
+<div class="flex flex-col w-full gap-space-lg">
+
+  {# ============ Top Sovereign Operational Header ============ #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+    <div class="flex items-center gap-space-md min-w-0">
+      <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-[26px]">receipt_long</span>
       </div>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
-        {{ entry.entry_date | hdate }} · <span dir="ltr">{{ entry.source_type.value }}</span>
-        {% if entry.memo %} · {{ entry.memo }}{% endif %}
-      </p>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="font-headline-xl text-headline-xl font-bold text-on-surface" dir="ltr">قيد {{ entry.doc_number }}</span>
+          {% if entry.status.value == 'posted' %}
+            <span class="px-space-xs py-0.5 rounded-full bg-secondary/15 text-secondary font-label-sm text-label-sm font-bold">مرحّل</span>
+          {% elif entry.status.value == 'reversed' %}
+            <span class="px-space-xs py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">معكوس</span>
+          {% else %}
+            <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-bold">مسودة</span>
+          {% endif %}
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm" dir="ltr">{{ entry.source_type.value }}</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          {{ entry.entry_date | hdate }}
+          {% if entry.memo %} · {{ entry.memo }}{% endif %}
+        </p>
+      </div>
     </div>
-    <a href="{{ url_for('journal.index') }}"
-       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-      <span>رجوع</span>
-    </a>
+
+    <div class="flex items-center gap-space-sm shrink-0 flex-wrap">
+      <div class="bg-surface-container-low px-space-md py-space-xs rounded-lg flex flex-col">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">إجمالي المدين</span>
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary">{{ entry.total_debit | money }}</span>
+          <span class="font-label-sm text-[10px] text-on-surface-variant">ج.م</span>
+        </div>
+      </div>
+      <div class="bg-surface-container-low px-space-md py-space-xs rounded-lg flex flex-col">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">إجمالي الدائن</span>
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">{{ entry.total_credit | money }}</span>
+          <span class="font-label-sm text-[10px] text-on-surface-variant">ج.م</span>
+        </div>
+      </div>
+      <a href="{{ url_for('journal.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>رجوع</span>
+      </a>
+    </div>
   </div>
 
-  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-right">
+  {# ============ Entry Detail Panel ============ #}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+        <h2 class="font-headline-lg text-headline-lg font-bold text-on-surface">أطراف القيد (Accounts Breakdown)</h2>
+        <span class="px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{{ entry.lines|length }} سطر</span>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <span class="font-label-sm text-[11px] text-on-surface-variant">التوازن المحاسبي:</span>
+        {% if entry.total_debit == entry.total_credit %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-label-sm text-[11px] font-bold">
+            <span class="material-symbols-outlined text-[14px]">check_circle</span>متزن
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold">
+            <span class="material-symbols-outlined text-[14px]">error</span>غير متزن
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl bg-surface-container-lowest">
+      <table class="w-full text-right border-collapse">
         <thead>
-          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
-            <th class="py-space-sm px-space-md">الحساب</th>
-            <th class="py-space-sm px-space-md">البيان</th>
-            <th class="py-space-sm px-space-md text-end">مدين</th>
-            <th class="py-space-sm px-space-md text-end">دائن</th>
+          <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] font-semibold">
+            <th class="p-space-sm">الحساب المحاسبي</th>
+            <th class="p-space-sm">البيان الخاص للسطر</th>
+            <th class="p-space-sm text-left whitespace-nowrap">مدين (ج.م)</th>
+            <th class="p-space-sm text-left whitespace-nowrap">دائن (ج.م)</th>
           </tr>
         </thead>
-        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+        <tbody class="divide-y divide-surface-container-low font-body-sm text-body-sm">
           {% for ln in entry.lines %}
-          <tr>
-            <td class="py-space-sm px-space-md" dir="ltr">
-              <span class="font-semibold">{{ ln.account.code }}</span>
-              <span class="text-on-surface-variant"> — {{ ln.account.name_ar }}</span>
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="p-space-sm align-top">
+              <div class="flex items-center gap-space-xs">
+                <span class="w-2 h-2 rounded-full {% if ln.debit %}bg-secondary{% else %}bg-outline{% endif %}"></span>
+                <span class="font-fiscal-numeric-md text-[13px] font-bold text-on-surface font-mono" dir="ltr">{{ ln.account.code }}</span>
+                <span class="font-body-md text-body-md text-on-surface">{{ ln.account.name_ar }}</span>
+                {% if ln.account.is_system %}
+                  <span class="px-1.5 py-0.2 rounded bg-surface-container-high text-[10px] text-on-surface font-medium">is_system</span>
+                {% endif %}
+                <span class="text-[10px] {% if ln.debit %}text-secondary{% else %}text-on-surface-variant{% endif %} font-mono">
+                  {% if ln.debit %}(منه){% else %}(له){% endif %}
+                </span>
+              </div>
             </td>
-            <td class="py-space-sm px-space-md text-on-surface-variant">{{ ln.memo or "" }}</td>
-            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md {% if ln.debit %}text-on-surface font-semibold{% else %}text-on-surface-variant/40{% endif %}">
-              {% if ln.debit %}{{ ln.debit | money }}{% else %}—{% endif %}
+            <td class="p-space-sm align-top text-on-surface-variant">{{ ln.memo or "—" }}</td>
+            <td class="p-space-sm align-top text-left font-mono font-fiscal-numeric-md text-[13px] font-bold {% if ln.debit %}text-secondary{% else %}text-transparent{% endif %}">
+              {% if ln.debit %}{{ ln.debit | money }}{% else %}-{% endif %}
             </td>
-            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md {% if ln.credit %}text-on-surface font-semibold{% else %}text-on-surface-variant/40{% endif %}">
-              {% if ln.credit %}{{ ln.credit | money }}{% else %}—{% endif %}
+            <td class="p-space-sm align-top text-left font-mono font-fiscal-numeric-md text-[13px] font-bold {% if ln.credit %}text-on-surface{% else %}text-transparent{% endif %}">
+              {% if ln.credit %}{{ ln.credit | money }}{% else %}-{% endif %}
             </td>
           </tr>
           {% endfor %}
-          <tr class="bg-primary-container/5 font-bold">
-            <td class="py-space-sm px-space-md"></td>
-            <td class="py-space-sm px-space-md text-end">الإجمالي</td>
-            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md text-secondary">{{ entry.total_debit | money }}</td>
-            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md text-secondary">{{ entry.total_credit | money }}</td>
-          </tr>
         </tbody>
+        <tfoot>
+          <tr class="bg-surface-container-low font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface border-t-0">
+            <td class="p-space-sm text-right font-headline-sm text-headline-sm" colspan="2">الإجمالي المتطابق (Journal Balancing)</td>
+            <td class="p-space-sm text-left text-secondary">{{ entry.total_debit | money }} ج.م</td>
+            <td class="p-space-sm text-left text-secondary">{{ entry.total_credit | money }} ج.م</td>
+          </tr>
+        </tfoot>
       </table>
+    </div>
+
+    <div class="p-space-xs bg-surface-container-low rounded-lg flex items-center justify-between text-on-surface-variant font-label-sm text-[11px]">
+      <div class="flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+        <span>القيد مرتبط بموديول <span class="font-bold text-on-surface" dir="ltr">{{ entry.source_type.value }}</span>
+              {% if entry.source_id %}(<span dir="ltr">source #{{ entry.source_id }}</span>){% endif %}
+              — ترحيل تلقائي إلى دفتر الأستاذ العام.</span>
+      </div>
+      <span class="font-mono text-secondary font-semibold">دفتر الأستاذ محدَّث</span>
     </div>
   </div>
 
+  {# ============ Reversal panel ============ #}
   {% if entry.reversal_of_id %}
-  <div class="p-space-md rounded-xl bg-error-container text-on-error-container flex items-center gap-space-sm">
-    <span class="material-symbols-outlined">undo</span>
-    <span class="font-body-md text-body-md"><strong>هذا قيد عكسي</strong> — يعكس قيدًا سابقًا.</span>
-  </div>
+    <div class="p-space-md rounded-xl bg-error-container text-on-error-container flex items-center gap-space-sm shadow-sm">
+      <span class="material-symbols-outlined text-[22px]">undo</span>
+      <span class="font-body-md text-body-md"><strong>هذا قيد عكسي</strong> — يعكس قيدًا سابقًا رقم <span dir="ltr">#{{ entry.reversal_of_id }}</span>.</span>
+    </div>
   {% elif entry.reversed_by_id %}
-  <div class="p-space-md rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center gap-space-sm">
-    <span class="material-symbols-outlined">warning</span>
-    <span class="font-body-md text-body-md"><strong>هذا القيد معكوس.</strong> السبب: {{ entry.reversal_reason }}</span>
-  </div>
+    <div class="p-space-md rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center gap-space-sm shadow-sm">
+      <span class="material-symbols-outlined text-[22px]">warning</span>
+      <span class="font-body-md text-body-md">
+        <strong>هذا القيد معكوس.</strong>
+        {% if entry.reversal_reason %}السبب: {{ entry.reversal_reason }}{% endif %}
+        · قيد العكس رقم <span dir="ltr">#{{ entry.reversed_by_id }}</span>
+      </span>
+    </div>
   {% elif entry.status.value == 'posted' and current_user.can('journal.reverse') %}
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="post" action="{{ url_for('journal.reverse', entry_id=entry.id) }}"
-          class="flex flex-col sm:flex-row gap-space-sm items-end"
-          onsubmit="return confirm('عكس هذا القيد نهائيًا؟');">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="flex-1">
-        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">سبب العكس</label>
-        <input type="text" name="reason" required
-               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+    <div id="reverse" class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+      <div class="flex items-center gap-space-xs mb-space-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">إنشاء قيد عكسي (Reversal Entry)</h3>
+        <span class="px-space-xs py-0.5 rounded-full bg-error/10 text-error font-label-sm text-[11px] font-semibold">إجراء تسوية</span>
       </div>
-      <button type="submit"
-              class="h-10 px-space-md bg-error text-on-error hover:bg-error/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">undo</span>
-        <span>عكس القيد</span>
-      </button>
-    </form>
-  </div>
+      <form method="post" action="{{ url_for('journal.reverse', entry_id=entry.id) }}"
+            class="flex flex-col sm:flex-row gap-space-sm items-end"
+            onsubmit="return confirm('تنبيه محاسبي: هل أنت متأكد من إنشاء قيد عكسي مباشر ومعاكس لهذا القيد؟ سيتم إنشاء سند قيد تسوية يحمل أثر الإلغاء.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="flex-1">
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">سبب العكس</label>
+          <input type="text" name="reason" required
+                 placeholder="مثال: خطأ في تصنيف الحساب / تعديل قيمة الفاتورة"
+                 class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+        </div>
+        <button type="submit"
+                class="h-10 px-space-md bg-error text-on-error hover:bg-error/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">undo</span>
+          <span>عكس القيد</span>
+        </button>
+      </form>
+    </div>
   {% endif %}
+
 </div>
 {% endblock %}

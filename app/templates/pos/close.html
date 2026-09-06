@@ -2,102 +2,520 @@
 {% block title %}قفل وردية {{ session.doc_number }}{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex items-center justify-between">
-    <div>
-      <div class="flex items-center gap-space-xs text-error font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
-        <span>قفل وردية</span>
+<div class="relative w-full rounded-2xl bg-surface-container-lowest shadow-xl p-space-md lg:p-space-xl space-y-space-lg overflow-hidden">
+  {# Decorative top accent bar #}
+  <div class="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-l from-primary-container via-secondary to-secondary-container"></div>
+
+  {# ============================================================
+     1. Header / Meta Banner
+     ============================================================ #}
+  <section class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pt-space-xs">
+    <div class="flex items-start gap-space-sm">
+      <div class="p-space-sm rounded-xl bg-primary-container text-on-primary shadow-md flex items-center justify-center">
+        <span class="material-symbols-outlined text-[32px] text-secondary-container">receipt_long</span>
       </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">قفل وردية <span dir="ltr" class="text-secondary">{{ session.doc_number }}</span></h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
-        الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}
-      </p>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+            إغلاق وردية الكاشير وجرد الصندوق
+            <span class="font-normal text-on-surface-variant text-headline-sm">(تقرير Z-Report)</span>
+          </h1>
+          <span class="px-space-xs py-0.5 rounded-full bg-secondary-container/20 text-on-secondary-container font-label-sm text-label-sm font-bold flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            قيد التسوية والمطابقة
+          </span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          نظام دكتور بورسلين الموحد &bull; تقرير الإقفال ومزامنة دفتر الأستاذ وترحيل القيود النقدية
+        </p>
+      </div>
     </div>
-    <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
-       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>عودة للبيع</span>
-    </a>
+
+    <div class="flex items-center gap-space-xs self-end lg:self-center">
+      <button type="button" onclick="window.print()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md flex items-center gap-space-xs transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span>
+        <span>طباعة فورية (F8)</span>
+      </button>
+      <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
+         class="h-10 px-space-md rounded-lg bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+        <span>الرجوع لـ POS (Esc)</span>
+      </a>
+    </div>
+  </section>
+
+  {# ============================================================
+     Shift Meta Strip
+     ============================================================ #}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-xs p-space-sm rounded-xl bg-surface-container-low text-on-surface">
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">رقم الوردية</span>
+      <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold" dir="ltr">{{ session.doc_number }}</span>
+    </div>
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">الحالة</span>
+      <span class="font-body-md text-body-md font-semibold truncate">
+        {% if session.status.value == 'open' %}مفتوحة — تحت التسوية{% else %}مقفلة{% endif %}
+      </span>
+    </div>
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">الكاشير المسؤول</span>
+      <span class="font-body-md text-body-md font-semibold truncate">{{ session.cashier.full_name }}</span>
+    </div>
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">وقت البدء والافتتاح</span>
+      <span class="font-body-sm text-body-sm font-medium text-on-surface">
+        {{ session.opened_at | hdate }} &bull; {{ session.opened_at.strftime('%H:%M') }}
+      </span>
+    </div>
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">وقت الجرد والإغلاق</span>
+      <span class="font-body-sm text-body-sm font-medium text-on-surface">
+        {% if session.closed_at %}
+          {{ session.closed_at | hdate }} &bull; {{ session.closed_at.strftime('%H:%M') }}
+        {% else %}
+          <span class="text-on-surface-variant">قيد التسوية الآن</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="flex flex-col px-space-xs">
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">عدد الفواتير</span>
+      <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px] text-secondary">receipt_long</span>
+        {{ summary.invoices_count }}
+      </span>
+    </div>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
-    {% for label, val, icon, tint in [
-      ('افتتاحي',           session.opening_cash,             'account_balance_wallet', 'text-on-surface'),
-      ('عدد الفواتير',       summary.invoices_count,           'receipt_long',            'text-on-surface'),
-      ('إجمالي المبيعات',    summary.total_sales,              'bar_chart',               'text-on-surface'),
-      ('المتوقع في العهدة',  summary.current_custody_balance,  'account_balance_wallet',  'text-secondary'),
-    ] %}
-    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
-      <div>
-        <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
-        <div class="mt-1">
-          {% if label == 'عدد الفواتير' %}
-          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val }}</span>
-          {% else %}
-          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val | money }}</span>
-          {% endif %}
+  {# ============================================================
+     2. System-Recorded Sales Highlights
+     ============================================================ #}
+  <section class="space-y-space-xs">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-xs">
+        <span class="w-1.5 h-4 rounded-full bg-secondary"></span>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">ملخص العمليات المالية المسجلة بالنظام</h2>
+      </div>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">المعاملات المؤكدة آلياً بالدفاتر</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-xs">
+      {# Total Sales #}
+      <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col justify-between group hover:bg-surface-container transition-all">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="font-label-md text-label-md">إجمالي المبيعات</span>
+          <span class="material-symbols-outlined text-[20px] text-secondary">point_of_sale</span>
+        </div>
+        <div class="mt-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ summary.total_sales | money }}</span>
+        </div>
+        <div class="mt-space-2xs pt-space-2xs text-[11px] text-on-surface-variant">
+          <span>{{ summary.invoices_count }} فاتورة</span>
         </div>
       </div>
-      <div class="w-12 h-12 rounded-xl {% if label == 'المتوقع في العهدة' %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-surface-container-low text-secondary{% endif %} flex items-center justify-center">
-        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+
+      {# Opening Float #}
+      <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col justify-between group hover:bg-surface-container transition-all">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="font-label-md text-label-md">العهدة الافتتاحية</span>
+          <span class="material-symbols-outlined text-[20px] text-secondary">savings</span>
+        </div>
+        <div class="mt-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ session.opening_cash | money }}</span>
+        </div>
+        <div class="mt-space-2xs pt-space-2xs text-[11px] text-on-surface-variant">
+          <span>مسجلة عند فتح الوردية</span>
+        </div>
+      </div>
+
+      {# Expected Custody #}
+      <div class="p-space-sm rounded-xl bg-secondary-container/30 flex flex-col justify-between group">
+        <div class="flex items-center justify-between text-on-secondary-container">
+          <span class="font-label-md text-label-md font-bold">المتوقع بالدرج</span>
+          <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+        </div>
+        <div class="mt-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ summary.current_custody_balance | money }}</span>
+        </div>
+        <div class="mt-space-2xs pt-space-2xs text-[11px] text-on-secondary-container">
+          <span class="font-bold">رصيد حساب العهدة الحالي</span>
+        </div>
+      </div>
+
+      {# Cash Sales #}
+      <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col justify-between group hover:bg-surface-container transition-all">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="font-label-md text-label-md">مبيعات نقدية</span>
+          <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
+        </div>
+        <div class="mt-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ summary.cash_sales | money }}</span>
+        </div>
+        <div class="mt-space-2xs pt-space-2xs text-[11px] text-on-surface-variant">
+          <span>محصلة كاش خلال الوردية</span>
+        </div>
       </div>
     </div>
-    {% endfor %}
+  </section>
+
+  {# ============================================================
+     3 & 4. Dual Workspace: Breakdown & Denomination Counter
+     ============================================================ #}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+
+    {# ---------- Payment Methods Reconciliation (5 cols) ---------- #}
+    <section class="lg:col-span-5 flex flex-col space-y-space-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-space-xs">
+          <span class="w-1.5 h-4 rounded-full bg-secondary"></span>
+          <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">تفكيك وسائل التحصيل</h3>
+        </div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant">المطابقة الدفترية</span>
+      </div>
+
+      <div class="space-y-space-xs">
+        {# Cash Expected #}
+        <div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-xs">
+              <div class="p-2 rounded-lg bg-surface-container-highest text-secondary">
+                <span class="material-symbols-outlined text-[20px]">payments</span>
+              </div>
+              <div>
+                <div class="font-label-lg text-label-lg text-on-surface font-bold">النقدية المتوقعة بالدرج</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">
+                  عهدة ({{ session.opening_cash | money }}) + مبيعات كاش ({{ summary.cash_sales | money }})
+                </div>
+              </div>
+            </div>
+            <div class="text-left">
+              <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ summary.current_custody_balance | money }}</div>
+              <div class="font-label-sm text-label-sm text-on-surface-variant">المستهدف بالجرد</div>
+            </div>
+          </div>
+        </div>
+
+        {# Card Sales #}
+        <div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-xs">
+              <div class="p-2 rounded-lg bg-surface-container-highest text-on-surface">
+                <span class="material-symbols-outlined text-[20px]">credit_card</span>
+              </div>
+              <div>
+                <div class="font-label-lg text-label-lg text-on-surface font-bold">بطاقات الدفع الإلكتروني</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">إيصالات شبكة البطاقات البنكية</div>
+              </div>
+            </div>
+            <div class="text-left">
+              <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ summary.card_sales | money }}</div>
+              <div class="font-label-sm text-label-sm text-on-surface-variant">مسجلة بالنظام</div>
+            </div>
+          </div>
+        </div>
+
+        {# Wallet / Instapay #}
+        <div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-xs">
+              <div class="p-2 rounded-lg bg-surface-container-highest text-secondary">
+                <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+              </div>
+              <div>
+                <div class="font-label-lg text-label-lg text-on-surface font-bold">محفظة رقمية / إنستاباي</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">تحويلات وإشعارات التطبيقات</div>
+              </div>
+            </div>
+            <div class="text-left">
+              <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ summary.wallet_sales | money }}</div>
+              <div class="font-label-sm text-label-sm text-on-surface-variant">مسجلة بالنظام</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ---------- Denomination Counter (7 cols) ---------- #}
+    <section class="lg:col-span-7 flex flex-col space-y-space-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-space-xs">
+          <span class="w-1.5 h-4 rounded-full bg-secondary"></span>
+          <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">حاسبة الجرد والعد الفعلي للنقدية</h3>
+        </div>
+        <span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">
+          جرد أعمى بالدرج
+        </span>
+      </div>
+
+      <div class="overflow-hidden rounded-xl bg-surface-container-low p-space-xs">
+        <div class="grid grid-cols-12 gap-space-2xs px-space-sm py-2 text-on-surface-variant font-label-sm text-label-sm font-semibold">
+          <div class="col-span-3">فئة البنكنوت</div>
+          <div class="col-span-4 text-center">العدد الفعلي (ورقة)</div>
+          <div class="col-span-5 text-left">إجمالي القيمة المحسوبة</div>
+        </div>
+
+        <div class="space-y-1.5 mt-1">
+          {% for face in [200, 100, 50, 20, 10, 5] %}
+          <div class="grid grid-cols-12 gap-space-2xs items-center p-space-xs rounded-lg bg-surface-container-lowest">
+            <div class="col-span-3 flex items-center gap-space-xs">
+              <span class="px-2 py-1 rounded bg-surface-container font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">{{ face }}</span>
+              <span class="font-body-sm text-body-sm text-on-surface-variant">جنيه</span>
+            </div>
+            <div class="col-span-4 flex items-center justify-center">
+              <div class="flex items-center bg-surface-container-low rounded-lg p-0.5 w-32 justify-between">
+                <button type="button" onclick="adjustCount('d{{ face }}', -1)"
+                        class="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors font-bold text-sm">-</button>
+                <input id="d{{ face }}" type="number" min="0" value="0" oninput="calcTotal()"
+                       data-face="{{ face }}"
+                       class="denom-input w-12 text-center bg-transparent font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface focus:outline-none"/>
+                <button type="button" onclick="adjustCount('d{{ face }}', 1)"
+                        class="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors font-bold text-sm">+</button>
+              </div>
+            </div>
+            <div class="col-span-5 text-left flex items-center justify-end gap-1">
+              <span id="sub-d{{ face }}" class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">0.00</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {# Total Counted Cash Footer #}
+        <div class="mt-space-xs p-space-sm rounded-lg bg-primary-container text-on-primary flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[22px] text-secondary-container">calculate</span>
+            <span class="font-label-lg text-label-lg font-bold">إجمالي النقدية المحصورة فعلياً:</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="actualTotalDisplay" class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary-container font-bold">0.00</span>
+            <span class="font-label-sm text-label-sm text-on-primary">جنيه مصري</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
-    <div class="bg-surface-container-lowest rounded-xl shadow-sm">
-      <div class="p-space-md border-b border-surface-container-low">
-        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل المبيعات حسب الطريقة</h3>
+  {# ============================================================
+     5. Variance & Reconciliation Banner (live via JS)
+     ============================================================ #}
+  <section id="varianceBanner"
+           class="p-space-md rounded-2xl bg-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+    <div class="flex items-center gap-space-md">
+      <div id="varianceIconWrap"
+           class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-secondary shadow-sm">
+        <span id="varianceIcon" class="material-symbols-outlined text-[30px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
       </div>
-      <table class="w-full text-right">
-        <tbody class="divide-y divide-surface-container-low">
-          {% for icon, color, label, val in [
-            ('payments',     'text-secondary',           'نقدي',    summary.cash_sales),
-            ('credit_card',  'text-on-primary-container','بطاقة',   summary.card_sales),
-            ('account_balance_wallet','text-on-tertiary-container','محفظة', summary.wallet_sales),
-          ] %}
-          <tr>
-            <td class="py-space-sm px-space-md">
-              <span class="material-symbols-outlined {{ color }} text-[20px] align-middle">{{ icon }}</span>
-              <span class="font-body-md text-body-md text-on-surface">{{ label }}</span>
-            </td>
-            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ val | money }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div>
+        <div class="flex items-center gap-space-xs">
+          <h4 id="varianceHeadline" class="font-headline-lg text-headline-lg text-on-surface font-bold">أدخل النقدية الفعلية لبدء المطابقة</h4>
+          <span id="varianceChip" class="px-space-xs py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm font-bold">
+            بانتظار الجرد
+          </span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          الفرق المحاسبي: <strong id="varianceValue" class="text-on-surface font-fiscal-numeric-md">0.000 ج.م</strong>.
+          سيتم إنشاء قيد اليومية الإقفالي وترحيل الرصيد للخزينة الرئيسية تلقائياً بعد التأكيد.
+        </p>
+      </div>
     </div>
+    <div class="flex flex-col items-end shrink-0 text-left bg-surface-container-lowest px-space-md py-space-xs rounded-xl shadow-sm">
+      <span class="font-label-sm text-label-sm text-on-surface-variant">المتوقع بالدرج</span>
+      <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ summary.current_custody_balance | money }}</span>
+      <span class="text-[10px] text-on-surface-variant">حساب عهدة الكاشير</span>
+    </div>
+  </section>
 
-    <form method="post" class="bg-surface-container-lowest rounded-xl shadow-sm">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="p-space-md border-b border-surface-container-low">
-        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">عدّ النقدية الفعلية</h3>
-      </div>
-      <div class="p-space-md space-y-space-md">
-        <div>
-          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الرصيد النقدي الفعلي في الدرج</label>
-          <input type="number" name="closing_cash_actual" step="0.001" min="0" required autofocus
-                 class="h-16 w-full px-space-md rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-lg text-center font-bold" style="font-size:1.8rem;">
-          <p class="text-[11px] text-on-surface-variant mt-1">
-            سيقارن النظام بالمتوقع (<strong>{{ summary.current_custody_balance | money }}</strong>) ويسجّل أي فرق تلقائيًا.
+  {# ============================================================
+     6 & 7. Form: Notes, Actual Cash, Submit
+     ============================================================ #}
+  <form method="post" class="space-y-space-md">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-stretch">
+      {# Actual cash input + Notes (col 1-8) #}
+      <div class="lg:col-span-8 flex flex-col space-y-space-sm">
+        <div class="p-space-sm rounded-xl bg-surface-container-low space-y-space-xs">
+          <label for="closingCash" class="font-label-lg text-label-lg text-on-surface font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px] text-secondary">savings</span>
+            <span>الرصيد النقدي الفعلي في الدرج (Actual Cash)</span>
+          </label>
+          <input type="number" step="0.001" min="0" required autofocus
+                 name="closing_cash_actual" id="closingCash"
+                 class="h-16 w-full px-space-md rounded-lg bg-surface-container-lowest outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-lg text-center font-bold"
+                 style="font-size:1.8rem;"
+                 oninput="onClosingCashChange()"/>
+          <p class="text-[11px] text-on-surface-variant">
+            المتوقع: <strong>{{ summary.current_custody_balance | money }}</strong>. حاسبة الجرد بالأعلى تملأ هذا الحقل تلقائياً.
           </p>
         </div>
-        <div>
-          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ملاحظات (اختياري)</label>
-          <textarea name="notes" rows="2" placeholder="مثال: عجز 10 لتغطية شحن مندوب"
-                    class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></textarea>
+
+        <div class="p-space-sm rounded-xl bg-surface-container-low space-y-space-xs">
+          <label for="cashierNotes" class="font-label-lg text-label-lg text-on-surface font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px] text-secondary">notes</span>
+            <span>ملاحظات الكاشير ومبررات أي تسويات:</span>
+          </label>
+          <textarea name="notes" id="cashierNotes" rows="3"
+                    placeholder="اكتب أي ملاحظة تخص الوردية هنا (اختياري)..."
+                    class="w-full p-space-sm rounded-xl bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest transition-all resize-none outline outline-1 outline-outline-variant/60"></textarea>
         </div>
       </div>
-      <div class="p-space-md border-t border-surface-container-low flex justify-end gap-space-xs">
-        <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
-           class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center">إلغاء</a>
+
+      {# Sign-off (col 9-12) #}
+      <div class="lg:col-span-4 grid grid-cols-1 gap-space-sm">
+        <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-on-surface-variant mb-space-2xs">
+              <span class="font-label-sm text-label-sm font-semibold">الكاشير المسلِّم</span>
+              <span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+            </div>
+            <div class="font-label-lg text-label-lg font-bold text-on-surface">{{ session.cashier.full_name }}</div>
+            <div class="text-[11px] text-on-surface-variant" dir="ltr">{{ session.cashier.username }}</div>
+          </div>
+          <div class="mt-space-sm pt-space-xs border-t border-on-surface-variant/10 flex items-center justify-between">
+            <span class="font-label-sm text-[11px] text-on-surface-variant">الاعتماد: مسجل بالنظام</span>
+            <span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-[10px] text-secondary font-bold">بصمة موثقة</span>
+          </div>
+        </div>
+
+        <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-on-surface-variant mb-space-2xs">
+              <span class="font-label-sm text-label-sm font-semibold">المستخدم المُنفِّذ للإقفال</span>
+              <span class="material-symbols-outlined text-[16px] text-secondary">shield_person</span>
+            </div>
+            <div class="font-label-lg text-label-lg font-bold text-on-surface">{{ current_user.full_name }}</div>
+            <div class="text-[11px] text-on-surface-variant">
+              {{ current_user.role.name_ar if current_user.role else '' }}
+            </div>
+          </div>
+          <div class="mt-space-sm pt-space-xs border-t border-on-surface-variant/10 flex items-center justify-between">
+            <span class="font-label-sm text-[11px] text-on-surface-variant">الحالة: جاهز للترحيل</span>
+            <span class="px-2 py-0.5 rounded bg-surface-container-high font-label-sm text-[10px] text-on-surface font-bold">جاهز للإقفال</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# Security warning + Actions #}
+    <div class="space-y-space-sm pt-space-xs">
+      <div class="p-space-sm rounded-xl bg-surface-container-high text-on-surface flex items-center gap-space-sm shadow-sm">
+        <span class="material-symbols-outlined text-[24px] text-secondary shrink-0">lock_reset</span>
+        <div class="flex-1 text-body-sm font-body-sm">
+          <strong class="font-bold">تنبيه حوكمة المحاسبة:</strong>
+          بمجرد تأكيد الإقفال، سيتم تجميد الوردية <span class="font-bold text-secondary" dir="ltr">{{ session.doc_number }}</span> وتنفيذ قيود التسوية آلياً — قيد الفروقات (لو وُجد) ثم قيد تحويل النقدية الفعلية إلى الصندوق الرئيسي.
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-space-sm pt-space-2xs">
+        <div class="flex items-center gap-space-xs w-full sm:w-auto">
+          <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
+             class="h-11 px-space-md rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center justify-center gap-space-xs transition-all w-full sm:w-auto">
+            <span class="material-symbols-outlined text-[19px]">arrow_back</span>
+            <span>إلغاء والعودة للبيع</span>
+          </a>
+        </div>
+
         <button type="submit"
-                class="h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
-          <span class="material-symbols-outlined text-[18px]">power_settings_new</span><span>تأكيد قفل الوردية</span>
+                class="h-12 px-space-xl rounded-xl bg-primary-container text-on-primary hover:bg-secondary transition-all shadow-lg flex items-center justify-center gap-space-sm w-full sm:w-auto font-headline-sm text-headline-sm font-bold group">
+          <span class="material-symbols-outlined text-[22px] text-secondary-container group-hover:text-on-primary transition-colors">lock</span>
+          <span>تأكيد إغلاق الوردية وترحيل القيود</span>
+          <span class="px-2 py-0.5 rounded bg-surface-container-high/20 font-label-sm text-[11px] text-secondary-container group-hover:text-on-primary">F12</span>
         </button>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
 </div>
+
+<script>
+  const EXPECTED = parseFloat("{{ summary.current_custody_balance }}") || 0;
+
+  function adjustCount(id, change) {
+    const el = document.getElementById(id);
+    let v = parseInt(el.value) || 0;
+    v = Math.max(0, v + change);
+    el.value = v;
+    calcTotal();
+  }
+
+  function calcTotal() {
+    let total = 0;
+    document.querySelectorAll('.denom-input').forEach(inp => {
+      const face  = parseInt(inp.dataset.face) || 0;
+      const count = parseInt(inp.value) || 0;
+      const sub   = face * count;
+      total += sub;
+      const subEl = document.getElementById('sub-' + inp.id);
+      if (subEl) subEl.textContent = sub.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    });
+    document.getElementById('actualTotalDisplay').textContent =
+      total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Push into the closing_cash_actual input (3 decimals)
+    document.getElementById('closingCash').value = total.toFixed(3);
+    updateVariance(total);
+  }
+
+  function onClosingCashChange() {
+    const v = parseFloat(document.getElementById('closingCash').value) || 0;
+    updateVariance(v);
+  }
+
+  function updateVariance(actual) {
+    const diff = actual - EXPECTED;
+    const banner   = document.getElementById('varianceBanner');
+    const headline = document.getElementById('varianceHeadline');
+    const chip     = document.getElementById('varianceChip');
+    const value    = document.getElementById('varianceValue');
+    const icon     = document.getElementById('varianceIcon');
+    const iconWrap = document.getElementById('varianceIconWrap');
+
+    value.textContent = (diff >= 0 ? '+ ' : '- ') +
+      Math.abs(diff).toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3}) + ' ج.م';
+
+    banner.classList.remove('bg-error-container', 'bg-tertiary-container', 'bg-surface-container-low');
+
+    if (Math.abs(diff) < 0.005) {
+      banner.classList.add('bg-surface-container-low');
+      iconWrap.className = 'w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-secondary shadow-sm';
+      icon.textContent = 'check_circle';
+      headline.textContent = 'الصندوق متطابق بنسبة 100%';
+      chip.textContent = 'لا يوجد عجز أو زيادة';
+      chip.className = 'px-space-xs py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm font-bold';
+    } else if (diff < 0) {
+      banner.classList.add('bg-error-container');
+      iconWrap.className = 'w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-error shadow-sm';
+      icon.textContent = 'error';
+      headline.textContent = 'يوجد عجز في الصندوق';
+      chip.textContent = 'سيتم قيد الفرق على حساب الفروقات 6500';
+      chip.className = 'px-space-xs py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold';
+    } else {
+      banner.classList.add('bg-tertiary-container');
+      iconWrap.className = 'w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-on-tertiary-container shadow-sm';
+      icon.textContent = 'trending_up';
+      headline.textContent = 'يوجد زيادة نقدية في الصندوق';
+      chip.textContent = 'سيتم قيد الزيادة على حساب الفروقات 6500';
+      chip.className = 'px-space-xs py-0.5 rounded-full bg-on-tertiary-container text-tertiary-container font-label-sm text-label-sm font-bold';
+    }
+  }
+
+  // Initial state
+  document.getElementById('closingCash').value = '0.000';
+  updateVariance(0);
+
+  // Hotkeys: Esc → back, F8 → print, F12 → submit
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      window.location.href = "{{ url_for('pos.terminal', session_id=session.id) }}";
+    } else if (e.key === 'F8') {
+      e.preventDefault();
+      window.print();
+    } else if (e.key === 'F12') {
+      e.preventDefault();
+      if (confirm('هل أنت متأكد من إغلاق الوردية ' + "{{ session.doc_number }}" + ' وترحيل القيود؟')) {
+        document.querySelector('form[method="post"]').submit();
+      }
+    }
+  });
+</script>
 {% endblock %}

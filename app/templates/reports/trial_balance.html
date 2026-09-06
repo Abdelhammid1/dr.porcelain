@@ -2,70 +2,178 @@
 {% block title %}ميزان المراجعة{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex items-center justify-between">
-    <div>
-      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">list_alt</span>
-        <span>التقارير المالية</span>
-      </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">ميزان المراجعة</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
-        {% if data.date_from or data.date_to %}
-          {% if data.date_from %}من {{ data.date_from }}{% endif %}
-          {% if data.date_to %} إلى {{ data.date_to }}{% endif %}
-        {% else %}منذ بداية التشغيل{% endif %}
-      </p>
-    </div>
-    <div class="flex items-center gap-space-xs">
-      <a href="{{ url_for('reports.trial_balance_pdf_view', **request.args) }}" target="_blank"
-         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span><span>PDF</span>
-      </a>
-      <button onclick="window.print()"
-              class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
-      </button>
-    </div>
-  </div>
+<div class="flex flex-col w-full space-y-space-xl pb-space-3xl">
 
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-space-sm items-end">
-      <div>
+  {# ======================== HERO BANNER + INLINE FILTER RIBBON ======================== #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-secondary/5 blur-2xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+      <div class="space-y-space-2xs max-w-2xl">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            التقارير المالية المعتمدة
+          </span>
+          <span class="text-outline-variant text-[12px]">•</span>
+          <span class="text-on-surface-variant font-label-sm text-label-sm">REP-FIN-TB · ميزان المراجعة الشامل</span>
+        </div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">ميزان المراجعة</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          حصر أرصدة الحسابات المدينة والدائنة لجميع فروع البورسلين
+          {% if date_from or date_to %}
+            للفترة
+            {% if date_from %}من <strong class="text-on-surface">{{ date_from | hdate }}</strong>{% endif %}
+            {% if date_to %} إلى <strong class="text-on-surface">{{ date_to | hdate }}</strong>{% endif %}
+          {% else %}
+            منذ بداية التشغيل حتى الآن
+          {% endif %}.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-space-xs shrink-0">
+        <a href="{{ url_for('reports.trial_balance_pdf_view', **request.args) }}" target="_blank"
+           class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all duration-200">
+          <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+          <span>تصدير PDF</span>
+        </a>
+        <button onclick="window.print()" type="button"
+                class="h-10 px-space-md bg-surface-container-low text-on-surface hover:bg-surface-container-high rounded-lg font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+          <span class="material-symbols-outlined text-[18px]">print</span>
+          <span>طباعة</span>
+        </button>
+      </div>
+    </div>
+
+    <form method="get" class="mt-space-lg pt-space-md grid grid-cols-1 md:grid-cols-12 gap-space-sm items-end bg-surface-container-low/60 p-space-sm rounded-lg">
+      <div class="md:col-span-4">
         <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من تاريخ</label>
         <input type="date" name="from" value="{{ date_from.strftime('%Y-%m-%d') if date_from else '' }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <div>
+      <div class="md:col-span-4">
         <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى تاريخ</label>
         <input type="date" name="to" value="{{ date_to.strftime('%Y-%m-%d') if date_to else '' }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <label class="flex items-center gap-space-xs cursor-pointer">
-        <input type="checkbox" name="include_zero" value="1" {% if include_zero %}checked{% endif %}
-               class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
-        <span class="font-label-md text-label-md text-on-surface">إظهار الأرصدة صفر</span>
-      </label>
-      <button type="submit"
-              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
-        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تصفية</span>
-      </button>
+      <div class="md:col-span-2 flex items-center">
+        <label class="flex items-center gap-space-xs cursor-pointer bg-surface-container-lowest h-10 px-space-sm rounded-lg w-full">
+          <input type="checkbox" name="include_zero" value="1" {% if include_zero %}checked{% endif %}
+                 class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+          <span class="font-label-sm text-label-sm text-on-surface">الأرصدة صفر</span>
+        </label>
+      </div>
+      <div class="md:col-span-2 flex justify-end">
+        <button type="submit"
+                class="w-full h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تصفية</span>
+        </button>
+      </div>
     </form>
   </div>
 
-  <div class="p-space-md rounded-xl {% if data.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} flex items-start gap-space-sm">
+  {# ======================== EXECUTIVE METRIC CARDS ======================== #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الحركات المدينة</span>
+        <div class="w-9 h-9 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">north_east</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.totals.debit | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary w-full"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الحركات الدائنة</span>
+        <div class="w-9 h-9 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">south_west</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.totals.credit | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-tertiary-fixed-dim w-full"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">عدد الحسابات النشطة</span>
+        <div class="w-9 h-9 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">account_tree</span>
+        </div>
+      </div>
+      <div class="mt-space-sm flex items-baseline justify-between">
+        <div>
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.rows | length }}</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant mr-1">حساب</span>
+        </div>
+        <span class="px-space-2xs py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm font-semibold">حية</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary-container w-3/4"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">حالة توازن الدفاتر</span>
+        <div class="w-9 h-9 rounded-lg {% if data.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-error{% endif %} flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">{{ 'verified' if data.is_balanced else 'warning' }}</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        {% if data.is_balanced %}
+          <span class="font-headline-sm text-headline-sm text-secondary block font-bold">متوازن</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">مدين = دائن</span>
+        {% else %}
+          <span class="font-headline-sm text-headline-sm text-error block font-bold">غير متوازن</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">الفرق: {{ (data.totals.debit - data.totals.credit) | money }}</span>
+        {% endif %}
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full {% if data.is_balanced %}bg-secondary{% else %}bg-error{% endif %} w-full"></div>
+      </div>
+    </div>
+  </div>
+
+  {# ======================== BALANCE STATUS BANNER ======================== #}
+  <div class="p-space-md rounded-xl {% if data.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} flex items-start gap-space-sm shadow-sm">
     <span class="material-symbols-outlined text-[24px]">{{ 'verified' if data.is_balanced else 'warning' }}</span>
     <div class="font-body-md text-body-md">
       {% if data.is_balanced %}
-      <strong>الدفاتر متوازنة</strong> — إجمالي المدين ({{ data.totals.debit | money }}) = إجمالي الدائن ({{ data.totals.credit | money }})
+        <strong>الدفاتر متوازنة</strong> — إجمالي المدين ({{ data.totals.debit | money }}) = إجمالي الدائن ({{ data.totals.credit | money }})
       {% else %}
-      <strong>غير متوازن!</strong> مدين: {{ data.totals.debit | money }} ≠ دائن: {{ data.totals.credit | money }}
-      <br>الفرق: {{ (data.totals.debit - data.totals.credit) | money }} — راجع القيود.
+        <strong>غير متوازن!</strong> مدين: {{ data.totals.debit | money }} ≠ دائن: {{ data.totals.credit | money }}
+        <br>الفرق: {{ (data.totals.debit - data.totals.credit) | money }} — راجع القيود.
       {% endif %}
     </div>
   </div>
 
+  {# ======================== TRIAL BALANCE TABLE ======================== #}
   <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low flex items-center justify-between flex-wrap gap-space-xs">
+      <div class="flex items-center gap-space-xs">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[22px]">list_alt</span>
+        </div>
+        <div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل أرصدة الحسابات</h3>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">حركات مدين/دائن وأرصدة إقفالية لكل حساب</span>
+        </div>
+      </div>
+      <span class="px-space-xs py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant font-bold">TB-{{ date_to.strftime('%Y%m%d') if date_to else 'ALL' }}</span>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-right">
         <thead>
@@ -95,6 +203,7 @@
                 <span class="material-symbols-outlined text-[32px]">bar_chart</span>
               </div>
               <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد حركات محاسبية في الفترة المحددة</p>
+              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">جرّب توسيع نطاق التاريخ أو إظهار الأرصدة الصفرية.</p>
             </td>
           </tr>
           {% endfor %}

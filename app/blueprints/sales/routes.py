@@ -291,3 +291,19 @@ def return_form(invoice_id):
 def return_view(return_id):
     ret = db.session.get(SalesReturn, return_id) or abort(404)
     return render_template("sales/return_view.html", ret=ret)
+
+
+@sales_bp.route("/returns/<int:return_id>/receipt", methods=["GET"])
+@login_required
+@require_permission("sales.view")
+def return_receipt(return_id):
+    """إيصال مرتجع حراري (80mm) — طباعة مباشرة."""
+    ret = db.session.get(SalesReturn, return_id) or abort(404)
+    return render_template(
+        "sales/return_receipt.html",
+        ret=ret,
+        store_name=str(get_setting("store.name", "دكتور بورسلين") or "دكتور بورسلين"),
+        store_addr=str(get_setting("store.address", "") or ""),
+        store_phone=str(get_setting("store.phone", "") or ""),
+        tax_number=str(get_setting("store.tax_number", "") or ""),
+    )

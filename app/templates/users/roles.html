@@ -1,89 +1,245 @@
 {% extends "layouts/app.html" %}
 {% block title %}الأدوار والصلاحيات{% endblock %}
 
+{% set group_icons = {
+  'المستخدمون والأدوار': 'manage_accounts',
+  'الإعدادات': 'settings',
+  'المبيعات ونقاط البيع': 'point_of_sale',
+  'المبيعات': 'receipt_long',
+  'المرتجعات': 'assignment_return',
+  'المخزون': 'inventory_2',
+  'المنتجات': 'inventory_2',
+  'المشتريات': 'shopping_cart',
+  'الموردون': 'local_shipping',
+  'العملاء': 'group',
+  'المحاسبة': 'account_balance',
+  'التقارير': 'query_stats',
+  'الأقساط': 'timelapse',
+  'المتجر الإلكتروني': 'storefront',
+  'نقاط الولاء': 'card_membership',
+  'الإشعارات': 'notifications',
+  'الفواتير': 'receipt_long',
+} %}
+
 {% block content %}
-<div class="flex flex-col gap-space-lg">
+<div class="space-y-space-lg">
+
+  {# Header banner #}
   <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
     <div>
       <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
         <span class="material-symbols-outlined text-[18px]">shield</span>
-        <span>مصفوفة الصلاحيات</span>
+        <span>مصفوفة الصلاحيات الاحترافية (RBAC Matrix)</span>
       </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأدوار والصلاحيات</h1>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأدوار الوظيفية وصلاحيات الوصول</h1>
       <p class="font-body-md text-body-md text-on-surface-variant mt-1">
-        تحكم دقيق بالوصول لكل قسم في النظام حسب الدور الوظيفي
+        التحكم الدقيق في الإجراءات (Actions) المتاحة لكل وحدة عمل (Modules) داخل النظام لكل دور.
       </p>
     </div>
-    <button onclick="document.getElementById('newRoleModal').showModal()"
-            class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[20px]">add_moderator</span>
-      <span>+ دور جديد</span>
-    </button>
+    <div class="flex flex-wrap items-center gap-space-xs">
+      <a href="{{ url_for('users.index') }}"
+         class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md rounded-lg flex items-center gap-space-xs transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[20px] text-secondary">people</span>
+        <span>قائمة المستخدمين</span>
+      </a>
+      <button onclick="document.getElementById('newRoleModal').showModal()"
+              class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">add_moderator</span>
+        <span>+ دور جديد</span>
+      </button>
+    </div>
   </div>
 
+  {# Role summary strip #}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+    <div class="relative bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between overflow-hidden">
+      <div class="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-secondary/5 blur-xl"></div>
+      <div class="space-y-1 z-10">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الأدوار</span>
+        <div class="flex items-baseline gap-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ roles | length }}</span>
+          <span class="font-label-sm text-label-sm text-secondary font-bold">مستوى</span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary z-10">
+        <span class="material-symbols-outlined text-[26px]">admin_panel_settings</span>
+      </div>
+    </div>
+    <div class="relative bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between overflow-hidden">
+      <div class="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-secondary-container/10 blur-xl"></div>
+      <div class="space-y-1 z-10">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">صلاحيات النظام المتاحة</span>
+        <div class="flex items-baseline gap-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ permissions | length }}</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-bold">إجراء</span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed z-10">
+        <span class="material-symbols-outlined text-[26px]">verified_user</span>
+      </div>
+    </div>
+    <div class="relative bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between overflow-hidden">
+      <div class="absolute -top-6 -left-6 w-24 h-24 rounded-full bg-tertiary-fixed/40 blur-xl"></div>
+      <div class="space-y-1 z-10">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مجموعات الوحدات</span>
+        <div class="flex items-baseline gap-space-xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ grouped | length }}</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-bold">وحدة عمل</span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface z-10">
+        <span class="material-symbols-outlined text-[26px]">grid_view</span>
+      </div>
+    </div>
+  </div>
+
+  {# Roles as expandable RBAC matrix cards #}
   <div class="space-y-space-md">
     {% for role in roles %}
+    {% set role_perm_codes = role.permissions | map(attribute='code') | list %}
     <details class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden group" {% if loop.first %}open{% endif %}>
       <summary class="p-space-md flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors list-none">
         <div class="flex items-center gap-space-sm">
-          <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+          <div class="w-11 h-11 rounded-lg {{ 'bg-primary-container text-on-primary' if role.code == 'owner' else 'bg-surface-container text-secondary' }} flex items-center justify-center shadow-sm">
             <span class="material-symbols-outlined text-[22px]">
               {% if role.code == 'owner' %}account_balance
               {% elif role.code == 'accountant' %}calculate
-              {% else %}point_of_sale{% endif %}
+              {% elif role.code == 'cashier' %}point_of_sale
+              {% else %}badge{% endif %}
             </span>
           </div>
           <div>
-            <div class="flex items-center gap-space-xs">
+            <div class="flex items-center gap-space-xs flex-wrap">
               <span class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ role.name_ar }}</span>
               <span class="text-on-surface-variant text-[11px]" dir="ltr">({{ role.code }})</span>
               {% if role.is_system %}
               <span class="px-space-2xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">نظام</span>
               {% endif %}
+              {% if role.code == 'owner' %}
+              <span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-label-sm text-[11px] font-semibold">صلاحيات مطلقة</span>
+              {% endif %}
             </div>
             <p class="font-body-sm text-body-sm text-on-surface-variant">
-              {{ role.permissions | length }} صلاحية ممنوحة
+              {% if role.code == 'owner' %}
+                مالك النظام — كل الصلاحيات ممنوحة ضمنياً.
+              {% else %}
+                {{ role.permissions | length }} صلاحية ممنوحة من أصل {{ permissions | length }}
+              {% endif %}
             </p>
           </div>
         </div>
-        <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+        <div class="flex items-center gap-space-sm">
+          {% if role.code != 'owner' %}
+          <div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full">
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">
+              {{ ((role.permissions | length) * 100 / permissions | length) | round(0) | int if permissions | length else 0 }}%
+            </span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">تغطية</span>
+          </div>
+          {% endif %}
+          <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+        </div>
       </summary>
 
-      <div class="p-space-md border-t border-surface-container-low">
+      <div class="p-space-md border-t border-surface-container-low bg-surface-container-lowest">
         {% if role.code == 'owner' %}
-        <div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed">
-          <span class="material-symbols-outlined">verified</span>
-          <span class="font-body-md text-body-md">دور المالك له كل الصلاحيات ضمنيًا — لا يُعدَّل.</span>
+        <div class="flex items-start gap-space-sm p-space-md rounded-xl bg-secondary-fixed/60 text-on-secondary-fixed">
+          <div class="p-2 rounded-lg bg-secondary text-on-secondary shrink-0">
+            <span class="material-symbols-outlined text-[22px]">verified</span>
+          </div>
+          <div>
+            <div class="font-headline-sm text-headline-sm font-bold mb-1">دور المالك — صلاحيات مطلقة</div>
+            <p class="font-body-md text-body-md">
+              دور المالك يمتلك كل الصلاحيات ضمنياً في جميع وحدات النظام ولا يمكن تعديله من هنا لضمان
+              استمرارية الوصول الإداري. لتقييد صلاحيات مستخدم بعينه، اسند له دوراً آخر.
+            </p>
+          </div>
         </div>
         {% else %}
+
+        {# Policy callout #}
+        <div class="p-space-md bg-secondary-fixed/40 rounded-xl flex items-start gap-space-sm mb-space-md">
+          <div class="p-2 rounded-lg bg-secondary text-on-secondary shrink-0 mt-0.5">
+            <span class="material-symbols-outlined text-[20px]">policy</span>
+          </div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-space-xs flex-wrap">
+              <span class="font-headline-sm text-headline-sm font-bold text-on-surface">سياسة الوصول لدور: {{ role.name_ar }}</span>
+              <span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-[11px] font-bold text-secondary">تطبيق مباشر Real-Time</span>
+            </div>
+            <p class="font-body-md text-body-md text-on-surface">
+              الأقسام التي لا يمتلك هذا الدور صلاحيات فيها ستكون
+              <span class="underline decoration-secondary">مخفية بالكامل</span>
+              من قائمته الجانبية. أي إجراء بدون تفعيل هنا يُرفض على مستوى الخادم كذلك.
+            </p>
+          </div>
+        </div>
+
         <form method="post" action="{{ url_for('users.roles_edit_permissions', role_id=role.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          {% set role_perm_codes = role.permissions | map(attribute='code') | list %}
+
           <div class="space-y-space-md">
             {% for group_name, perms in grouped.items() %}
-            <div class="border border-outline-variant/40 rounded-lg p-space-md">
-              <div class="font-label-lg text-label-lg font-bold text-on-surface mb-space-sm flex items-center gap-space-xs">
-                <span class="material-symbols-outlined text-secondary text-[18px]">folder</span>
-                <span>{{ group_name }}</span>
+            {% set granted_in_group = perms | selectattr('code', 'in', role_perm_codes) | list | length %}
+            <div class="bg-surface-container-low/40 rounded-xl p-space-md space-y-space-sm">
+              <div class="flex items-center justify-between flex-wrap gap-space-xs">
+                <div class="flex items-center gap-space-xs">
+                  <span class="material-symbols-outlined text-secondary text-[22px]">{{ group_icons.get(group_name, 'folder') }}</span>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ group_name }}</h3>
+                  {% if granted_in_group == 0 %}
+                  <span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-semibold">
+                    <span class="material-symbols-outlined text-[13px] align-middle">lock</span>
+                    محجوب
+                  </span>
+                  {% elif granted_in_group == (perms | length) %}
+                  <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[11px] font-semibold">مفتوحة بالكامل</span>
+                  {% else %}
+                  <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-[11px] font-semibold">مفتوحة بنطاق محدد</span>
+                  {% endif %}
+                </div>
+                <span class="text-on-surface-variant font-label-sm text-label-sm">
+                  {{ granted_in_group }} إجراء مسموح من أصل {{ perms | length }}
+                </span>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-xs">
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-sm">
                 {% for p in perms %}
-                <label class="flex items-center gap-space-xs cursor-pointer p-space-2xs rounded hover:bg-surface-container-low">
+                {% set is_granted = p.code in role_perm_codes %}
+                <label class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-high/40 cursor-pointer transition-colors shadow-sm">
                   <input type="checkbox" name="permissions" value="{{ p.code }}"
-                         {% if p.code in role_perm_codes %}checked{% endif %}
-                         class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
-                  <span class="font-body-sm text-body-sm text-on-surface">{{ p.label_ar }}</span>
+                         {% if is_granted %}checked{% endif %}
+                         class="mt-1 w-4 h-4 text-secondary rounded focus:ring-secondary accent-secondary">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-label-lg text-label-lg font-bold text-on-surface">{{ p.label_ar }}</span>
+                      {% if is_granted %}
+                      <span class="px-1.5 py-0.2 rounded text-[10px] bg-secondary-fixed text-on-secondary-fixed font-bold">نعم</span>
+                      {% else %}
+                      <span class="px-1.5 py-0.2 rounded text-[10px] bg-surface-container-high text-on-surface-variant font-bold">لا</span>
+                      {% endif %}
+                    </div>
+                    {% if p.description %}
+                    <span class="text-on-surface-variant font-body-sm text-body-sm">{{ p.description }}</span>
+                    {% endif %}
+                    <span class="text-[10px] text-on-surface-variant/70 mt-0.5" dir="ltr">{{ p.code }}</span>
+                  </div>
                 </label>
                 {% endfor %}
               </div>
             </div>
             {% endfor %}
           </div>
-          <div class="flex justify-end mt-space-md">
+
+          {# Matrix save bar footer #}
+          <div class="mt-space-md p-space-md bg-surface-container-low rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm">
+            <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+              <span class="material-symbols-outlined text-secondary text-[18px]">info</span>
+              <span>سيتم حفظ المصفوفة كاملة عند الضغط. الإجراءات المُلغى تفعيلها تُلغى صلاحياتها فوراً.</span>
+            </div>
             <button type="submit"
-                    class="h-10 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
-              <span class="material-symbols-outlined text-[18px]">save</span>
-              <span>حفظ الصلاحيات</span>
+                    class="h-10 px-space-xl bg-secondary hover:bg-secondary/90 text-on-secondary font-label-md text-label-md font-bold rounded-lg flex items-center gap-space-xs shadow-md transition-all">
+              <span class="material-symbols-outlined text-[20px]">save</span>
+              <span>حفظ مصفوفة الصلاحيات</span>
             </button>
           </div>
         </form>
@@ -94,13 +250,25 @@
   </div>
 </div>
 
+{# New role dialog #}
 <dialog id="newRoleModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
   <form method="post" action="{{ url_for('users.roles_create') }}" class="bg-surface-container-lowest p-space-lg">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">دور جديد</h3>
+    <div class="flex items-center justify-between mb-space-md">
+      <div class="flex items-center gap-space-xs">
+        <div class="w-9 h-9 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">add_moderator</span>
+        </div>
+        <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">دور وظيفي جديد</h3>
+      </div>
+      <button type="button" onclick="document.getElementById('newRoleModal').close()"
+              class="text-on-surface-variant hover:text-on-surface">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
     <div class="space-y-space-md">
       <div>
-        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الكود (إنجليزي، أحرف صغيرة)</label>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الكود (إنجليزي، أحرف صغيرة و _)</label>
         <input name="code" required pattern="[a-z_]+" dir="ltr"
                class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
       </div>
@@ -112,10 +280,13 @@
     </div>
     <div class="flex justify-end gap-space-xs mt-space-md">
       <button type="button" onclick="document.getElementById('newRoleModal').close()"
-              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">
+        إلغاء
+      </button>
       <button type="submit"
-              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">
-        إنشاء
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">check</span>
+        <span>إنشاء الدور</span>
       </button>
     </div>
   </form>

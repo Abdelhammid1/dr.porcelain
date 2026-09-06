@@ -2,54 +2,147 @@
 {% block title %}الميزانية العمومية{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex items-center justify-between">
-    <div>
-      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">balance</span>
-        <span>التقارير المالية</span>
-      </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الميزانية العمومية</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">اعتبارًا من {{ as_of.strftime('%Y/%m/%d') }}</p>
-    </div>
-    <button onclick="window.print()"
-            class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
-    </button>
-  </div>
+<div class="flex flex-col w-full space-y-space-xl pb-space-3xl">
 
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
-      <div>
+  {# ======================== HERO BANNER ======================== #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-secondary/5 blur-2xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+      <div class="space-y-space-2xs max-w-2xl">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            القوائم المالية الختامية
+          </span>
+          <span class="text-outline-variant text-[12px]">•</span>
+          <span class="text-on-surface-variant font-label-sm text-label-sm">REP-FIN-BS · Balance Sheet</span>
+        </div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">الميزانية العمومية</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          صافي الأصول والالتزامات وحقوق الملكية لنظام دكتور بورسلين اعتبارًا من
+          <strong class="text-on-surface">{{ as_of | hdate }}</strong>.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-space-xs shrink-0">
+        <button onclick="window.print()" type="button"
+                class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all duration-200">
+          <span class="material-symbols-outlined text-[18px]">print</span>
+          <span>طباعة الميزانية</span>
+        </button>
+      </div>
+    </div>
+
+    <form method="get" class="mt-space-lg pt-space-md grid grid-cols-1 md:grid-cols-12 gap-space-sm items-end bg-surface-container-low/60 p-space-sm rounded-lg">
+      <div class="md:col-span-10">
         <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">اعتبارًا من تاريخ</label>
         <input type="date" name="as_of" value="{{ as_of.strftime('%Y-%m-%d') }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <button type="submit"
-              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
-        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
-      </button>
+      <div class="md:col-span-2 flex justify-end">
+        <button type="submit"
+                class="w-full h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+        </button>
+      </div>
     </form>
   </div>
 
-  <div class="p-space-md rounded-xl {% if bs.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} flex items-start gap-space-sm">
+  {# ======================== EXECUTIVE METRIC CARDS ======================== #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الأصول</span>
+        <div class="w-9 h-9 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">account_balance</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ bs.total_assets | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary w-full"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي الالتزامات</span>
+        <div class="w-9 h-9 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">credit_card</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ bs.total_liabilities | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-tertiary-fixed-dim w-2/3"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">حقوق الملكية + ربح الفترة</span>
+        <div class="w-9 h-9 rounded-lg bg-surface-container-high text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">savings</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ (bs.total_equity + bs.period_net_profit) | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full bg-secondary-container w-3/4"></div>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">حالة توازن الميزانية</span>
+        <div class="w-9 h-9 rounded-lg {% if bs.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-error{% endif %} flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">{{ 'verified' if bs.is_balanced else 'warning' }}</span>
+        </div>
+      </div>
+      <div class="mt-space-sm">
+        {% if bs.is_balanced %}
+          <span class="font-headline-sm text-headline-sm text-secondary block font-bold">متوازنة</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">الأصول = الالتزامات + حقوق الملكية</span>
+        {% else %}
+          <span class="font-headline-sm text-headline-sm text-error block font-bold">غير متوازنة</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">الفرق: {{ bs.difference | money }}</span>
+        {% endif %}
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full {% if bs.is_balanced %}bg-secondary{% else %}bg-error{% endif %} w-full"></div>
+      </div>
+    </div>
+  </div>
+
+  {# ======================== BALANCE STATUS BANNER ======================== #}
+  <div class="p-space-md rounded-xl {% if bs.is_balanced %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-error-container text-on-error-container{% endif %} flex items-start gap-space-sm shadow-sm">
     <span class="material-symbols-outlined text-[24px]">{{ 'verified' if bs.is_balanced else 'warning' }}</span>
     <div class="font-body-md text-body-md">
       {% if bs.is_balanced %}
-      <strong>الميزانية متوازنة ✓</strong> — إجمالي الأصول = الالتزامات + حقوق الملكية + صافي الربح
+        <strong>الميزانية متوازنة</strong> — إجمالي الأصول = الالتزامات + حقوق الملكية + صافي ربح الفترة.
       {% else %}
-      <strong>غير متوازنة!</strong> الفرق = {{ bs.difference | money }}. راجع القيود.
+        <strong>غير متوازنة!</strong> الفرق = {{ bs.difference | money }}. راجع القيود المحاسبية.
       {% endif %}
     </div>
   </div>
 
+  {# ======================== ASSETS & LIABILITIES TWO-COLUMN ======================== #}
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
     <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-      <div class="p-space-md bg-secondary-fixed text-on-secondary-fixed font-bold">الأصول</div>
+      <div class="absolute top-0 right-0 left-0 h-1 bg-secondary hidden"></div>
+      <div class="p-space-md bg-secondary-fixed text-on-secondary-fixed font-bold flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[20px]">savings</span>
+        <span class="font-headline-sm text-headline-sm">الأصول</span>
+      </div>
       <table class="w-full text-right">
         <tbody class="font-body-md text-body-md">
           {% for l in bs.assets %}
-          <tr class="border-b border-surface-container-low">
+          <tr class="border-b border-surface-container-low hover:bg-surface-container-low/40 transition-colors">
             <td class="py-space-xs px-space-md" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
             <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
           </tr>
@@ -67,14 +160,17 @@
     </div>
 
     <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-      <div class="p-space-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">الالتزامات وحقوق الملكية</div>
+      <div class="p-space-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[20px]">credit_card</span>
+        <span class="font-headline-sm text-headline-sm">الالتزامات وحقوق الملكية</span>
+      </div>
       <table class="w-full text-right">
         <tbody class="font-body-md text-body-md">
           <tr class="bg-tertiary-fixed/50 text-on-tertiary-fixed-variant font-bold text-body-sm">
             <td colspan="2" class="py-space-xs px-space-md">الالتزامات</td>
           </tr>
           {% for l in bs.liabilities %}
-          <tr class="border-b border-surface-container-low">
+          <tr class="border-b border-surface-container-low hover:bg-surface-container-low/40 transition-colors">
             <td class="py-space-xs px-space-md ps-space-2xl" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
             <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
           </tr>
@@ -88,7 +184,7 @@
             <td colspan="2" class="py-space-xs px-space-md">حقوق الملكية</td>
           </tr>
           {% for l in bs.equity %}
-          <tr class="border-b border-surface-container-low">
+          <tr class="border-b border-surface-container-low hover:bg-surface-container-low/40 transition-colors">
             <td class="py-space-xs px-space-md ps-space-2xl" dir="ltr">{{ l.account.code }} · {{ l.account.name_ar }}</td>
             <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md">{{ l.amount | money }}</td>
           </tr>

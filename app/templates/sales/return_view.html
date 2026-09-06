@@ -18,11 +18,18 @@
         · {{ ret.return_date | hdate }}
       </p>
     </div>
-    <a href="{{ url_for('sales.view', invoice_id=ret.invoice.id) }}"
-       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-      <span>رجوع للفاتورة</span>
-    </a>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('sales.return_receipt', return_id=ret.id) }}" target="_blank"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span>
+        <span>طباعة إيصال حراري</span>
+      </a>
+      <a href="{{ url_for('sales.view', invoice_id=ret.invoice.id) }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>رجوع للفاتورة</span>
+      </a>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">

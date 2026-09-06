@@ -2,268 +2,337 @@
 {% block title %}نقطة البيع — وردية {{ session.doc_number }}{% endblock %}
 
 {% block body %}
-<div class="pos-shell">
-  <!-- الشريط العلوي -->
-  <header class="pos-topbar">
-    <div class="d-flex align-items-center gap-3">
-      <div class="pos-brand">
-        <div class="pos-brand-badge">POS</div>
-        <div>
-          <div class="pos-brand-name">نقطة البيع</div>
-          <div class="pos-brand-sub" dir="ltr">{{ session.doc_number }}</div>
-        </div>
-      </div>
-      <span class="badge-status success">مفتوحة</span>
-      <span class="text-muted small">الكاشير: <strong>{{ current_user.full_name }}</strong></span>
-    </div>
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-light">
-        <i class="bi bi-house"></i>
-      </a>
-      <a href="{{ url_for('pos.close', session_id=session.id) }}" class="btn btn-sm btn-danger">
-        <i class="bi bi-power"></i> قفل الوردية
-      </a>
-    </div>
-  </header>
+<div class="min-h-screen bg-background px-space-md py-space-md">
+  <div class="flex flex-col w-full gap-space-sm pb-space-lg">
 
-  <div class="pos-body">
-    <!-- الجانب الأيمن: البحث والمنتجات -->
-    <section class="pos-left">
-      <div class="pos-search">
-        <input type="text" id="scanInput" class="form-control form-control-lg"
-               placeholder="امسح الباركود أو ابحث بالاسم..." autofocus autocomplete="off">
-      </div>
-      <div id="productGrid" class="pos-grid">
-        <div class="pos-hint">
-          <i class="bi bi-upc-scan" style="font-size:3rem"></i>
-          <p>ابدأ بالبحث أو مسح باركود</p>
+    {# ============================================================
+       POS Top Shift & Cashier Control Bar
+       ============================================================ #}
+    <header class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-wrap items-center justify-between gap-space-sm">
+      <div class="flex items-center gap-space-md flex-wrap">
+        {# POS Brand & Shift Pill #}
+        <div class="flex items-center gap-space-xs bg-primary-container text-on-primary px-space-sm py-1.5 rounded-lg shadow-sm">
+          <span class="material-symbols-outlined text-secondary-container text-[20px]">storefront</span>
+          <div class="flex flex-col">
+            <span class="font-headline-sm text-headline-sm leading-tight text-on-primary">نقطة البيع</span>
+            <span class="font-label-sm text-label-sm text-secondary-container" dir="ltr">{{ session.doc_number }}</span>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <!-- الجانب الأيسر: السلة -->
-    <aside class="pos-cart">
-      <!-- العميل -->
-      <div class="cart-customer">
-        <label class="small text-muted mb-1 d-block">العميل</label>
-        <div class="position-relative">
-          <input type="hidden" id="customerId" value="{{ default_customer.id }}">
-          <input type="text" id="customerSearch" class="form-control"
-                 value="{{ default_customer.name_ar }}" placeholder="ابحث عن عميل..." autocomplete="off">
-          <div id="customerResults" class="list-group position-absolute w-100 shadow-sm"
-               style="z-index:1050; max-height:250px; overflow-y:auto;"></div>
+        {# Cashier User Badge #}
+        <div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low">
+          <span class="material-symbols-outlined text-secondary text-[20px]">badge</span>
+          <div class="flex flex-col">
+            <span class="font-label-md text-label-md font-semibold text-on-surface">{{ session.cashier.full_name }}</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">كاشير — وردية نشطة</span>
+          </div>
+        </div>
+
+        {# Drawer Cash Opening Balance #}
+        <div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-high/60">
+          <span class="material-symbols-outlined text-secondary text-[20px]">account_balance_wallet</span>
+          <div class="flex flex-col">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">رصيد الافتتاح</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ session.opening_cash | money }}</span>
+          </div>
+        </div>
+
+        {# Live Session Time #}
+        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low">
+          <span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+          <span class="material-symbols-outlined text-on-surface-variant text-[18px]">timer</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">
+            بدء الجلسة: <strong class="text-on-surface">{{ session.opened_at.strftime('%H:%M') }}</strong>
+            <span class="text-outline">•</span>
+            <span dir="ltr">{{ session.opened_at.strftime('%Y-%m-%d') }}</span>
+          </span>
         </div>
       </div>
 
-      <div class="cart-title">
-        <span>السلة</span>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearCart()">
-          <i class="bi bi-trash"></i> إفراغ
-        </button>
-      </div>
+      {# Quick Action Utilities #}
+      <div class="flex items-center gap-space-xs flex-wrap">
+        <a href="{{ url_for('main.dashboard') }}"
+           class="h-9 px-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-space-2xs transition-colors"
+           title="لوحة القيادة">
+          <span class="material-symbols-outlined text-[18px] text-secondary">dashboard</span>
+          <span class="hidden sm:inline">لوحة القيادة</span>
+        </a>
 
-      <div class="cart-items" id="cartItems">
-        <div class="cart-empty">
-          <i class="bi bi-basket" style="font-size:2rem"></i>
-          <p>لا توجد بنود</p>
+        <a href="{{ url_for('pos.sessions_index') }}"
+           class="h-9 px-space-sm rounded-lg bg-tertiary-container text-on-tertiary font-label-md text-label-md flex items-center gap-space-2xs transition-colors">
+          <span class="material-symbols-outlined text-on-tertiary-container text-[18px]">receipt_long</span>
+          <span>سجل الورديات</span>
+        </a>
+
+        <a href="{{ url_for('pos.close', session_id=session.id) }}"
+           class="h-9 px-space-sm rounded-lg bg-error-container text-on-error-container hover:bg-error hover:text-on-error font-label-md text-label-md flex items-center gap-space-2xs transition-colors"
+           title="إغلاق الوردية وجرد الصندوق (F12)">
+          <span class="material-symbols-outlined text-[18px]">lock_clock</span>
+          <span>تسليم الوردية (F12)</span>
+        </a>
+      </div>
+    </header>
+
+    {# ============================================================
+       2-Column POS Layout
+       ============================================================ #}
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md w-full items-start">
+
+      {# ================= RIGHT COLUMN: Catalog, Scanner & Grid ================= #}
+      <section class="xl:col-span-7 flex flex-col gap-space-sm order-2 xl:order-1">
+
+        {# Instant Barcode Search Header #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-col sm:flex-row gap-space-sm items-stretch">
+          <div class="relative flex-1">
+            <span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 text-secondary text-[24px]">barcode_scanner</span>
+            <input autofocus autocomplete="off"
+                   class="w-full h-12 pr-12 pl-space-md rounded-lg bg-surface-container-low text-on-surface font-headline-sm text-headline-sm placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container-lowest transition-all shadow-inner"
+                   id="scanInput" placeholder="امسح الباركود أو اكتب اسم الصنف / كود المنتج (F2)..." type="text"/>
+            <span class="absolute left-space-sm top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-[10px]">F2</span>
+          </div>
+          <div class="flex items-center gap-space-2xs">
+            <button type="button" onclick="document.getElementById('scanInput').focus()"
+                    class="h-12 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-colors"
+                    title="تفعيل حقل المسح">
+              <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+              <span class="hidden md:inline">تركيز</span>
+            </button>
+            <button type="button" onclick="document.getElementById('scanInput').value=''; renderGrid([]);"
+                    class="h-12 px-space-sm rounded-lg bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center justify-center transition-colors"
+                    title="إفراغ حقل البحث">
+              <span class="material-symbols-outlined text-[20px]">clear_all</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="cart-summary">
-        <dl class="row mb-2">
-          <dt class="col-6 small text-muted">الإجمالي الفرعي</dt>
-          <dd class="col-6 text-end" id="sumSubtotal">0.000</dd>
-          <dt class="col-6 small text-muted">الخصم</dt>
-          <dd class="col-6">
-            <input type="number" id="discountInput" class="form-control form-control-sm text-end"
-                   step="0.001" min="0" value="0">
-          </dd>
+        {# Quick Category / Hint Pills — decorative anchor row #}
+        <div class="w-full overflow-x-auto pb-1 flex items-center gap-space-2xs">
+          <button type="button"
+                  class="whitespace-nowrap px-space-md py-2 rounded-xl bg-primary-container text-on-primary font-label-md text-label-md flex items-center gap-space-2xs shadow-sm">
+            <span class="material-symbols-outlined text-[18px] text-secondary-container">apps</span>
+            <span>كل المنتجات</span>
+          </button>
+          <a href="{{ url_for('main.dashboard') }}"
+             class="whitespace-nowrap px-space-md py-2 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-space-2xs shadow-sm transition-colors">
+            <span class="material-symbols-outlined text-[18px] text-secondary">inventory_2</span>
+            <span>إدارة المنتجات</span>
+          </a>
+          <span class="whitespace-nowrap px-space-md py-2 rounded-xl bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm flex items-center gap-space-2xs shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">info</span>
+            <span>ابدأ بالبحث أو مسح باركود لعرض المنتجات</span>
+          </span>
+        </div>
+
+        {# Touch-Friendly Product Grid — populated by JS from /products/api/search #}
+        <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-space-sm min-h-[240px]">
+          <div id="gridHint" class="col-span-full flex flex-col items-center justify-center text-on-surface-variant py-space-2xl bg-surface-container-lowest rounded-xl shadow-sm">
+            <span class="material-symbols-outlined text-[56px] text-secondary/60">upc_scan</span>
+            <p class="font-body-md text-body-md mt-space-xs">امسح الباركود أو ابدأ الكتابة لعرض المنتجات</p>
+          </div>
+        </div>
+
+        {# Quick Numeric Bar for Rapid Qty #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-xs flex items-center justify-between gap-space-2xs text-on-surface flex-wrap">
+          <span class="font-label-sm text-label-sm text-on-surface-variant px-space-xs">تعديل سريع للكمية للسطر الأخير:</span>
+          <div class="flex items-center gap-space-2xs">
+            {% for q in [1, 2, 3, 5, 10] %}
+            <button type="button" onclick="setLastLineQty({{ q }})"
+                    class="w-9 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container font-label-md text-label-md font-bold">{{ q }}</button>
+            {% endfor %}
+            <button type="button" onclick="const q = parseFloat(prompt('أدخل الكمية المطلوبة:', '1')); if (q) setLastLineQty(q);"
+                    class="h-8 px-space-xs rounded-lg bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px]">calculate</span>
+              <span>كمية مخصصة</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {# ================= LEFT COLUMN: Cart, Totals & Checkout ================= #}
+      <section class="xl:col-span-5 flex flex-col gap-space-sm order-1 xl:order-2">
+
+        {# Customer Selection & Invoice Identity Card #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-col gap-space-xs">
+          <div class="flex items-center justify-between pb-space-2xs">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[22px]">receipt</span>
+              <div class="flex flex-col">
+                <span class="font-headline-sm text-headline-sm text-on-surface font-bold">فاتورة POS جديدة</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">اختر العميل ثم أضِف الأصناف</span>
+              </div>
+            </div>
+            <span class="px-space-xs py-0.5 rounded-full bg-secondary-container/40 text-on-secondary-container font-label-sm text-label-sm font-bold">مفتوحة</span>
+          </div>
+
+          {# Customer Selector Bar #}
+          <div class="flex items-center gap-space-xs bg-surface-container-low p-1.5 rounded-lg">
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">person_search</span>
+              <input type="hidden" id="customerId" value="{{ default_customer.id }}">
+              <input type="text" id="customerSearch" autocomplete="off"
+                     class="w-full h-9 pr-8 pl-space-xs rounded-md bg-surface-container-lowest text-on-surface font-label-md text-label-md focus:outline-none"
+                     value="{{ default_customer.name_ar }}"
+                     placeholder="ابحث برقم هاتف العميل أو الاسم..."/>
+              <div id="customerResults"
+                   class="absolute top-full right-0 left-0 mt-1 bg-surface-container-lowest rounded-lg shadow-lg overflow-hidden z-50"
+                   style="max-height:250px; overflow-y:auto;"></div>
+            </div>
+            {% if current_user.can("parties.write") %}
+            <a href="{{ url_for('main.dashboard') }}"
+               class="h-9 px-space-xs rounded-md bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 font-label-sm text-label-sm flex items-center gap-1 transition-colors"
+               title="إضافة عميل جديد">
+              <span class="material-symbols-outlined text-[16px]">person_add</span>
+              <span class="hidden sm:inline">جديد</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Current Bill Items List #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <div class="px-space-sm py-2.5 bg-surface-container-low flex items-center justify-between text-on-surface-variant font-label-md text-label-md font-semibold">
+            <span class="flex-1">الصنف والمواصفات</span>
+            <span class="w-24 text-center">الكمية</span>
+            <span class="w-24 text-left">الإجمالي</span>
+            <span class="w-8"></span>
+          </div>
+
+          <div id="cartItems"
+               class="max-h-[290px] overflow-y-auto divide-y divide-surface-container-high/40 p-space-xs space-y-space-2xs">
+            <div id="cartEmpty" class="flex flex-col items-center justify-center py-space-xl text-on-surface-variant">
+              <span class="material-symbols-outlined text-[40px] text-secondary/50">shopping_basket</span>
+              <p class="font-body-sm text-body-sm mt-space-xs">لا توجد أصناف بعد</p>
+            </div>
+          </div>
+
+          {# Discount input & clear #}
+          <div class="p-space-xs bg-surface-container-low/30 flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">sell</span>
+            <label for="discountInput" class="font-label-sm text-label-sm text-on-surface-variant">خصم يدوي:</label>
+            <input type="number" step="0.001" min="0" value="0" id="discountInput"
+                   class="flex-1 h-8 px-space-xs rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none text-end"/>
+            <button type="button" onclick="clearCart()"
+                    class="h-8 px-space-xs rounded text-error hover:bg-error-container font-label-sm text-label-sm flex items-center gap-1"
+                    title="تفريغ كل بنود الفاتورة">
+              <span class="material-symbols-outlined text-[16px]">remove_shopping_cart</span>
+              <span>مسح السلة</span>
+            </button>
+          </div>
+        </div>
+
+        {# Financial Calculation Summary #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-col gap-space-2xs">
+          <div class="flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+            <span>المجموع الفرعي:</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface" id="sumSubtotal">0.000</span>
+          </div>
+          <div class="flex items-center justify-between text-on-tertiary-container font-label-md text-label-md">
+            <span>الخصم المطبق:</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold" id="sumDiscount">- 0.000</span>
+          </div>
           {% if tax_enabled %}
-          <dt class="col-6 small text-muted">الضريبة ({{ tax_rate }}%)</dt>
-          <dd class="col-6 text-end" id="sumTax">0.000</dd>
+          <div class="flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+            <div class="flex items-center gap-1">
+              <span>ضريبة القيمة المضافة ({{ tax_rate }}%):</span>
+              <span class="px-1 rounded bg-surface-container text-[10px] text-secondary font-bold">إلزامية</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface" id="sumTax">+ 0.000</span>
+          </div>
           {% endif %}
-        </dl>
-        <div class="cart-total">
-          <span>الإجمالي</span>
-          <span id="sumTotal">0.000</span>
-        </div>
-      </div>
 
-      <div class="cart-actions">
-        <button type="button" class="pay-btn pay-cash" onclick="pay('cash')">
-          <i class="bi bi-cash-stack"></i>
-          <span>نقدي</span>
-        </button>
-        <button type="button" class="pay-btn pay-card" onclick="pay('card')">
-          <i class="bi bi-credit-card"></i>
-          <span>بطاقة</span>
-        </button>
-        <button type="button" class="pay-btn pay-wallet" onclick="pay('wallet')">
-          <i class="bi bi-wallet2"></i>
-          <span>محفظة</span>
-        </button>
-      </div>
-    </aside>
+          {# Net Payable Grand Total #}
+          <div class="mt-space-xs pt-space-xs bg-primary-container text-on-primary rounded-xl p-space-sm flex items-center justify-between shadow-md">
+            <div class="flex flex-col">
+              <span class="font-label-md text-label-md text-secondary-container font-semibold">صافي الإجمالي المستحق:</span>
+              <span class="font-label-sm text-[10px] text-on-primary-container">
+                {% if tax_enabled %}شامل ضريبة {{ tax_rate }}%{% else %}بدون ضريبة{% endif %}
+              </span>
+            </div>
+            <div class="flex items-baseline gap-1">
+              <span class="font-display-lg text-display-lg font-bold text-on-primary tracking-tight" id="sumTotal">0.000</span>
+              <span class="font-headline-sm text-headline-sm text-secondary-container">ج.م</span>
+            </div>
+          </div>
+        </div>
+
+        {# Payment Method Selector + Cash Tender #}
+        <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-sm flex flex-col gap-space-xs">
+          <span class="font-label-md text-label-md font-semibold text-on-surface">اختر وسيلة التحصيل:</span>
+          <div class="grid grid-cols-3 gap-space-2xs" id="payMethodBar">
+            <button type="button" data-method="cash" onclick="selectMethod('cash')"
+                    class="pay-method-btn flex flex-col items-center justify-center p-2 rounded-lg bg-surface-container-high text-on-surface transition-all active:scale-95 shadow-sm group">
+              <span class="material-symbols-outlined text-[24px] text-secondary">payments</span>
+              <span class="font-label-sm text-label-sm font-bold mt-1">نقداً</span>
+            </button>
+            <button type="button" data-method="card" onclick="selectMethod('card')"
+                    class="pay-method-btn flex flex-col items-center justify-center p-2 rounded-lg bg-surface-container-low text-on-surface transition-all active:scale-95 shadow-sm group">
+              <span class="material-symbols-outlined text-[24px] text-secondary">credit_card</span>
+              <span class="font-label-sm text-label-sm font-bold mt-1">بطاقة</span>
+            </button>
+            <button type="button" data-method="wallet" onclick="selectMethod('wallet')"
+                    class="pay-method-btn flex flex-col items-center justify-center p-2 rounded-lg bg-surface-container-low text-on-surface transition-all active:scale-95 shadow-sm group">
+              <span class="material-symbols-outlined text-[24px] text-secondary">account_balance_wallet</span>
+              <span class="font-label-sm text-label-sm font-bold mt-1">محفظة</span>
+            </button>
+          </div>
+
+          {# Cash Tender Input & Change #}
+          <div id="cashTenderBox" class="grid grid-cols-2 gap-space-xs mt-space-2xs bg-surface-container-low p-2 rounded-lg items-center">
+            <div>
+              <label for="cashTendered" class="font-label-sm text-label-sm text-on-surface-variant block mb-1">المبلغ المدفوع كاش:</label>
+              <div class="relative">
+                <input type="number" step="0.001" min="0" value="0" id="cashTendered"
+                       class="w-full h-9 pr-space-xs pl-8 rounded bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md font-bold focus:outline-none"/>
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+              </div>
+            </div>
+            <div class="flex flex-col justify-center pr-space-xs">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">الباقي للعميل:</span>
+              <div class="flex items-baseline gap-1">
+                <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold" id="changeDue">0.000</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Sovereign Checkout Buttons #}
+        <div class="flex flex-col gap-space-2xs">
+          <button type="button" onclick="checkout()"
+                  class="w-full h-14 rounded-xl bg-primary-container hover:bg-primary-container/90 text-on-primary font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-space-xs shadow-md active:scale-[0.99] transition-all">
+            <span class="material-symbols-outlined text-secondary-container text-[26px]">print</span>
+            <span>إتمام الدفع وطباعة الفاتورة (F9)</span>
+          </button>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
 
-<style>
-  html, body { height: 100%; overflow: hidden; }
-  .pos-shell {
-    display: grid;
-    grid-template-rows: 60px 1fr;
-    height: 100vh;
-    background: #f1f5f9;
-  }
-
-  .pos-topbar {
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    padding: 0 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  .pos-brand { display: flex; align-items: center; gap: 0.75rem; }
-  .pos-brand-badge {
-    background: var(--brand-primary); color: white; font-weight: 800;
-    width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
-  }
-  .pos-brand-name { font-weight: 800; }
-  .pos-brand-sub { font-size: 0.75rem; opacity: 0.7; }
-
-  .pos-body {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 12px;
-    padding: 12px;
-    height: calc(100vh - 60px);
-    overflow: hidden;
-  }
-
-  .pos-left {
-    background: white; border-radius: 12px; padding: 12px;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .pos-search { margin-bottom: 12px; }
-  .pos-search input { font-size: 1.1rem; }
-
-  .pos-grid {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-    overflow-y: auto;
-    padding: 4px;
-  }
-  .pos-hint {
-    grid-column: 1 / -1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: var(--text-light);
-    padding: 4rem 1rem;
-  }
-  .pos-product-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex; flex-direction: column;
-    gap: 6px;
-    min-height: 110px;
-    text-align: right;
-  }
-  .pos-product-card:hover {
-    border-color: var(--brand-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(14,165,233,0.15);
-  }
-  .pos-product-card .name { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
-  .pos-product-card .sku { font-size: 0.7rem; color: var(--text-muted); direction: ltr; text-align: right; }
-  .pos-product-card .price { color: var(--brand-primary); font-weight: 800; font-size: 1.05rem; margin-top: auto; }
-  .pos-product-card .stock { font-size: 0.7rem; color: var(--text-muted); }
-  .pos-product-card.out-of-stock { opacity: 0.5; cursor: not-allowed; }
-
-  .pos-cart {
-    background: white; border-radius: 12px;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .cart-customer { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-  .cart-title {
-    padding: 8px 12px; background: #f8fafc;
-    display: flex; justify-content: space-between; align-items: center;
-    font-weight: 700;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .cart-items { flex: 1; overflow-y: auto; padding: 8px; }
-  .cart-empty {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: var(--text-light);
-  }
-  .cart-line {
-    background: #f8fafc; padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
-    display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center;
-  }
-  .cart-line .name { font-weight: 600; font-size: 0.9rem; }
-  .cart-line .meta { font-size: 0.75rem; color: var(--text-muted); }
-  .cart-line .qty-ctrl {
-    display: flex; align-items: center; gap: 4px;
-  }
-  .cart-line .qty-ctrl button {
-    width: 28px; height: 28px; border-radius: 6px; border: 1px solid #cbd5e1;
-    background: white; font-weight: 700;
-  }
-  .cart-line .qty-ctrl input {
-    width: 48px; text-align: center; border-radius: 6px; border: 1px solid #cbd5e1;
-    font-weight: 700; height: 28px;
-  }
-  .cart-line .line-total { font-weight: 800; color: var(--brand-primary); text-align: end; }
-
-  .cart-summary { padding: 12px; border-top: 1px solid #e2e8f0; }
-  .cart-total {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 1.4rem; font-weight: 800; padding-top: 8px;
-    border-top: 2px dashed #cbd5e1;
-  }
-
-  .cart-actions {
-    padding: 12px; border-top: 1px solid #e2e8f0;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  }
-  .pay-btn {
-    border: none; border-radius: 10px; padding: 14px 8px;
-    font-weight: 700; font-size: 0.9rem;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    color: white; cursor: pointer;
-    transition: transform 0.1s;
-  }
-  .pay-btn i { font-size: 1.4rem; }
-  .pay-btn:active { transform: scale(0.97); }
-  .pay-cash { background: linear-gradient(180deg, #10b981, #059669); }
-  .pay-card { background: linear-gradient(180deg, #6366f1, #4338ca); }
-  .pay-wallet { background: linear-gradient(180deg, #f59e0b, #d97706); }
-</style>
-
 <script>
-  const SESSION_ID = {{ session.id }};
+  const SESSION_ID  = {{ session.id }};
   const TAX_ENABLED = {{ 'true' if tax_enabled else 'false' }};
-  const TAX_RATE = parseFloat("{{ tax_rate }}") || 0;
-  const cart = new Map();  // variant_id → {id, name, sku, price, qty, stock}
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const TAX_RATE    = parseFloat("{{ tax_rate }}") || 0;
+  const CSRF        = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
-  const scanInput = document.getElementById('scanInput');
-  const productGrid = document.getElementById('productGrid');
-  const cartItems = document.getElementById('cartItems');
+  const cart = new Map();          // variant_id → {id, name, sku, price, qty, stock}
+  let payMethod = 'cash';
+  let lastAddedId = null;
 
+  const scanInput     = document.getElementById('scanInput');
+  const productGrid   = document.getElementById('productGrid');
+  const cartItemsEl   = document.getElementById('cartItems');
+  const discountInput = document.getElementById('discountInput');
+  const cashTendered  = document.getElementById('cashTendered');
+
+  // ---------- Search / scan ----------
   let searchDebounce;
   scanInput.addEventListener('input', () => {
     clearTimeout(searchDebounce);
     const q = scanInput.value.trim();
     if (!q) { renderGrid([]); return; }
 
-    // إذا كان النص يشبه EAN-13 (13 رقم)، جرّب lookup مباشر
+    // EAN-13-shaped barcodes → direct lookup
     if (/^\d{13}$/.test(q)) {
       fetch(`/products/api/by-barcode/${q}`)
         .then(r => r.json())
@@ -286,7 +355,6 @@
 
   scanInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      // إن كان هناك نتيجة واحدة، أضفها
       const cards = productGrid.querySelectorAll('.pos-product-card:not(.out-of-stock)');
       if (cards.length === 1) {
         cards[0].click();
@@ -298,21 +366,40 @@
 
   function renderGrid(items) {
     if (!items.length) {
-      productGrid.innerHTML = '';
+      productGrid.innerHTML = `
+        <div class="col-span-full flex flex-col items-center justify-center text-on-surface-variant py-space-2xl bg-surface-container-lowest rounded-xl shadow-sm">
+          <span class="material-symbols-outlined text-[56px] text-secondary/60">upc_scan</span>
+          <p class="font-body-md text-body-md mt-space-xs">امسح الباركود أو ابدأ الكتابة لعرض المنتجات</p>
+        </div>`;
       return;
     }
     productGrid.innerHTML = items.map(v => {
       const outOfStock = parseFloat(v.stock) <= 0;
+      const stockTag = outOfStock
+        ? `<span class="font-label-sm text-[10px] text-error font-bold">نفدت الكمية</span>`
+        : `<span class="font-label-sm text-[10px] text-secondary-container bg-primary-container px-1 rounded-sm w-fit">متاح: ${v.stock}</span>`;
       return `
-        <div class="pos-product-card ${outOfStock ? 'out-of-stock' : ''}"
+        <div class="pos-product-card group cursor-pointer bg-surface-container-lowest hover:bg-surface-container-low rounded-xl p-space-xs shadow-sm transition-all duration-150 flex flex-col justify-between hover:shadow-md active:scale-95 ${outOfStock ? 'out-of-stock opacity-50 cursor-not-allowed' : ''}"
              data-payload='${JSON.stringify(v).replace(/'/g, "&#39;")}'>
-          <div class="name">${v.name}</div>
-          <div class="sku">${v.sku}</div>
-          <div class="price">${v.price} ج.م</div>
-          <div class="stock">متاح: ${v.stock}</div>
-        </div>
-      `;
+          <div>
+            <div class="relative w-full h-24 rounded-lg overflow-hidden bg-surface-container mb-space-xs flex items-center justify-center">
+              <span class="material-symbols-outlined text-[48px] text-secondary/40">inventory_2</span>
+              <span class="absolute top-2 right-2 bg-primary-container/90 text-on-primary text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm" dir="ltr">${escapeHtml(v.sku)}</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 mb-1 group-hover:text-secondary transition-colors">${escapeHtml(v.name)}</h3>
+          </div>
+          <div class="flex items-center justify-between pt-space-xs mt-space-xs bg-surface-container-low/50 rounded-lg p-2">
+            <div class="flex flex-col">
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">${v.price} <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span></span>
+              ${stockTag}
+            </div>
+            <span class="w-8 h-8 rounded-lg bg-secondary text-on-secondary flex items-center justify-center transition-transform group-active:scale-90">
+              <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+            </span>
+          </div>
+        </div>`;
     }).join('');
+
     productGrid.querySelectorAll('.pos-product-card').forEach(card => {
       if (card.classList.contains('out-of-stock')) return;
       card.addEventListener('click', () => {
@@ -322,6 +409,13 @@
     });
   }
 
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ---------- Cart ----------
   function addToCart(v) {
     const existing = cart.get(v.id);
     if (existing) {
@@ -337,6 +431,7 @@
         stock: parseFloat(v.stock),
       });
     }
+    lastAddedId = v.id;
     renderCart();
     scanInput.focus();
   }
@@ -354,15 +449,24 @@
 
   function clearCart() {
     if (!cart.size) return;
-    if (confirm('إفراغ السلة؟')) { cart.clear(); renderCart(); }
+    if (confirm('إفراغ السلة؟')) {
+      cart.clear();
+      lastAddedId = null;
+      discountInput.value = '0';
+      renderCart();
+    }
+  }
+
+  function setLastLineQty(q) {
+    if (lastAddedId != null && cart.has(lastAddedId)) updateQty(lastAddedId, q);
   }
 
   function renderCart() {
     if (!cart.size) {
-      cartItems.innerHTML = `
-        <div class="cart-empty">
-          <i class="bi bi-basket" style="font-size:2rem"></i>
-          <p>لا توجد بنود</p>
+      cartItemsEl.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-space-xl text-on-surface-variant">
+          <span class="material-symbols-outlined text-[40px] text-secondary/50">shopping_basket</span>
+          <p class="font-body-sm text-body-sm mt-space-xs">لا توجد أصناف بعد</p>
         </div>`;
       recalc();
       return;
@@ -371,81 +475,110 @@
     cart.forEach(item => {
       const lineTotal = (item.price * item.qty).toFixed(3);
       html += `
-        <div class="cart-line">
-          <div>
-            <div class="name">${item.name}</div>
-            <div class="meta">${item.sku} · ${item.price.toFixed(3)}</div>
-            <div class="qty-ctrl mt-1">
-              <button onclick="updateQty(${item.id}, ${item.qty - 1})">−</button>
-              <input type="number" value="${item.qty}" step="0.001" min="0"
-                     onchange="updateQty(${item.id}, parseFloat(this.value)||0)">
-              <button onclick="updateQty(${item.id}, ${item.qty + 1})">+</button>
-              <button onclick="removeFromCart(${item.id})" style="color:#dc2626; border-color:#fecaca">
-                <i class="bi bi-x"></i>
-              </button>
+        <div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low/60 transition-colors gap-space-xs">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-label-md text-label-md text-on-surface font-bold truncate">${escapeHtml(item.name)}</h4>
+            <div class="flex items-center gap-space-2xs text-[11px] text-on-surface-variant">
+              <span dir="ltr">${escapeHtml(item.sku)}</span>
+              <span>•</span>
+              <span class="text-secondary font-semibold">${item.price.toFixed(3)} للوحدة</span>
             </div>
           </div>
-          <div class="line-total">${lineTotal}</div>
-        </div>
-      `;
+          <div class="w-24 flex items-center gap-1 bg-surface-container-low rounded-lg p-0.5 justify-center">
+            <button type="button" onclick="updateQty(${item.id}, ${item.qty - 1})"
+                    class="w-6 h-6 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high flex items-center justify-center font-bold text-sm leading-none">-</button>
+            <input type="number" step="0.001" min="0" value="${item.qty}"
+                   onchange="updateQty(${item.id}, parseFloat(this.value) || 0)"
+                   class="w-10 text-center bg-transparent font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold focus:outline-none"/>
+            <button type="button" onclick="updateQty(${item.id}, ${item.qty + 1})"
+                    class="w-6 h-6 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high flex items-center justify-center font-bold text-sm leading-none">+</button>
+          </div>
+          <div class="w-24 text-left font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">${lineTotal}</div>
+          <button type="button" onclick="removeFromCart(${item.id})"
+                  class="w-7 h-7 rounded text-error hover:bg-error-container flex items-center justify-center transition-colors"
+                  title="حذف الصنف">
+            <span class="material-symbols-outlined text-[17px]">delete</span>
+          </button>
+        </div>`;
     });
-    cartItems.innerHTML = html;
+    cartItemsEl.innerHTML = html;
     recalc();
   }
 
   function recalc() {
     let subtotal = 0;
-    cart.forEach(item => subtotal += item.price * item.qty);
-    const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    const net = Math.max(0, subtotal - discount);
-    const tax = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
-    const total = net + tax;
+    cart.forEach(i => subtotal += i.price * i.qty);
+    const discount = parseFloat(discountInput.value) || 0;
+    const net      = Math.max(0, subtotal - discount);
+    const tax      = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
+    const total    = net + tax;
+
     document.getElementById('sumSubtotal').textContent = subtotal.toFixed(3);
-    if (TAX_ENABLED) document.getElementById('sumTax').textContent = tax.toFixed(3);
-    document.getElementById('sumTotal').textContent = total.toFixed(3);
+    document.getElementById('sumDiscount').textContent = '- ' + discount.toFixed(3);
+    if (TAX_ENABLED) document.getElementById('sumTax').textContent = '+ ' + tax.toFixed(3);
+    document.getElementById('sumTotal').textContent    = total.toFixed(3);
+
+    // change due
+    const tendered = parseFloat(cashTendered.value) || 0;
+    const change = payMethod === 'cash' ? Math.max(0, tendered - total) : 0;
+    document.getElementById('changeDue').textContent = change.toFixed(3);
   }
 
-  document.getElementById('discountInput').addEventListener('input', recalc);
+  discountInput.addEventListener('input', recalc);
+  cashTendered.addEventListener('input', recalc);
 
-  async function pay(method) {
+  // ---------- Payment method ----------
+  function selectMethod(m) {
+    payMethod = m;
+    document.querySelectorAll('.pay-method-btn').forEach(b => {
+      const on = b.dataset.method === m;
+      b.classList.toggle('bg-surface-container-high', on);
+      b.classList.toggle('bg-surface-container-low', !on);
+      b.classList.toggle('ring-2', on);
+      b.classList.toggle('ring-secondary', on);
+    });
+    document.getElementById('cashTenderBox').classList.toggle('opacity-40', m !== 'cash');
+    document.getElementById('cashTenderBox').classList.toggle('pointer-events-none', m !== 'cash');
+    recalc();
+  }
+  selectMethod('cash');
+
+  // ---------- Checkout ----------
+  async function checkout() {
     if (!cart.size) { alert('السلة فارغة.'); return; }
     const customerId = document.getElementById('customerId').value;
     if (!customerId) { alert('اختر عميلًا (أو استخدم العميل النقدي الافتراضي).'); return; }
 
     const lines = [];
-    cart.forEach(item => lines.push({
-      variant_id: item.id, qty: item.qty, unit_price: item.price
-    }));
+    cart.forEach(i => lines.push({variant_id: i.id, qty: i.qty, unit_price: i.price}));
 
     const payload = {
       customer_id: parseInt(customerId),
-      payment_method: method,
-      discount_amount: document.getElementById('discountInput').value || 0,
+      payment_method: payMethod,
+      discount_amount: discountInput.value || 0,
       lines: lines,
     };
 
     const r = await fetch(`/pos/session/${SESSION_ID}/sale`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
       body: JSON.stringify(payload),
     });
     const data = await r.json();
-    if (!data.ok) {
-      alert('فشل: ' + (data.error || 'خطأ غير معروف'));
-      return;
-    }
+    if (!data.ok) { alert('فشل: ' + (data.error || 'خطأ غير معروف')); return; }
 
-    // فتح الإيصال في نافذة جديدة للطباعة، وتفريغ السلة
     window.open(data.receipt_url, '_blank', 'width=380,height=700');
     cart.clear();
-    document.getElementById('discountInput').value = '0';
+    lastAddedId = null;
+    discountInput.value = '0';
+    cashTendered.value = '0';
     renderCart();
     scanInput.value = '';
     scanInput.focus();
   }
 
-  // بحث العميل
-  const customerSearch = document.getElementById('customerSearch');
+  // ---------- Customer search ----------
+  const customerSearch  = document.getElementById('customerSearch');
   const customerResults = document.getElementById('customerResults');
   let custDebounce;
   customerSearch.addEventListener('input', () => {
@@ -456,12 +589,11 @@
       const r = await fetch(`/parties/api/search?type=customer&q=${encodeURIComponent(q)}`);
       const data = await r.json();
       customerResults.innerHTML = data.map(p => `
-        <button type="button" class="list-group-item list-group-item-action text-start"
-                data-id="${p.id}" data-name="${p.name_ar}">
-          <strong>${p.name_ar}</strong>
-          <span class="text-muted small ms-2" dir="ltr">${p.code}</span>
-        </button>
-      `).join('');
+        <button type="button" data-id="${p.id}" data-name="${escapeHtml(p.name_ar)}"
+                class="w-full text-right p-space-xs hover:bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between gap-space-xs">
+          <span class="font-label-md text-label-md font-semibold text-on-surface">${escapeHtml(p.name_ar)}</span>
+          <span class="text-on-surface-variant font-label-sm text-label-sm" dir="ltr">${escapeHtml(p.code)}</span>
+        </button>`).join('');
       customerResults.querySelectorAll('button').forEach(b => {
         b.addEventListener('click', () => {
           document.getElementById('customerId').value = b.dataset.id;
@@ -474,6 +606,16 @@
   document.addEventListener('click', (e) => {
     if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
       customerResults.innerHTML = '';
+    }
+  });
+
+  // ---------- Hotkeys ----------
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'F2') { e.preventDefault(); scanInput.focus(); }
+    else if (e.key === 'F9') { e.preventDefault(); checkout(); }
+    else if (e.key === 'F12') {
+      e.preventDefault();
+      window.location.href = "{{ url_for('pos.close', session_id=session.id) }}";
     }
   });
 </script>

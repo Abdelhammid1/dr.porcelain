@@ -2,119 +2,258 @@
 {% block title %}سجل القيود{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
-    <div>
-      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">menu_book</span>
-        <span>دفتر اليومية</span>
+<div class="flex flex-col w-full gap-space-lg">
+
+  {# ============ Top Sovereign Operational Header ============ #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+    <div class="flex items-center gap-space-md min-w-0">
+      <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-[26px]">menu_book</span>
       </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">سجل القيود اليومية</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">آخر 200 قيد مع فلترة بالتاريخ ونوع المصدر</p>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="font-headline-xl text-headline-xl font-bold text-on-surface">دفتر القيود اليومية العام</span>
+          <span class="px-space-xs py-0.5 rounded-full bg-secondary/10 text-secondary font-label-sm text-label-sm font-semibold">Journal Ledger</span>
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">القيد المزدوج المتزن</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 truncate">
+          آخر 200 قيد مع فلترة بالتاريخ ونوع المصدر — ترحيل آلي معتمد ومطابق لميزان المراجعة.
+        </p>
+      </div>
     </div>
-    {% if current_user.can('journal.create') %}
-    <div class="flex items-center gap-space-xs">
+
+    {# Action strip — templates + new manual entry #}
+    <div class="flex items-center gap-space-sm shrink-0 flex-wrap">
+      {% if current_user.can('journal.create') %}
       <div class="relative">
         <details class="group">
-          <summary class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm cursor-pointer list-none">
-            <span class="material-symbols-outlined text-[20px] text-secondary">bolt</span>
-            <span>قوالب سريعة</span>
+          <summary class="h-10 px-space-md bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm cursor-pointer list-none">
+            <span class="material-symbols-outlined text-[18px] text-secondary">bolt</span>
+            <span>قوالب القيود السريعة</span>
             <span class="material-symbols-outlined text-[16px]">expand_more</span>
           </summary>
-          <div class="absolute end-0 mt-2 w-64 bg-surface-container-lowest rounded-xl shadow-lg border border-surface-container-low overflow-hidden z-10">
-            {% for key, label in [('add_capital', 'إضافة رأس مال'), ('owner_drawing', 'سحب من رأس المال'), ('deposit_received', 'أمانة مستلمة'), ('short_loan', 'قرض قصير الأجل'), ('long_loan', 'قرض طويل الأجل')] %}
+          <div class="absolute end-0 mt-2 w-72 bg-surface-container-lowest rounded-xl shadow-xl p-space-xs z-20 flex flex-col gap-0.5 border border-outline-variant/30">
+            {% for key, label, subtitle, icon in [
+                ('add_capital',      'إضافة رأس مال',       'الخزينة/البنك إلى رأس المال',       'savings'),
+                ('owner_drawing',    'سحوبات الشركاء',       'مسحوبات مدين والخزينة دائن',       'payments'),
+                ('deposit_received', 'أمانة مستلمة',         'الخزينة مدين والأمانات دائن',      'security'),
+                ('short_loan',       'قرض قصير الأجل',       'الخزينة مدين والقرض دائن',         'trending_up'),
+                ('long_loan',        'قرض طويل الأجل',       'الخزينة مدين والقرض دائن',         'account_balance')
+            ] %}
             <a href="{{ url_for('journal.quick_template', template_key=key) }}"
-               class="block px-space-md py-space-xs hover:bg-surface-container-low font-body-md text-body-md text-on-surface">{{ label }}</a>
+               class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface transition-colors">
+              <span class="material-symbols-outlined text-[18px] text-secondary">{{ icon }}</span>
+              <div class="flex flex-col">
+                <span class="font-label-md text-label-md font-semibold">{{ label }}</span>
+                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ subtitle }}</span>
+              </div>
+            </a>
             {% endfor %}
           </div>
         </details>
       </div>
       <a href="{{ url_for('journal.create') }}"
-         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md rounded-lg flex items-center gap-space-xs shadow-sm">
-        <span class="material-symbols-outlined text-[20px]">post_add</span>
-        <span>+ قيد يدوي</span>
+         class="h-10 px-space-md bg-primary-container text-on-primary hover:bg-primary-container/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-md transition-all font-bold">
+        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+        <span>+ قيد يومية يدوي جديد</span>
       </a>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
-  {# Filter panel #}
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-space-sm items-end">
-      <div>
-        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">من تاريخ</label>
-        <input type="date" name="date_from" value="{{ date_from or '' }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+  {# ============ Journal Ledger Panel ============ #}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+
+    {# Ledger heading strip #}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+        <h2 class="font-headline-lg text-headline-lg font-bold text-on-surface">دفتر القيود اليومية العام</h2>
+        <span class="px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">تحديث فوري</span>
       </div>
-      <div>
-        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">إلى تاريخ</label>
-        <input type="date" name="date_to" value="{{ date_to or '' }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      <div class="flex items-center gap-space-xs">
+        <span class="font-label-sm text-[11px] text-on-surface-variant">الترحيل:</span>
+        <span class="px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-sm text-[11px] font-bold">آلي ومعتمد</span>
       </div>
-      <div>
-        <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">نوع المصدر</label>
+    </div>
+
+    {# Advanced multi-parameter filter ribbon — real GET form #}
+    <form method="get" class="grid grid-cols-1 sm:grid-cols-12 gap-space-xs bg-surface-container-low p-space-xs rounded-xl">
+      <div class="sm:col-span-3">
+        <label class="block font-label-sm text-[10px] text-on-surface-variant mb-1">نوع المصدر</label>
         <select name="source_type"
-                class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
-          <option value="">— الكل —</option>
+                class="w-full h-8 px-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm outline outline-1 outline-outline-variant/30 focus:outline-secondary">
+          <option value="">كافة المصادر</option>
           {% for st in source_types %}
-          <option value="{{ st.value }}" {% if selected_source == st.value %}selected{% endif %}>{{ st.value }}</option>
+          <option value="{{ st.value }}" {% if selected_source == st.value %}selected{% endif %} dir="ltr">{{ st.value }}</option>
           {% endfor %}
         </select>
       </div>
-      <button type="submit"
-              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
-        <span class="material-symbols-outlined text-[18px]">search</span>
-        <span>بحث</span>
-      </button>
+      <div class="sm:col-span-3">
+        <label class="block font-label-sm text-[10px] text-on-surface-variant mb-1">من تاريخ</label>
+        <input type="date" name="date_from" value="{{ date_from or '' }}"
+               class="w-full h-8 px-1 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-[11px] outline outline-1 outline-outline-variant/30 text-center">
+      </div>
+      <div class="sm:col-span-3">
+        <label class="block font-label-sm text-[10px] text-on-surface-variant mb-1">إلى تاريخ</label>
+        <input type="date" name="date_to" value="{{ date_to or '' }}"
+               class="w-full h-8 px-1 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-[11px] outline outline-1 outline-outline-variant/30 text-center">
+      </div>
+      <div class="sm:col-span-3 flex items-end gap-1">
+        <button type="submit"
+                class="h-8 flex-1 px-2 bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-sm text-label-sm font-semibold flex items-center justify-center gap-1 transition-colors">
+          <span class="material-symbols-outlined text-[15px]">search</span>
+          <span>بحث</span>
+        </button>
+        <a href="{{ url_for('journal.index') }}"
+           class="h-8 px-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-label-sm text-label-sm flex items-center gap-1 transition-colors" title="إعادة تعيين الفلاتر">
+          <span class="material-symbols-outlined text-[15px]">refresh</span>
+          <span>تصفير</span>
+        </a>
+      </div>
     </form>
-  </div>
 
-  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-right">
+    {# High-density professional journal ledger table #}
+    <div class="overflow-x-auto rounded-xl bg-surface-container-lowest">
+      <table class="w-full text-right border-collapse">
         <thead>
-          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
-            <th class="py-space-xs px-space-md">رقم القيد</th>
-            <th class="py-space-xs px-space-md">التاريخ</th>
-            <th class="py-space-xs px-space-md">المصدر</th>
-            <th class="py-space-xs px-space-md">البيان</th>
-            <th class="py-space-xs px-space-md">الإجمالي</th>
-            <th class="py-space-xs px-space-md">الحالة</th>
-            <th class="py-space-xs px-space-md text-left"></th>
+          <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] font-semibold">
+            <th class="p-space-xs whitespace-nowrap">رقم القيد / التاريخ</th>
+            <th class="p-space-xs">البيان والوصف المحاسبي</th>
+            <th class="p-space-xs">أطراف الحركة (مدين / دائن)</th>
+            <th class="p-space-xs text-left whitespace-nowrap">المدين (ج.م)</th>
+            <th class="p-space-xs text-left whitespace-nowrap">الدائن (ج.م)</th>
+            <th class="p-space-xs text-center">الحالة</th>
+            <th class="p-space-xs text-center">إجراء</th>
           </tr>
         </thead>
-        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+        <tbody class="divide-y divide-surface-container-low text-on-surface font-body-sm text-body-sm">
           {% for e in entries %}
-          <tr class="hover:bg-surface-container-low/40 transition-colors {% if e.status.value == 'reversed' %}opacity-60{% endif %}">
-            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-semibold" dir="ltr">{{ e.doc_number }}</td>
-            <td class="py-space-xs px-space-md text-on-surface-variant">{{ e.entry_date | hdate }}</td>
-            <td class="py-space-xs px-space-md">
-              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm" dir="ltr">{{ e.source_type.value }}</span>
+          <tr class="ledger-row hover:bg-surface-container-low/50 transition-colors {% if e.status.value == 'reversed' %}opacity-60{% endif %}"
+              data-source="{{ e.source_type.value }}">
+            {# Doc number + date #}
+            <td class="p-space-xs align-top whitespace-nowrap">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-1">
+                  <span class="font-fiscal-numeric-md text-[13px] font-bold text-on-surface font-mono" dir="ltr">{{ e.doc_number }}</span>
+                  <span class="px-1.5 py-0.2 rounded font-label-sm text-[10px] font-bold
+                               {% if e.source_type.value == 'MANUAL' %}bg-surface-container text-on-surface
+                               {% elif 'SALE' in e.source_type.value %}bg-secondary/10 text-secondary
+                               {% elif 'PURCHASE' in e.source_type.value or 'SUPPLIER' in e.source_type.value %}bg-tertiary-fixed text-on-tertiary-fixed-variant
+                               {% elif 'INVENTORY' in e.source_type.value or 'STOCK' in e.source_type.value %}bg-surface-container-high text-on-surface-variant
+                               {% elif 'REVERSAL' in e.source_type.value %}bg-error-container text-on-error-container
+                               {% else %}bg-secondary-container/40 text-on-secondary-container{% endif %}"
+                        dir="ltr">{{ e.source_type.value }}</span>
+                </div>
+                <span class="text-[11px] text-on-surface-variant font-mono">{{ e.entry_date | hdate }}</span>
+              </div>
             </td>
-            <td class="py-space-xs px-space-md text-on-surface">{{ e.memo or "—" }}</td>
-            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">{{ e.total_debit | money }}</td>
-            <td class="py-space-xs px-space-md">
-              {% if e.status.value == 'posted' %}
-              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">مرحّل</span>
-              {% elif e.status.value == 'reversed' %}
-              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">معكوس</span>
-              {% else %}
-              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">مسودة</span>
+
+            {# Description #}
+            <td class="p-space-xs align-top max-w-[240px]">
+              <p class="font-medium text-on-surface">{{ e.memo or "—" }}</p>
+              {% if e.source_id %}
+              <span class="text-[11px] text-on-surface-variant" dir="ltr">source #{{ e.source_id }}</span>
               {% endif %}
             </td>
-            <td class="py-space-xs px-space-md text-left">
-              <a href="{{ url_for('journal.view', entry_id=e.id) }}"
-                 class="inline-flex items-center gap-1 px-space-xs py-1 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high font-label-sm text-label-sm font-semibold">
-                <span class="material-symbols-outlined text-[16px]">visibility</span>
-                عرض
-              </a>
+
+            {# Accounts involved #}
+            <td class="p-space-xs align-top">
+              <div class="flex flex-col gap-1 text-[12px]">
+                {% for ln in e.lines %}
+                <div class="flex items-center gap-1 {% if not ln.debit %}pr-2{% endif %}">
+                  <span class="w-2 h-2 rounded-full {% if ln.debit %}bg-secondary{% else %}bg-outline{% endif %}"></span>
+                  <span class="{% if ln.debit %}text-on-surface font-medium{% else %}text-on-surface-variant{% endif %}" dir="ltr">
+                    {{ ln.account.code }} - {{ ln.account.name_ar }}
+                  </span>
+                  <span class="text-[10px] {% if ln.debit %}text-secondary{% else %}text-on-surface-variant{% endif %} font-mono">
+                    {% if ln.debit %}(منه){% else %}(له){% endif %}
+                  </span>
+                </div>
+                {% endfor %}
+              </div>
+            </td>
+
+            {# Debit column #}
+            <td class="p-space-xs align-top text-left font-mono font-fiscal-numeric-md text-[13px] font-bold text-secondary">
+              {% for ln in e.lines %}
+                <div class="{% if not ln.debit %}text-transparent{% endif %}">
+                  {% if ln.debit %}{{ ln.debit | money }}{% else %}-{% endif %}
+                </div>
+              {% endfor %}
+            </td>
+
+            {# Credit column #}
+            <td class="p-space-xs align-top text-left font-mono font-fiscal-numeric-md text-[13px] font-bold text-on-surface">
+              {% for ln in e.lines %}
+                <div class="{% if not ln.credit %}text-transparent{% endif %}">
+                  {% if ln.credit %}{{ ln.credit | money }}{% else %}-{% endif %}
+                </div>
+              {% endfor %}
+            </td>
+
+            {# Status #}
+            <td class="p-space-xs align-top text-center whitespace-nowrap">
+              {% if e.status.value == 'posted' %}
+                <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[10px] font-semibold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>مرحّل
+                </span>
+              {% elif e.status.value == 'reversed' %}
+                <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-error-container text-on-error-container font-label-sm text-[10px] font-semibold">معكوس</span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-[10px] font-semibold">مسودة</span>
+              {% endif %}
+            </td>
+
+            {# Action #}
+            <td class="p-space-xs align-top text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1">
+                <a href="{{ url_for('journal.view', entry_id=e.id) }}"
+                   class="p-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors"
+                   title="عرض أطراف القيد">
+                  <span class="material-symbols-outlined text-[16px]">visibility</span>
+                </a>
+                {% if e.status.value == 'posted' and current_user.can('journal.reverse') and not e.reversed_by_id %}
+                <a href="{{ url_for('journal.view', entry_id=e.id) }}#reverse"
+                   class="p-1 rounded bg-error/10 hover:bg-error/20 text-error transition-colors"
+                   title="عكس القيد (Reverse)">
+                  <span class="material-symbols-outlined text-[16px]">undo</span>
+                </a>
+                {% endif %}
+              </div>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="py-space-lg text-center text-on-surface-variant">لا توجد قيود.</td></tr>
+          <tr>
+            <td colspan="7" class="py-space-lg text-center text-on-surface-variant">لا توجد قيود مطابقة للفلترة.</td>
+          </tr>
           {% endfor %}
         </tbody>
+        {% if entries %}
+        <tfoot>
+          <tr class="bg-surface-container-low font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface border-t-0">
+            <td class="p-space-xs text-right font-headline-sm text-headline-sm" colspan="3">إجمالي الفترة المتطابق (Journal Balancing)</td>
+            <td class="p-space-xs text-left text-secondary">{{ entries | sum(attribute='total_debit') | money }} ج.م</td>
+            <td class="p-space-xs text-left text-secondary">{{ entries | sum(attribute='total_credit') | money }} ج.م</td>
+            <td class="p-space-xs text-center font-label-sm text-secondary font-bold" colspan="2">
+              <span class="inline-flex items-center gap-1 bg-secondary/10 px-2 py-0.5 rounded-full">
+                <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                متزن ومرحّل
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+        {% endif %}
       </table>
+    </div>
+
+    {# Footer strip #}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+      <div class="flex items-center gap-space-xs">
+        <span>عرض {{ entries|length }} قيد ضمن الفترة المحددة</span>
+        <span class="w-1 h-1 rounded-full bg-outline"></span>
+        <span>الحد الأقصى: 200 قيد لكل استعلام</span>
+      </div>
     </div>
   </div>
 </div>

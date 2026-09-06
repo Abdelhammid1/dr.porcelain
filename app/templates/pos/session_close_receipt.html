@@ -1,0 +1,292 @@
+{#
+  Thermal 80mm Z-Report receipt — port of new-html/ايصال اقفال يومي.html.
+  Standalone print page.
+  Variables: `session` (POSSession), `summary` (dict from session_summary()),
+  plus store_name / store_addr / store_phone / tax_number strings from settings.
+#}<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>Z-Report — وردية {{ session.doc_number }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0b101b; margin: 0; padding: 24px 12px; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      font-family: 'IBM Plex Sans Arabic', sans-serif; color: #f1f5f9;
+    }
+    .actions {
+      max-width: 780px; width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 16px; padding: 16px 20px; margin-bottom: 24px;
+      display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .actions .title { display: flex; align-items: center; gap: 12px; }
+    .actions .badge {
+      background: rgba(245, 158, 11, 0.1); color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .actions h1 { margin: 0; font-size: 15px; font-weight: 700; }
+    .actions p { margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; }
+    .btn-print {
+      background: #f59e0b; color: #0f172a; font-weight: 700;
+      border: none; padding: 10px 20px; border-radius: 12px;
+      font-family: inherit; cursor: pointer; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2);
+    }
+    .btn-print:hover { background: #fbbf24; }
+    .btn-secondary {
+      background: #1e293b; color: #cbd5e1;
+      border: 1px solid #334155; padding: 10px 16px;
+      border-radius: 12px; font-family: inherit; cursor: pointer; font-size: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary:hover { background: #334155; }
+    .btn-secondary a { color: inherit; text-decoration: none; }
+
+    /* Thermal receipt with jagged edges */
+    .receipt-container {
+      width: 380px; position: relative; background: #FFFFFF;
+      color: #0f172a; font-family: 'Courier Prime', 'Courier New', monospace;
+      font-size: 11px; line-height: 1.4; padding: 16px; margin: 8px 0;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      user-select: text;
+    }
+    .receipt-container::before, .receipt-container::after {
+      content: ""; position: absolute; left: 0; right: 0; height: 10px;
+      background: radial-gradient(circle, transparent, transparent 50%, #ffffff 50%, #ffffff 100%);
+      background-size: 14px 14px;
+    }
+    .receipt-container::before { top: -10px; }
+    .receipt-container::after { bottom: -10px; transform: rotate(180deg); }
+
+    .sans { font-family: 'IBM Plex Sans Arabic', sans-serif; color: #0f172a; }
+    .mono { font-family: 'Courier Prime', monospace; }
+    .center { text-align: center; }
+    .bold { font-weight: 700; }
+    .gray { color: #475569; }
+    .row { display: flex; justify-content: space-between; }
+    .dashed { border-top: 1.5px dashed #1e293b; margin: 8px 0; }
+    .double { border-top: 3px double #1e293b; margin: 8px 0; }
+    .dotline { border-top: 1px dotted #94a3b8; margin: 4px 0; }
+
+    .section-h {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #f1f5f9; padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      font-weight: 900; font-size: 11px;
+    }
+    .section-h .en { font-family: 'Courier Prime', monospace; font-size: 10px; color: #64748b; }
+
+    table.stats { width: 100%; margin-top: 6px; border-collapse: collapse; font-size: 11px; }
+    table.stats td { padding: 4px 0; border-bottom: 1px dotted #e2e8f0; }
+    table.stats td.count { text-align: center; font-family: 'Courier Prime', monospace; font-size: 10px; color: #64748b; }
+    table.stats td.amount { text-align: left; font-family: 'Courier Prime', monospace; font-weight: 700; }
+    table.stats tr.total td { padding: 6px 0; border-top: 1px solid #1e293b; border-bottom: 1px solid #1e293b; background: #f8fafc; font-weight: 900; font-size: 12px; color: #000; }
+    table.stats tr.negative td { color: #b91c1c; }
+
+    .z-title {
+      display: inline-block; background: #000; color: #fff;
+      font-weight: 900; padding: 6px 16px; font-size: 14px;
+      letter-spacing: 2px; text-transform: uppercase; border-radius: 2px;
+      margin: 10px 0 4px;
+    }
+    .z-counter { font-family: 'Courier Prime', monospace; font-size: 10px; color: #64748b; margin-top: 2px; }
+
+    .cash-summary { padding: 6px 8px; background: #f8fafc; font-weight: 900; font-size: 12px; margin-top: 4px; }
+
+    .diff-box {
+      padding: 10px 12px; border-radius: 4px; margin-top: 8px; text-align: center;
+      font-weight: 900; font-size: 13px;
+    }
+    .diff-box.balanced { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
+    .diff-box.short { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+    .diff-box.over { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
+    .diff-box .amount { font-size: 16px; font-family: 'Courier Prime', monospace; letter-spacing: -0.5px; }
+
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 0; text-align: center; }
+    .signatures > div { border: 1px dashed #94a3b8; padding: 8px 6px; border-radius: 4px; }
+    .signatures .role { font-weight: 700; color: #475569; font-size: 9px; margin-bottom: 26px; }
+    .signatures .name { color: #94a3b8; font-size: 8.5px; }
+
+    .footer { text-align: center; font-size: 9px; color: #64748b; padding-top: 6px; }
+    .footer .brand { color: #1e293b; font-weight: 700; margin-bottom: 2px; }
+
+    @page { size: 80mm auto; margin: 0; }
+    @media print {
+      body { background: transparent !important; padding: 0 !important; margin: 0 !important; }
+      .no-print { display: none !important; }
+      .receipt-container {
+        width: 80mm !important; max-width: 80mm !important;
+        box-shadow: none !important; margin: 0 auto !important; padding: 4mm 3mm !important;
+      }
+      .receipt-container::before, .receipt-container::after { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="actions no-print">
+    <div class="title">
+      <div class="badge">📊</div>
+      <div>
+        <h1>معاينة Z-Report الحراري</h1>
+        <p>طابعات الكاشير القياسية مقاس 80mm</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-print" onclick="window.print()">🖨️ طباعة فورية</button>
+      <button class="btn-secondary"><a href="{{ url_for('pos.session_view', session_id=session.id) }}">← عودة للوردية</a></button>
+    </div>
+  </div>
+
+  <main class="receipt-container">
+
+    {# Brand identity #}
+    <div class="center">
+      <div style="display: flex; justify-content: center; margin-bottom: 6px;">
+        <div style="width: 48px; height: 48px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; transform: rotate(45deg); border-radius: 2px; padding: 4px;">
+          <span style="transform: rotate(-45deg); font-size: 9px; font-weight: 900; line-height: 1; text-align: center;">DR.<br>PORC</span>
+        </div>
+      </div>
+      <h2 class="sans" style="font-size: 18px; font-weight: 900; letter-spacing: 1px; margin: 0;">{{ store_name or 'دكتور بورسلين' }}</h2>
+      <p class="sans" style="font-size: 11px; font-weight: 700; color: #334155; margin: 2px 0;">لتجهيزات المنزل والأطقم الفاخرة</p>
+      {% if store_addr %}<p class="sans" style="font-size: 10px; color: #475569; margin: 1px 0;">{{ store_addr }}</p>{% endif %}
+      {% if store_phone %}<p class="sans" style="font-size: 10px; color: #475569; margin: 1px 0;">هاتف: <span dir="ltr">{{ store_phone }}</span></p>{% endif %}
+      {% if tax_number %}<p class="sans" style="font-size: 10px; color: #475569; margin: 1px 0;">ب.ض: {{ tax_number }}</p>{% endif %}
+    </div>
+
+    <div class="double"></div>
+
+    {# Report header #}
+    <div class="center">
+      <div class="z-title sans">*** تقرير Z الإقفالي النهائي ***</div>
+      <div class="sans" style="font-size: 11px; font-weight: 700; color: #334155;">Z-REPORT CLOSING SETTLEMENT</div>
+      <div class="z-counter">Z-COUNTER: <span dir="ltr">#{{ '%04d' % session.id }}-CL</span> | REC: <span dir="ltr">{{ session.doc_number }}</span></div>
+    </div>
+
+    <div class="dashed"></div>
+
+    {# Shift meta #}
+    <div style="font-size: 11px;">
+      <div class="row"><span class="gray sans">رقم الوردية:</span><span class="bold mono" dir="ltr">{{ session.doc_number }}</span></div>
+      {% if session.cashier %}<div class="row"><span class="gray sans">الكاشير:</span><span class="bold sans">{{ session.cashier.full_name }} (ID: {{ '%04d' % session.cashier.id }})</span></div>{% endif %}
+      {% if session.closed_by %}<div class="row"><span class="gray sans">مشرف الاستلام:</span><span class="bold sans">{{ session.closed_by.full_name }}</span></div>{% endif %}
+      <div class="dotline"></div>
+      <div class="row" style="font-size: 10px;"><span class="gray">فتح الصندوق:</span><span class="mono bold">{{ session.opened_at.strftime('%Y/%m/%d — %H:%M') if session.opened_at else '—' }}</span></div>
+      <div class="row" style="font-size: 10px;"><span class="gray">إغلاق الوردية:</span><span class="mono bold">{{ session.closed_at.strftime('%Y/%m/%d — %H:%M') if session.closed_at else '—' }}</span></div>
+      {% if session.opened_at and session.closed_at %}
+      {% set diff_secs = (session.closed_at - session.opened_at).total_seconds() %}
+      {% set hours = (diff_secs // 3600) | int %}
+      {% set mins = ((diff_secs % 3600) // 60) | int %}
+      <div class="row" style="font-size: 10px;"><span class="gray">ساعات التشغيل:</span><span class="bold sans">{{ hours }} ساعة و {{ mins }} دقيقة</span></div>
+      {% endif %}
+    </div>
+
+    <div class="double"></div>
+
+    {# Sales summary #}
+    <div>
+      <div class="section-h sans"><span>ملخص المبيعات</span><span class="en">SYSTEM TOTALS · EGP</span></div>
+      <table class="stats">
+        <tr>
+          <td class="sans">إجمالي المبيعات</td>
+          <td class="count">{{ summary.invoices_count }} ف.</td>
+          <td class="amount">{{ summary.total_sales | money }}</td>
+        </tr>
+        <tr class="total">
+          <td class="sans">صافي المبيعات</td>
+          <td class="count">{{ summary.invoices_count }} ف.</td>
+          <td class="amount">{{ summary.total_sales | money }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="dashed"></div>
+
+    {# Cash drawer flow #}
+    <div>
+      <div class="section-h sans"><span>حركة درج النقدية</span><span class="en">CASH FLOAT · EGP</span></div>
+      <div style="font-size: 11px; margin-top: 6px;">
+        <div class="row" style="padding: 2px 0;"><span class="gray sans">(+) العهدة الافتتاحية:</span><span class="mono bold">{{ session.opening_cash | money }}</span></div>
+        <div class="row" style="padding: 2px 0;"><span class="gray sans">(+) المتحصلات النقدية:</span><span class="mono bold">{{ summary.cash_sales | money }}</span></div>
+        <div class="dotline"></div>
+        <div class="row cash-summary sans">
+          <span>النقدية المتوقعة بالدرج:</span>
+          <span class="mono">{{ session.closing_cash_expected | money if session.closing_cash_expected is not none else (session.opening_cash + summary.cash_sales) | money }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashed"></div>
+
+    {# Tender breakdown #}
+    <div>
+      <div class="section-h sans"><span>تفصيل وسائل التحصيل</span><span class="en">TENDERS</span></div>
+      <table class="stats">
+        <tr><td class="sans">نقدًا بالدرج</td><td class="count">—</td><td class="amount">{{ summary.cash_sales | money }}</td></tr>
+        <tr><td class="sans">بطاقات ائتمان</td><td class="count">—</td><td class="amount">{{ summary.card_sales | money }}</td></tr>
+        <tr><td class="sans">محفظة إلكترونية</td><td class="count">—</td><td class="amount">{{ summary.wallet_sales | money }}</td></tr>
+        <tr class="total">
+          <td class="sans">إجمالي المقبوضات:</td>
+          <td class="count">{{ summary.invoices_count }} ح.</td>
+          <td class="amount">{{ summary.total_sales | money }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="dashed"></div>
+
+    {# Reconciliation #}
+    <div>
+      <div class="section-h sans"><span>التسوية النهائية</span><span class="en">RECONCILIATION</span></div>
+      <table class="stats">
+        <tr><td class="sans">النقدية الدفترية المتوقعة (Expected):</td><td class="count">—</td><td class="amount">{{ session.closing_cash_expected | money if session.closing_cash_expected is not none else '—' }}</td></tr>
+        <tr><td class="sans">النقدية المُجرَدَة فعليًا (Counted):</td><td class="count">—</td><td class="amount">{{ session.closing_cash_actual | money if session.closing_cash_actual is not none else '—' }}</td></tr>
+      </table>
+
+      {% if session.difference is not none %}
+      {% set d = session.difference %}
+      <div class="diff-box {% if d == 0 %}balanced{% elif d < 0 %}short{% else %}over{% endif %} sans">
+        {% if d == 0 %}
+          ✔️ فروقات صفرية — الدرج مطابق
+        {% elif d < 0 %}
+          ⚠️ عجز: <span class="amount" dir="ltr">{{ d | abs | money }} ج.م</span>
+        {% else %}
+          🟡 زيادة: <span class="amount" dir="ltr">{{ d | money }} ج.م</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="dashed"></div>
+
+    {# Signatures #}
+    <div class="signatures sans">
+      <div>
+        <div class="role">الكاشير المسؤول</div>
+        <div class="name">{{ session.cashier.full_name if session.cashier else '—' }}</div>
+      </div>
+      <div>
+        <div class="role">مشرف الاستلام</div>
+        <div class="name">{{ session.closed_by.full_name if session.closed_by else '—' }}</div>
+      </div>
+    </div>
+
+    <div class="footer sans">
+      <p class="brand">شكراً على انضباط العهدة والمطابقة اليومية</p>
+      <p style="margin: 1px 0;">نظام دكتور بورسلين الموحد — إصدار 4.2</p>
+      <p style="margin: 1px 0; font-size: 8px;" class="mono">*** نهاية تقرير Z الإقفالي ***</p>
+    </div>
+
+  </main>
+
+</body>
+</html>

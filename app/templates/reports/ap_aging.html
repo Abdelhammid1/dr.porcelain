@@ -2,62 +2,100 @@
 {% block title %}أعمار ديون الموردين{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-space-lg">
-  <div class="flex items-center justify-between">
-    <div>
-      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
-        <span class="material-symbols-outlined text-[18px]">schedule</span>
-        <span>التقارير المالية</span>
-      </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">أعمار ديون الموردين (AP Aging)</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">اعتبارًا من: {{ as_of.strftime('%Y/%m/%d') }}</p>
-    </div>
-    <button onclick="window.print()"
-            class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
-      <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
-    </button>
-  </div>
+<div class="flex flex-col w-full space-y-space-xl pb-space-3xl">
 
-  <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm items-end">
-      <div>
+  {# ======================== HERO BANNER ======================== #}
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-secondary/5 blur-2xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+      <div class="space-y-space-2xs max-w-2xl">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            متابعة أعمار الالتزامات
+          </span>
+          <span class="text-outline-variant text-[12px]">•</span>
+          <span class="text-on-surface-variant font-label-sm text-label-sm">REP-FIN-AP · AP Aging</span>
+        </div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">أعمار ديون الموردين</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          جدولة مستحقات الموردين (30 / 60 / أكثر من 60 يوماً) مع تصنيف مخاطر التأخر في السداد
+          اعتبارًا من <strong class="text-on-surface">{{ as_of | hdate }}</strong>.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-space-xs shrink-0">
+        <button onclick="window.print()" type="button"
+                class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all duration-200">
+          <span class="material-symbols-outlined text-[18px]">print</span>
+          <span>طباعة</span>
+        </button>
+      </div>
+    </div>
+
+    <form method="get" class="mt-space-lg pt-space-md grid grid-cols-1 md:grid-cols-12 gap-space-sm items-end bg-surface-container-low/60 p-space-sm rounded-lg">
+      <div class="md:col-span-10">
         <label class="font-label-sm text-label-sm text-on-surface-variant font-medium mb-1 block">اعتبارًا من تاريخ</label>
         <input type="date" name="as_of" value="{{ as_of.strftime('%Y-%m-%d') }}"
-               class="h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-lowest shadow-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-sm text-body-sm">
       </div>
-      <button type="submit"
-              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
-        <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
-      </button>
+      <div class="md:col-span-2 flex justify-end">
+        <button type="submit"
+                class="w-full h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">filter_alt</span><span>تحديث</span>
+        </button>
+      </div>
     </form>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
-    {% for label, val, icon, tint in [
-      ('لم تحن',       data.totals.not_yet_due, 'hourglass_empty', 'text-on-surface'),
-      ('0 - 30 يوم',   data.totals.days_0_30,   'schedule',        'text-on-surface'),
-      ('31 - 60 يوم',  data.totals.days_31_60,  'warning',         'text-on-tertiary-container'),
-      ('أكثر من 60',   data.totals.days_over_60,'error',           'text-error'),
+  {# ======================== AGING BUCKETS CARDS ======================== #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+    {% for label, val, icon, chip_bg, chip_text, bar_bg in [
+      ('لم يحن موعدها',  data.totals.not_yet_due, 'hourglass_empty', 'bg-surface-container',       'text-on-surface-variant', 'bg-secondary-container'),
+      ('0 - 30 يوم',      data.totals.days_0_30,   'schedule',        'bg-surface-container',       'text-secondary',          'bg-secondary'),
+      ('31 - 60 يوم',     data.totals.days_31_60,  'warning',         'bg-tertiary-fixed',          'text-on-tertiary-fixed-variant', 'bg-tertiary-fixed-dim'),
+      ('أكثر من 60 يوم',  data.totals.days_over_60,'error',           'bg-error-container',         'text-error',              'bg-error'),
     ] %}
-    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
-      <div>
+    <div class="relative overflow-hidden bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
         <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
-        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val | money }}</span></div>
+        <div class="w-9 h-9 rounded-lg {{ chip_bg }} {{ chip_text }} flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
+        </div>
       </div>
-      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center {{ tint }}">
-        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+      <div class="mt-space-sm">
+        <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ chip_text }} font-bold">{{ val | money }}</span>
+      </div>
+      <div class="mt-space-xs h-1 w-full bg-surface-container-low rounded-full overflow-hidden">
+        <div class="h-full {{ bar_bg }} w-full"></div>
       </div>
     </div>
     {% endfor %}
   </div>
 
+  {# ======================== AP AGING DETAIL TABLE ======================== #}
   <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low flex items-center justify-between flex-wrap gap-space-xs">
+      <div class="flex items-center gap-space-xs">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+        </div>
+        <div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل ديون الموردين حسب العمر</h3>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">{{ data.rows | length }} مورد مستحق الدفع</span>
+        </div>
+      </div>
+      <span class="px-space-xs py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant font-bold">AP-{{ as_of.strftime('%Y%m%d') }}</span>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-right">
         <thead>
           <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
             <th class="py-space-xs px-space-md">المورد</th>
-            <th class="py-space-xs px-space-md text-end">لم تحن</th>
+            <th class="py-space-xs px-space-md text-end">لم يحن</th>
             <th class="py-space-xs px-space-md text-end">0 - 30</th>
             <th class="py-space-xs px-space-md text-end">31 - 60</th>
             <th class="py-space-xs px-space-md text-end">60+</th>
