@@ -6,9 +6,9 @@
 
 {% macro nav_link(endpoint, label, icon, perm=None, badge_text=None, badge_class=None) -%}
   {% if perm is none or current_user.can(perm) %}
-    {% set is_active = request.endpoint and (request.endpoint == endpoint or request.endpoint.startswith(endpoint.split('.')[0] + '.')) %}
+    {% set is_active = request.endpoint == endpoint %}
     <a href="{{ url_for(endpoint) }}"
-       class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if is_active %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}"
+       class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if is_active %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}"
        {% if is_active %}aria-current="page"{% endif %}>
       <div class="flex items-center gap-space-xs">
         <span class="material-symbols-outlined text-[19px]">{{ icon }}</span>
@@ -87,21 +87,21 @@
       <nav class="space-y-space-3xs">
         <div class="px-space-xs py-space-3xs text-[10px] uppercase font-bold tracking-wider text-on-primary-container/70">العملاء والموردون</div>
         <a href="{{ url_for('parties.index', type_str='customer') }}"
-           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'customer' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'customer' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-[19px]">group</span>
             <span class="font-label-md text-label-md">العملاء</span>
           </div>
         </a>
         <a href="{{ url_for('parties.index', type_str='vendor') }}"
-           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'vendor' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'vendor' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-[19px]">local_shipping</span>
             <span class="font-label-md text-label-md">الموردون</span>
           </div>
         </a>
         <a href="{{ url_for('vendor_payments.index') }}"
-           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if request.endpoint and request.endpoint.startswith('vendor_payments.') %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if request.endpoint and request.endpoint.startswith('vendor_payments.') %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-[19px]">request_quote</span>
             <span class="font-label-md text-label-md">مدفوعات الموردين</span>
