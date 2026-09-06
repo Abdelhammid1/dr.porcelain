@@ -1,0 +1,64 @@
+{% extends "storefront/_base.html" %}
+{% block title %}الطلب {{ order.doc_number }}{% endblock %}
+
+{% set status_labels = {
+  'pending':    ('قيد المعالجة', 'muted'),
+  'processing': ('قيد التجهيز',  'info'),
+  'shipped':    ('تم الشحن',     'brand'),
+  'delivered':  ('تم التسليم',   'success'),
+  'cancelled':  ('ملغى',        'danger'),
+  'returned':   ('مرتجع',       'warning'),
+} %}
+{% set st = status_labels.get(order.status.value, (order.status.value, 'muted')) %}
+
+{% block content %}
+<div style="max-width:800px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 4px;">
+        طلب <span dir="ltr">{{ order.doc_number }}</span>
+      </h1>
+      <div style="color:var(--dp-ink-3);">
+        {{ order.order_date | hdate }}
+        {% if order.updated_at %} · آخر تحديث: {{ order.updated_at | hdate }}{% endif %}
+      </div>
+    </div>
+    <span class="badge badge-{{ st[1] }}" style="font-size:0.9rem; padding:6px 14px;">{{ st[0] }}</span>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-bold">بنود الطلب</div>
+    <table class="table mb-0">
+      <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th class="text-end">الإجمالي</th></tr></thead>
+      <tbody>
+        {% for l in order.lines %}
+        <tr>
+          <td>{{ l.product_name }}</td>
+          <td>{{ l.qty | qty }}</td>
+          <td>{{ l.unit_price | money }}</td>
+          <td class="text-end fw-bold">{{ l.line_total | money }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="fw-bold" style="background:#f8fafc;">
+          <td colspan="3" class="text-end">الإجمالي</td>
+          <td class="text-end" style="color:var(--dp-brand);">{{ order.total | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-header fw-bold">عنوان الشحن</div>
+    <div class="card-body">
+      <div><strong>{{ order.shipping_city or '' }}</strong></div>
+      <div style="white-space:pre-line;">{{ order.shipping_address }}</div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <a href="{{ url_for('storefront.track_order') }}" class="btn btn-light">
+      <i class="bi bi-arrow-right"></i> تتبع طلب آخر
+    </a>
+  </div>
+</div>
+{% endblock %}

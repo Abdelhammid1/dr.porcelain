@@ -1,7 +1,7 @@
 """Routes لإدارة الطلبات الأونلاين (admin)."""
 from __future__ import annotations
 
-from flask import abort, flash, redirect, render_template, request, url_for
+from flask import abort, flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 
@@ -52,6 +52,23 @@ def index():
 def view(order_id):
     order = db.session.get(Order, order_id) or abort(404)
     return render_template("orders/view.html", order=order)
+
+
+@orders_bp.route("/<int:order_id>/invoice.pdf", methods=["GET"])
+@login_required
+@require_permission("orders.view")
+def invoice_pdf(order_id):
+    """Ticket 4 Epic 4 — تحميل PDF للفاتورة من admin."""
+    import io
+    from app.services.invoice_pdf import order_invoice_pdf
+    order = db.session.get(Order, order_id) or abort(404)
+    data = order_invoice_pdf(order)
+    return send_file(
+        io.BytesIO(data),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"invoice_{order.doc_number}.pdf",
+    )
 
 
 @orders_bp.route("/<int:order_id>/status", methods=["POST"])

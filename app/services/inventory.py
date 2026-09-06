@@ -90,6 +90,15 @@ def record_purchase(
     )
     db.session.add(move)
     db.session.flush()
+
+    # Ticket 4 Epic 6 — لو الرصيد ارتفع من 0 لأكثر من 0، أطلق تنبيه توفر
+    if old_qty <= ZERO and new_qty > ZERO:
+        try:
+            from app.services.stock_alerts import notify_available
+            notify_available(v.id)
+        except Exception:
+            pass
+
     return move
 
 

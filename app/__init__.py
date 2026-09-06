@@ -51,6 +51,7 @@ def _register_blueprints(app: Flask) -> None:
     from app.blueprints.coupons import coupons_bp
     from app.blueprints.journal import journal_bp
     from app.blueprints.main import main_bp
+    from app.blueprints.notifications import notifications_bp
     from app.blueprints.parties import parties_bp
     from app.blueprints.settings import settings_bp
     from app.blueprints.users import users_bp
@@ -82,6 +83,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(settings_bp)
     app.register_blueprint(accounts_bp)
     app.register_blueprint(journal_bp)
+    app.register_blueprint(notifications_bp)
     app.register_blueprint(storefront_bp)
 
 

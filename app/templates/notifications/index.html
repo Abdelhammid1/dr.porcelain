@@ -1,0 +1,59 @@
+{% extends "layouts/app.html" %}
+{% block title %}الإشعارات{% endblock %}
+{% block page_title %}الإشعارات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>الإشعارات الداخلية</h1>
+    <div class="subtitle">{{ items|length }} إشعار.</div>
+  </div>
+  <form method="post" action="{{ url_for('notifications.mark_all') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-outline-secondary">
+      <i class="bi bi-check-all"></i> تعليم الكل كمقروء
+    </button>
+  </form>
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <a href="{{ url_for('notifications.index') }}"
+     class="btn btn-sm {% if not filter_type and not unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}">الكل</a>
+  <a href="{{ url_for('notifications.index', unread=1) }}"
+     class="btn btn-sm {% if unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}">غير مقروء</a>
+  {% for t in types %}
+  <a href="{{ url_for('notifications.index', type=t) }}"
+     class="btn btn-sm {% if filter_type == t %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ t }}</a>
+  {% endfor %}
+</div>
+
+<div class="list-group">
+  {% for n in items %}
+  <div class="list-group-item d-flex justify-content-between align-items-center
+              {% if not n.is_read %}list-group-item-warning{% endif %}">
+    <div>
+      <strong>{{ n.title }}</strong>
+      <small class="text-muted ms-2">{{ n.created_at | hdate }} · {{ n.notification_type }}</small>
+      {% if n.body %}<div class="small text-muted">{{ n.body }}</div>{% endif %}
+    </div>
+    <div class="d-flex gap-2">
+      {% if n.link %}
+      <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-eye"></i> فتح
+      </a>
+      {% endif %}
+      {% if not n.is_read %}
+      <form method="post" action="{{ url_for('notifications.mark_read', notif_id=n.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-check"></i>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="list-group-item text-center text-muted p-4">لا توجد إشعارات.</div>
+  {% endfor %}
+</div>
+{% endblock %}

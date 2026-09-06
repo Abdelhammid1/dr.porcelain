@@ -144,7 +144,9 @@
     {{ low_stock_alert(product.variants[0]) if product.variants else '' }}
     {% endif %}
 
-    <!-- Qty + add to cart -->
+    <!-- Qty + add to cart | OR back-in-stock (Ticket 4 Epic 6) -->
+    {% set dv2 = product.default_variant %}
+    {% if dv2 and dv2.stock_qty > 0 %}
     <form method="post" action="{{ url_for('storefront.cart_add') }}" id="add-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:end; margin-bottom:20px;">
@@ -158,6 +160,29 @@
         </button>
       </div>
     </form>
+    {% else %}
+    {# نفد المخزون — نعرض فورم "أعلمني لما يتوفر" #}
+    <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:12px;
+                padding:16px; margin-bottom:20px;">
+      <div style="font-weight:700; color:#92400e; margin-bottom:10px;">
+        <i class="bi bi-exclamation-triangle-fill"></i> المنتج غير متوفر حاليًا
+      </div>
+      <form method="post" action="{{ url_for('storefront.notify_when_available', product_id=product.id) }}"
+            class="d-flex gap-2 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="variant_id" value="{{ dv2.id if dv2 else '' }}">
+        <div style="flex:1;">
+          <label class="form-label small">إيميلك (لنُخبرك عند التوفر)</label>
+          <input type="email" name="email" class="form-control"
+                 value="{{ sf_current_customer.email if sf_current_customer and sf_current_customer.email else '' }}"
+                 required dir="ltr">
+        </div>
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-bell-fill"></i> أعلمني
+        </button>
+      </form>
+    </div>
+    {% endif %}
 
     <!-- Trust badges -->
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:20px;

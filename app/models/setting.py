@@ -248,6 +248,27 @@ SETTING_DEFAULTS: dict[str, dict] = {
         "label_ar": "طريقة تقييم المخزون (weighted_average / fifo)",
         "group_ar": "المخزون",
     },
+    # --- Ticket 4 Epic 1 — الإيميلات ---
+    "email.enabled": {
+        "value": "false", "dtype": "bool",
+        "label_ar": "تفعيل إرسال الإيميلات",
+        "group_ar": "الإشعارات (إيميل)",
+    },
+    "email.admin_notification_address": {
+        "value": "", "dtype": "str",
+        "label_ar": "إيميل الأدمن (يوصله تنبيه الطلبات الجديدة)",
+        "group_ar": "الإشعارات (إيميل)",
+    },
+    "email.from_address": {
+        "value": "", "dtype": "str",
+        "label_ar": "الإيميل المُرسل منه (from)",
+        "group_ar": "الإشعارات (إيميل)",
+    },
+    "email.api_key": {
+        "value": "", "dtype": "str",
+        "label_ar": "مفتاح API لخدمة الإرسال (Resend، إلخ)",
+        "group_ar": "الإشعارات (إيميل)",
+    },
 }
 
 

@@ -28,6 +28,9 @@ from app.models.pos import POSSession, SessionStatus  # noqa: F401
 from app.models.coupon import CouponUsage, DiscountCoupon, DiscountType  # noqa: F401
 from app.models.image import ProductImage  # noqa: F401
 from app.models.loyalty import LoyaltyPointsLedger, LoyaltyTxnType  # noqa: F401
+from app.models.notification import Notification  # noqa: F401
+from app.models.password_reset import PasswordResetToken  # noqa: F401
+from app.models.stock_alert import StockAlert  # noqa: F401
 from app.models.product import Product, ProductVariant  # noqa: F401
 from app.models.product_extras import ProductCompositionLine, ProductFeature  # noqa: F401
 from app.models.product_relation import ProductRelation, RelationType  # noqa: F401
@@ -92,6 +95,9 @@ __all__ = [
     "WishlistItem",
     "LoyaltyPointsLedger",
     "LoyaltyTxnType",
+    "Notification",
+    "PasswordResetToken",
+    "StockAlert",
     "InventoryMovement",
     "MovementType",
     "SalesInvoice",

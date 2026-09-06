@@ -27,6 +27,9 @@ from app.services.cart import (
     add_item, build_cart_view, clear as clear_cart, clear_coupon,
     get_coupon, items_count, remove_item, set_coupon, set_qty,
 )
+from app.services import password_reset as pwd_reset
+from app.services import stock_alerts as stock_alert_service
+from app.services.email import send_password_reset
 from app.services.customer_auth import (
     CustomerAuthError, current_customer, customer_required,
     login_customer, logout as customer_logout, register_customer,
@@ -525,6 +528,175 @@ def account_order_view(order_number):
         abort(403)
     return render_template("storefront/account_order_view.html",
                            customer=customer, order=order)
+
+
+# ============ Ticket 4 Epic 3 — إلغاء الطلب ذاتيًا ============
+
+@storefront_bp.route("/account/order/<order_number>/cancel", methods=["POST"])
+@customer_required
+def account_order_cancel(order_number):
+    from app.models.order import OrderStatus
+    from app.services.orders import OrderError, transition_status
+    from app.services.notifications import create as create_notification
+
+    customer = current_customer()
+    order = db.session.query(Order).filter_by(doc_number=order_number).first_or_404()
+    if order.customer_id != customer.id:
+        abort(403)
+
+    if order.status not in (OrderStatus.PENDING, OrderStatus.PROCESSING):
+        flash("لا يمكن إلغاء طلب تم شحنه. تواصل مع خدمة العملاء.", "warning")
+        return redirect(url_for("storefront.account_order_view",
+                                 order_number=order.doc_number))
+
+    try:
+        transition_status(order_id=order.id, new_status=OrderStatus.CANCELLED)
+        # إشعار داخلي للأدمن
+        try:
+            create_notification(
+                title=f"إلغاء عميل لطلب {order.doc_number}",
+                body=f"العميل {customer.name_ar} ألغى طلبه.",
+                link=f"/orders/{order.id}",
+                notification_type="order_cancelled",
+            )
+        except Exception:
+            pass
+        db.session.commit()
+        flash("تم إلغاء الطلب واسترجاع المخزون.", "success")
+    except OrderError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("storefront.account_order_view",
+                             order_number=order.doc_number))
+
+
+# ============ Ticket 4 Epic 4 — تحميل PDF للفاتورة ============
+
+@storefront_bp.route("/account/order/<order_number>/invoice.pdf", methods=["GET"])
+@customer_required
+def account_order_pdf(order_number):
+    from flask import send_file
+    from app.services.invoice_pdf import order_invoice_pdf
+    customer = current_customer()
+    order = db.session.query(Order).filter_by(doc_number=order_number).first_or_404()
+    if order.customer_id != customer.id:
+        abort(403)
+    data = order_invoice_pdf(order)
+    return send_file(
+        __import__("io").BytesIO(data),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"invoice_{order.doc_number}.pdf",
+    )
+
+
+# ============ Ticket 4 Epic 7 — تتبع الطلب كضيف ============
+
+@storefront_bp.route("/track-order", methods=["GET", "POST"])
+def track_order():
+    if request.method == "POST":
+        order_number = (request.form.get("order_number") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+        if not order_number or not phone:
+            flash("رقم الطلب ورقم الهاتف مطلوبان.", "warning")
+            return render_template("storefront/track_order.html")
+
+        order = db.session.query(Order).filter_by(doc_number=order_number).first()
+        # فحص الهاتف — يقارن مع guest_phone أو phone العميل المرتبط
+        matched = False
+        if order is not None:
+            actual_phone = order.guest_phone or (
+                order.customer.phone if order.customer else None
+            )
+            if actual_phone and actual_phone.strip() == phone:
+                matched = True
+        if not matched:
+            # رسالة عامة (منع تسريب)
+            flash("البيانات غير مطابقة. تأكد من رقم الطلب والهاتف.", "danger")
+            return render_template("storefront/track_order.html")
+
+        return render_template("storefront/track_order_result.html", order=order)
+
+    return render_template("storefront/track_order.html")
+
+
+# ============ Ticket 4 Epic 5 — نسيان كلمة المرور (عميل) ============
+
+@storefront_bp.route("/account/forgot-password", methods=["GET", "POST"])
+def account_forgot_password():
+    if request.method == "POST":
+        value = (request.form.get("phone_or_email") or "").strip()
+        try:
+            token = pwd_reset.request_customer_reset(value)
+            if token is not None and token.customer and token.customer.email:
+                try:
+                    reset_link = url_for("storefront.account_reset_password",
+                                          token=token.token, _external=True)
+                    send_password_reset(to_email=token.customer.email, reset_link=reset_link)
+                except Exception:
+                    pass
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
+        # رسالة موحّدة
+        flash("لو الحساب موجود، هيوصلك لينك استرجاع كلمة المرور.", "info")
+        return redirect(url_for("storefront.account_login"))
+    return render_template("storefront/account_forgot_password.html")
+
+
+@storefront_bp.route("/account/reset-password/<token>", methods=["GET", "POST"])
+def account_reset_password(token):
+    try:
+        tok = pwd_reset.validate_token(token)
+        if tok.user_id is not None:
+            raise pwd_reset.TokenError("رابط غير صالح.")
+    except pwd_reset.TokenError as e:
+        flash(str(e) + " اطلب لينك جديد.", "danger")
+        return redirect(url_for("storefront.account_forgot_password"))
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password") or ""
+        confirm = request.form.get("confirm") or ""
+        if new_password != confirm:
+            flash("كلمتا المرور لا تتطابقان.", "danger")
+            return render_template("storefront/account_reset_password.html", token=token)
+        try:
+            pwd_reset.consume_and_set_password(token, new_password)
+            db.session.commit()
+            flash("تم تحديث كلمة المرور. سجّل الدخول الآن.", "success")
+            return redirect(url_for("storefront.account_login"))
+        except pwd_reset.TokenError as e:
+            db.session.rollback()
+            flash(str(e), "danger")
+
+    return render_template("storefront/account_reset_password.html", token=token)
+
+
+# ============ Ticket 4 Epic 6 — أعلمني لما يتوفر ============
+
+@storefront_bp.route("/product/<int:product_id>/notify-when-available", methods=["POST"])
+def notify_when_available(product_id):
+    from app.models.product import ProductVariant
+    variant_id = request.form.get("variant_id", type=int)
+    email = (request.form.get("email") or "").strip()
+    customer = current_customer()
+    if customer and not email:
+        email = customer.email or ""
+
+    if not variant_id:
+        flash("اختر متغيرًا.", "warning")
+        return redirect(url_for("storefront.product", product_id=product_id))
+    try:
+        stock_alert_service.subscribe(
+            variant_id=variant_id, email=email,
+            customer_id=customer.id if customer else None,
+        )
+        db.session.commit()
+        flash("تم تسجيل تنبيهك — سنُخبرك عند توفر المنتج.", "success")
+    except stock_alert_service.AlertError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("storefront.product", product_id=product_id))
 
 
 @storefront_bp.route("/account/loyalty", methods=["GET"])

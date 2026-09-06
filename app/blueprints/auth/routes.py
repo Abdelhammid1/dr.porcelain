@@ -8,6 +8,8 @@ from app.blueprints.auth import auth_bp
 from app.blueprints.auth.forms import LoginForm
 from app.extensions import db
 from app.models.user import User
+from app.services import password_reset as pwd_reset
+from app.services.email import send_password_reset
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -45,3 +47,62 @@ def logout():
     logout_user()
     flash("تم تسجيل الخروج.", "info")
     return redirect(url_for("auth.login"))
+
+
+# ============ Ticket 4 Epic 5 — نسيان كلمة المرور ============
+
+# رسالة موحّدة تُعرَض في الحالتين (منع user enumeration)
+_UNIFIED_MESSAGE = (
+    "لو الإيميل ده مسجّل عندنا، هيوصلك لينك استرجاع كلمة المرور خلال دقائق."
+)
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip()
+        try:
+            token = pwd_reset.request_admin_reset(email)
+            if token is not None:
+                # ابعت الإيميل — فشله لا يوقف الرسالة الموحّدة
+                reset_link = url_for("auth.reset_password", token=token.token,
+                                     _external=True)
+                try:
+                    send_password_reset(to_email=email, reset_link=reset_link)
+                except Exception:
+                    pass
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
+        flash(_UNIFIED_MESSAGE, "info")
+        return redirect(url_for("auth.login"))
+    return render_template("auth/forgot_password.html")
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    try:
+        tok = pwd_reset.validate_token(token)
+        if tok.customer_id is not None:
+            # هذا token خاص بعميل، ما ينفعش هنا
+            raise pwd_reset.TokenError("رابط غير صالح.")
+    except pwd_reset.TokenError as e:
+        flash(str(e) + " اطلب لينك جديد.", "danger")
+        return redirect(url_for("auth.forgot_password"))
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password") or ""
+        confirm = request.form.get("confirm") or ""
+        if new_password != confirm:
+            flash("كلمتا المرور لا تتطابقان.", "danger")
+            return render_template("auth/reset_password.html", token=token)
+        try:
+            pwd_reset.consume_and_set_password(token, new_password)
+            db.session.commit()
+            flash("تم تحديث كلمة المرور. سجّل دخول الآن.", "success")
+            return redirect(url_for("auth.login"))
+        except pwd_reset.TokenError as e:
+            db.session.rollback()
+            flash(str(e), "danger")
+
+    return render_template("auth/reset_password.html", token=token)

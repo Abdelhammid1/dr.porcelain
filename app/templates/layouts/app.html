@@ -23,11 +23,45 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        {# Ticket 4 Epic 2 — جرس الإشعارات #}
+        <a href="{{ url_for('notifications.index') }}" class="btn-icon" title="الإشعارات"
+           id="notifBell" style="position:relative;">
+          <i class="bi bi-bell" style="font-size:1.15rem"></i>
+          <span id="notifBadge"
+                style="position:absolute; top:-4px; inset-inline-end:-4px; background:#dc2626;
+                       color:white; font-size:0.65rem; font-weight:700; min-width:18px; height:18px;
+                       border-radius:999px; padding:0 4px; display:none; place-items:center;
+                       border:2px solid white;"></span>
+        </a>
         <a href="{{ url_for('auth.logout') }}" class="btn-icon" title="تسجيل الخروج">
           <i class="bi bi-box-arrow-right"></i>
         </a>
       </div>
     </header>
+
+    <script>
+      // Ticket 4 Epic 2 — polling كل 30 ثانية لتحديث عداد الإشعارات
+      (function() {
+        const badge = document.getElementById('notifBadge');
+        if (!badge) return;
+        async function refresh() {
+          try {
+            const r = await fetch('{{ url_for("notifications.api_summary") }}');
+            if (!r.ok) return;
+            const data = await r.json();
+            const n = data.unread_count || 0;
+            if (n > 0) {
+              badge.textContent = n > 99 ? '99+' : n;
+              badge.style.display = 'grid';
+            } else {
+              badge.style.display = 'none';
+            }
+          } catch (e) { /* silent */ }
+        }
+        refresh();
+        setInterval(refresh, 30000);
+      })();
+    </script>
 
     <div class="app-content">
       {% block content %}{% endblock %}

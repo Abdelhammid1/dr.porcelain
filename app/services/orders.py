@@ -190,6 +190,29 @@ def create_order(
         ))
 
     db.session.flush()
+
+    # Ticket 4 Epic 2 — إشعار داخلي في الأدمن على طلب جديد
+    try:
+        from app.services.notifications import create as create_notification
+        create_notification(
+            title=f"طلب جديد {order.doc_number}",
+            body=f"من {order.customer_display_name} — {order.customer_phone} — إجمالي {order.total} ج.م",
+            link=f"/orders/{order.id}",
+            notification_type="new_order",
+        )
+    except Exception:
+        pass
+
+    # Ticket 4 Epic 1 — إيميل تأكيد للعميل + تنبيه للأدمن (fail-safe)
+    try:
+        from app.services.email import (
+            send_admin_new_order_alert, send_order_confirmation,
+        )
+        send_order_confirmation(order=order)
+        send_admin_new_order_alert(order=order)
+    except Exception:
+        pass
+
     return order
 
 

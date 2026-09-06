@@ -44,6 +44,28 @@
   <span class="badge badge-{{ st[1] }}" style="font-size:0.9rem; padding:6px 14px;">{{ st[0] }}</span>
 </div>
 
+<!-- Ticket 4 Epics 3 + 4 — أزرار إلغاء الطلب + تحميل PDF -->
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <a href="{{ url_for('storefront.account_order_pdf', order_number=order.doc_number) }}"
+     class="btn btn-outline-primary">
+    <i class="bi bi-download"></i> تحميل الفاتورة (PDF)
+  </a>
+  {% if order.status.value in ('pending', 'processing') %}
+  <form method="post" action="{{ url_for('storefront.account_order_cancel', order_number=order.doc_number) }}"
+        onsubmit="return confirm('تأكيد إلغاء الطلب؟ سيتم استرجاع المخزون.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-outline-danger">
+      <i class="bi bi-x-circle"></i> إلغاء الطلب
+    </button>
+  </form>
+  {% elif order.status.value in ('shipped', 'delivered') %}
+  <span class="text-muted small align-self-center">
+    <i class="bi bi-info-circle"></i>
+    الطلب في مرحلة الشحن — للإلغاء تواصل مع خدمة العملاء.
+  </span>
+  {% endif %}
+</div>
+
 <!-- Timeline (only for non-cancelled) -->
 {% if order.status.value not in ['cancelled', 'returned'] %}
 <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:24px; margin-bottom:20px;">
