@@ -1,183 +1,208 @@
 {% extends "layouts/app.html" %}
 {% block title %}فاتورة {{ invoice.doc_number }}{% endblock %}
-{% block page_title %}فاتورة شراء {{ invoice.doc_number }}{% endblock %}
 
-{% set status_labels = {
-  'posted': ('مرحّلة', 'success'),
-  'returned': ('مرتجعة كاملة', 'danger'),
-  'partial_returned': ('مرتجعة جزئيًا', 'warning'),
+{% set status_meta = {
+  'posted':           ('مرحّلة',       'bg-secondary-fixed text-on-secondary-fixed'),
+  'returned':         ('مرتجعة كاملة', 'bg-error-container text-on-error-container'),
+  'partial_returned': ('مرتجعة جزئيًا','bg-tertiary-fixed text-on-tertiary-fixed-variant'),
 } %}
-{% set st = status_labels.get(invoice.status.value, (invoice.status.value, 'muted')) %}
+{% set st = status_meta.get(invoice.status.value, (invoice.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
 {% set method_labels = {'cash':'نقدي فوري','bank':'بنك فوري','credit':'آجل بالكامل'} %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      فاتورة شراء <span dir="ltr">{{ invoice.doc_number }}</span>
-      <span class="badge-status {{ st[1] }} ms-2">{{ st[0] }}</span>
-    </h1>
-    <div class="subtitle">
-      {{ invoice.invoice_date | hdate }} · {{ invoice.vendor.name_ar }}
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold" dir="ltr">فاتورة شراء {{ invoice.doc_number }}</h1>
+        <span class="inline-flex items-center px-space-xs py-0.5 rounded-full {{ st[1] }} font-label-md text-label-md font-semibold">{{ st[0] }}</span>
+      </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        {{ invoice.invoice_date | hdate }} · {{ invoice.vendor.name_ar }}
+      </p>
     </div>
-  </div>
-  <div class="d-flex gap-2">
-    <button onclick="window.print()" class="btn btn-outline-primary">
-      <i class="bi bi-printer"></i> طباعة
-    </button>
-    {% if invoice.status.value != 'returned' and current_user.can("purchases.return") %}
-    <a href="{{ url_for('purchases.return_form', invoice_id=invoice.id) }}" class="btn btn-outline-warning">
-      <i class="bi bi-arrow-counterclockwise"></i> مرتجع
-    </a>
-    {% endif %}
-    {% if invoice.payment_method.value == 'credit' and current_user.can("vendor_payments.manage") %}
-      {% set existing_sched = invoice.returns|first if False else None %}
-      <a href="{{ url_for('vendor_payments.attach', invoice_id=invoice.id) }}" class="btn btn-outline-primary">
-        <i class="bi bi-calendar-plus"></i> جدول سداد
+    <div class="flex items-center gap-space-xs">
+      <button onclick="window.print()"
+              class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">print</span><span>طباعة</span>
+      </button>
+      {% if invoice.status.value != 'returned' and current_user.can("purchases.return") %}
+      <a href="{{ url_for('purchases.return_form', invoice_id=invoice.id) }}"
+         class="h-10 px-space-md bg-tertiary-fixed text-on-tertiary-fixed-variant hover:bg-tertiary-fixed-dim rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">undo</span><span>مرتجع</span>
       </a>
-    {% endif %}
-    <a href="{{ url_for('purchases.index') }}" class="btn btn-light">
-      <i class="bi bi-arrow-right"></i> رجوع
-    </a>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card">
-      <div class="card-header">البنود</div>
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead>
-            <tr>
-              <th>المنتج</th>
-              <th>SKU</th>
-              <th>الكمية</th>
-              <th>سعر التكلفة</th>
-              <th>المرتجع</th>
-              <th class="text-end">الإجمالي</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for line in invoice.lines %}
-            {% set returned = invoice.total_returned_qty_per_line.get(line.id, 0) %}
-            <tr>
-              <td>{{ line.product_name }}</td>
-              <td dir="ltr" class="small text-muted">{{ line.sku }}</td>
-              <td>{{ line.qty | qty }}</td>
-              <td>{{ line.unit_cost | money }}</td>
-              <td>{% if returned > 0 %}<span class="badge-status warning">{{ returned | qty }}</span>{% else %}—{% endif %}</td>
-              <td class="text-end fw-bold">{{ line.line_total | money }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      {% endif %}
+      {% if invoice.payment_method.value == 'credit' and current_user.can("vendor_payments.manage") %}
+      <a href="{{ url_for('vendor_payments.attach', invoice_id=invoice.id) }}"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">calendar_month</span><span>جدول سداد</span>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('purchases.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع</span>
+      </a>
     </div>
-
-    <div class="card mt-3">
-      <div class="card-header">القيود المحاسبية</div>
-      <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
-          <thead>
-            <tr>
-              <th>رقم القيد</th>
-              <th>البيان</th>
-              <th class="text-end">المدين</th>
-              <th class="text-end">الدائن</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for e in related_entries %}
-            <tr>
-              <td dir="ltr" class="fw-bold">{{ e.doc_number }}</td>
-              <td class="small">{{ e.memo }}</td>
-              <td class="text-end">{{ e.total_debit | money }}</td>
-              <td class="text-end">{{ e.total_credit | money }}</td>
-            </tr>
-            {% for line in e.lines %}
-            <tr class="table-light">
-              <td></td>
-              <td class="small">{{ line.account.code }} - {{ line.account.name_ar }}</td>
-              <td class="text-end small">{{ (line.debit if line.debit > 0 else '') | money if line.debit > 0 else '—' }}</td>
-              <td class="text-end small">{{ (line.credit if line.credit > 0 else '') | money if line.credit > 0 else '—' }}</td>
-            </tr>
-            {% endfor %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    {% if invoice.returns %}
-    <div class="card mt-3">
-      <div class="card-header">المرتجعات</div>
-      <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
-          <thead>
-            <tr>
-              <th>رقم المرتجع</th><th>التاريخ</th><th>النوع</th><th>السبب</th>
-              <th class="text-end">المسترد</th><th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in invoice.returns %}
-            <tr>
-              <td dir="ltr" class="fw-bold">{{ r.doc_number }}</td>
-              <td>{{ r.return_date | hdate }}</td>
-              <td>
-                {% if r.is_full_return %}<span class="badge-status danger">كامل</span>
-                {% else %}<span class="badge-status warning">جزئي</span>{% endif %}
-              </td>
-              <td>{{ r.reason }}</td>
-              <td class="text-end fw-bold">{{ r.refund_amount | money }}</td>
-              <td>
-                <a href="{{ url_for('purchases.return_view', return_id=r.id) }}"
-                   class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% endif %}
   </div>
 
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header">الملخّص</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
-          <dd class="col-6 text-end">{{ invoice.subtotal | money }}</dd>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2 space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[20px]">list_alt</span>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">البنود</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-md">المنتج</th>
+                <th class="py-space-xs px-space-md">SKU</th>
+                <th class="py-space-xs px-space-md">الكمية</th>
+                <th class="py-space-xs px-space-md">سعر التكلفة</th>
+                <th class="py-space-xs px-space-md">المرتجع</th>
+                <th class="py-space-xs px-space-md text-end">الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+              {% for line in invoice.lines %}
+              {% set returned = invoice.total_returned_qty_per_line.get(line.id, 0) %}
+              <tr>
+                <td class="py-space-xs px-space-md text-on-surface font-medium">{{ line.product_name }}</td>
+                <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ line.sku }}</td>
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.qty | qty }}</td>
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.unit_cost | money }}</td>
+                <td class="py-space-xs px-space-md">
+                  {% if returned > 0 %}
+                  <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold">{{ returned | qty }}</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold text-secondary">{{ line.line_total | money }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[20px]">menu_book</span>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">القيود المحاسبية</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-md">رقم القيد</th>
+                <th class="py-space-xs px-space-md">البيان</th>
+                <th class="py-space-xs px-space-md text-end">المدين</th>
+                <th class="py-space-xs px-space-md text-end">الدائن</th>
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+              {% for e in related_entries %}
+              <tr class="bg-surface-container-low/30">
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-bold" dir="ltr">{{ e.doc_number }}</td>
+                <td class="py-space-xs px-space-md text-on-surface">{{ e.memo }}</td>
+                <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold">{{ e.total_debit | money }}</td>
+                <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold">{{ e.total_credit | money }}</td>
+              </tr>
+              {% for line in e.lines %}
+              <tr class="text-[11px]">
+                <td class="py-space-2xs px-space-md"></td>
+                <td class="py-space-2xs px-space-md text-on-surface-variant" dir="ltr">{{ line.account.code }} — {{ line.account.name_ar }}</td>
+                <td class="py-space-2xs px-space-md text-end text-on-surface-variant">{% if line.debit > 0 %}{{ line.debit | money }}{% else %}—{% endif %}</td>
+                <td class="py-space-2xs px-space-md text-end text-on-surface-variant">{% if line.credit > 0 %}{{ line.credit | money }}{% else %}—{% endif %}</td>
+              </tr>
+              {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {% if invoice.returns %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]">assignment_return</span>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">المرتجعات</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-md">رقم المرتجع</th>
+                <th class="py-space-xs px-space-md">التاريخ</th>
+                <th class="py-space-xs px-space-md">النوع</th>
+                <th class="py-space-xs px-space-md">السبب</th>
+                <th class="py-space-xs px-space-md text-end">المسترد</th>
+                <th class="py-space-xs px-space-md text-left"></th>
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+              {% for r in invoice.returns %}
+              <tr class="hover:bg-surface-container-low/40 transition-colors">
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold" dir="ltr">{{ r.doc_number }}</td>
+                <td class="py-space-xs px-space-md text-on-surface-variant">{{ r.return_date | hdate }}</td>
+                <td class="py-space-xs px-space-md">
+                  {% if r.is_full_return %}
+                  <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">كامل</span>
+                  {% else %}
+                  <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold">جزئي</span>
+                  {% endif %}
+                </td>
+                <td class="py-space-xs px-space-md text-on-surface">{{ r.reason }}</td>
+                <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold text-error">{{ r.refund_amount | money }}</td>
+                <td class="py-space-xs px-space-md text-left">
+                  <a href="{{ url_for('purchases.return_view', return_id=r.id) }}"
+                     class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="عرض">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">الملخّص</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="flex justify-between">
+            <span class="text-on-surface-variant">الإجمالي الفرعي</span>
+            <span class="font-fiscal-numeric-md font-semibold">{{ invoice.subtotal | money }}</span>
+          </div>
           {% if invoice.freight > 0 %}
-          <dt class="col-6 text-muted">الشحن</dt>
-          <dd class="col-6 text-end">{{ invoice.freight | money }}</dd>
+          <div class="flex justify-between"><span class="text-on-surface-variant">الشحن</span><span class="font-fiscal-numeric-md">{{ invoice.freight | money }}</span></div>
           {% endif %}
           {% if invoice.discount_amount > 0 %}
-          <dt class="col-6 text-muted">الخصم</dt>
-          <dd class="col-6 text-end text-danger">- {{ invoice.discount_amount | money }}</dd>
+          <div class="flex justify-between text-error"><span>الخصم</span><span class="font-fiscal-numeric-md">- {{ invoice.discount_amount | money }}</span></div>
           {% endif %}
           {% if invoice.tax_amount > 0 %}
-          <dt class="col-6 text-muted">الضريبة ({{ invoice.tax_rate }}%)</dt>
-          <dd class="col-6 text-end">{{ invoice.tax_amount | money }}</dd>
+          <div class="flex justify-between"><span class="text-on-surface-variant">الضريبة ({{ invoice.tax_rate }}%)</span><span class="font-fiscal-numeric-md">{{ invoice.tax_amount | money }}</span></div>
           {% endif %}
-          <hr>
-          <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
-          <dd class="col-6 text-end fs-5 fw-bold">{{ invoice.total | money }}</dd>
-        </dl>
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الإجمالي</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ invoice.total | money }}</span>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="card mt-3">
-      <div class="card-body small text-muted">
-        <div>طريقة الدفع: <strong>{{ method_labels.get(invoice.payment_method.value, invoice.payment_method.value) }}</strong></div>
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md text-body-sm space-y-1 text-on-surface-variant">
+        <div class="flex justify-between"><span>طريقة الدفع</span><span class="font-semibold text-on-surface">{{ method_labels.get(invoice.payment_method.value, invoice.payment_method.value) }}</span></div>
         {% if invoice.bank_account %}
-        <div>البنك: {{ invoice.bank_account.code }} - {{ invoice.bank_account.name_ar }}</div>
+        <div class="flex justify-between"><span>البنك</span><span dir="ltr">{{ invoice.bank_account.code }} — {{ invoice.bank_account.name_ar }}</span></div>
         {% endif %}
-        {% if invoice.vendor_ref %}<div>مرجع المورد: <span dir="ltr">{{ invoice.vendor_ref }}</span></div>{% endif %}
-        <div>أنشأها: {{ invoice.created_by.full_name if invoice.created_by else "—" }}</div>
+        {% if invoice.vendor_ref %}
+        <div class="flex justify-between"><span>مرجع المورد</span><span dir="ltr">{{ invoice.vendor_ref }}</span></div>
+        {% endif %}
+        <div class="flex justify-between"><span>أنشأها</span><span>{{ invoice.created_by.full_name if invoice.created_by else "—" }}</span></div>
       </div>
     </div>
   </div>

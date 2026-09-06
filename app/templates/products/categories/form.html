@@ -1,48 +1,50 @@
 {% extends "layouts/app.html" %}
 {% block title %}{% if category %}تعديل تصنيف{% else %}تصنيف جديد{% endif %}{% endblock %}
-{% block page_title %}{% if category %}تعديل تصنيف{% else %}تصنيف جديد{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>{% if category %}تعديل: {{ category.name_ar }}{% else %}تصنيف جديد{% endif %}</h1>
-  <a href="{{ url_for('products.categories_index') }}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
-
-<div class="row">
-  <div class="col-lg-6">
-    <div class="card">
-      <form method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <div class="card-body">
-          <div class="mb-3">
-            {{ form.name_ar.label(class="form-label") }}
-            {{ form.name_ar(class="form-control form-control-lg") }}
-            {% for e in form.name_ar.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-          </div>
-          <div class="mb-3">
-            {{ form.parent_id.label(class="form-label") }}
-            {{ form.parent_id(class="form-select") }}
-            <div class="form-text">اختر "بدون" لتصنيف رئيسي.</div>
-          </div>
-          <div class="mb-3">
-            {{ form.display_order.label(class="form-label") }}
-            {{ form.display_order(class="form-control", style="max-width:150px") }}
-          </div>
-          {% if category %}
-          <div class="mb-3 form-check">
-            {{ form.is_active(class="form-check-input") }}
-            {{ form.is_active.label(class="form-check-label") }}
-          </div>
-          {% endif %}
-        </div>
-        <div class="card-footer d-flex justify-content-end gap-2">
-          <a href="{{ url_for('products.categories_index') }}" class="btn btn-light">إلغاء</a>
-          {{ form.submit(class="btn btn-primary") }}
-        </div>
-      </form>
-    </div>
+<div class="flex flex-col gap-space-lg max-w-2xl">
+  <div class="flex items-center justify-between">
+    <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+      {% if category %}تعديل: {{ category.name_ar }}{% else %}تصنيف جديد{% endif %}
+    </h1>
+    <a href="{{ url_for('products.categories_index') }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      <span>رجوع</span>
+    </a>
   </div>
+
+  <form method="post" novalidate class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm space-y-space-md">
+    {{ form.hidden_tag() }}
+    <div>
+      <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.name_ar.label.text }}</label>
+      {{ form.name_ar(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-body-md text-body-md") }}
+      {% for e in form.name_ar.errors %}<div class="text-error text-body-sm mt-1">{{ e }}</div>{% endfor %}
+    </div>
+    <div>
+      <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.parent_id.label.text }}</label>
+      {{ form.parent_id(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary") }}
+      <p class="text-[11px] text-on-surface-variant mt-1">اختر "بدون" لجعل التصنيف رئيسيًا.</p>
+    </div>
+    <div class="max-w-xs">
+      <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.display_order.label.text }}</label>
+      {{ form.display_order(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md") }}
+    </div>
+    {% if category %}
+    <label class="flex items-center gap-space-xs cursor-pointer">
+      {{ form.is_active(class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary") }}
+      <span class="font-label-md text-label-md text-on-surface">{{ form.is_active.label.text }}</span>
+    </label>
+    {% endif %}
+    <div class="flex justify-end gap-space-xs pt-space-md border-t border-surface-container-low">
+      <a href="{{ url_for('products.categories_index') }}"
+         class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</a>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        <span>حفظ</span>
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}

@@ -1,148 +1,138 @@
 {% extends "layouts/app.html" %}
 {% block title %}فاتورة شراء جديدة{% endblock %}
-{% block page_title %}فاتورة شراء جديدة{% endblock %}
 
 {% block content %}
-<form method="post" id="purchaseForm">
+<form method="post" id="purchaseForm" class="flex flex-col gap-space-lg">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-  <div class="page-header">
-    <h1>فاتورة شراء جديدة</h1>
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('purchases.index') }}" class="btn btn-light">إلغاء</a>
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check-lg"></i> حفظ الفاتورة
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">shopping_cart</span>
+        <span>فاتورة جديدة</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">فاتورة شراء جديدة</h1>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('purchases.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md">إلغاء</a>
+      <button type="submit"
+              class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">check</span><span>حفظ الفاتورة</span>
       </button>
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header">بيانات الفاتورة</div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">المورد *</label>
-              <div class="position-relative">
-                <input type="hidden" name="vendor_id" id="vendor_id" required>
-                <input type="text" id="vendorSearch" class="form-control form-control-lg"
-                       placeholder="ابحث بالاسم أو الهاتف..." autocomplete="off">
-                <div id="vendorResults" class="list-group position-absolute w-100 shadow-sm"
-                     style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">التاريخ</label>
-              <input type="date" name="invoice_date" class="form-control" value="{{ today }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">رقم فاتورة المورد</label>
-              <input type="text" name="vendor_ref" class="form-control" dir="ltr">
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">طريقة الدفع</label>
-              <select name="payment_method" id="paymentMethod" class="form-select" onchange="toggleBank()">
-                <option value="credit">آجل بالكامل</option>
-                <option value="cash">نقدي فوري</option>
-                <option value="bank">بنك فوري</option>
-              </select>
-            </div>
-            <div class="col-md-8" id="bankRow" style="display:none">
-              <label class="form-label">حساب البنك</label>
-              <select name="bank_account_id" class="form-select">
-                {% for b in bank_accounts %}
-                <option value="{{ b.id }}">{{ b.code }} - {{ b.name_ar }}</option>
-                {% else %}
-                <option value="">— لا يوجد حساب بنك مضاف —</option>
-                {% endfor %}
-              </select>
-            </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2 space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">بيانات الفاتورة</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+          <div class="md:col-span-3 relative">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">المورد *</label>
+            <input type="hidden" name="vendor_id" id="vendor_id" required>
+            <input type="text" id="vendorSearch" placeholder="ابحث بالاسم أو الهاتف..." autocomplete="off"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+            <div id="vendorResults" class="absolute w-full mt-1 bg-surface-container-lowest rounded-lg shadow-lg z-40 max-h-72 overflow-y-auto hidden"></div>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">التاريخ</label>
+            <input type="date" name="invoice_date" value="{{ today }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">رقم فاتورة المورد</label>
+            <input type="text" name="vendor_ref" dir="ltr"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">طريقة الدفع</label>
+            <select name="payment_method" id="paymentMethod" onchange="toggleBank()"
+                    class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              <option value="credit">آجل بالكامل</option>
+              <option value="cash">نقدي فوري</option>
+              <option value="bank">بنك فوري</option>
+            </select>
+          </div>
+          <div class="md:col-span-3 hidden" id="bankRow">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">حساب البنك</label>
+            <select name="bank_account_id"
+                    class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              {% for b in bank_accounts %}<option value="{{ b.id }}">{{ b.code }} — {{ b.name_ar }}</option>{% else %}<option value="">— لا يوجد حساب بنك مضاف —</option>{% endfor %}
+            </select>
           </div>
         </div>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>البنود</span>
-          <div class="position-relative" style="width:280px">
-            <input type="text" id="productSearch" class="form-control form-control-sm"
-                   placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off">
-            <div id="productResults" class="list-group position-absolute w-100 shadow-sm"
-                 style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <div class="p-space-md flex items-center justify-between gap-space-sm border-b border-surface-container-low">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">البنود</h3>
+          <div class="relative flex-1 max-w-md">
+            <input type="text" id="productSearch" placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off"
+                   class="h-9 w-full pr-9 pl-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary text-body-sm">
+            <span class="material-symbols-outlined absolute right-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+            <div id="productResults" class="absolute w-full mt-1 bg-surface-container-lowest rounded-lg shadow-lg z-40 max-h-72 overflow-y-auto hidden"></div>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0" id="linesTable">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right" id="linesTable">
             <thead>
-              <tr>
-                <th style="width:40%">المنتج</th>
-                <th style="width:15%">الكمية</th>
-                <th style="width:20%">سعر التكلفة</th>
-                <th style="width:20%" class="text-end">الإجمالي</th>
-                <th style="width:5%"></th>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-sm w-2/5">المنتج</th>
+                <th class="py-space-xs px-space-sm w-32">الكمية</th>
+                <th class="py-space-xs px-space-sm w-40">سعر التكلفة</th>
+                <th class="py-space-xs px-space-sm w-32 text-end">الإجمالي</th>
+                <th class="py-space-xs px-space-sm w-12"></th>
               </tr>
             </thead>
-            <tbody id="linesBody"></tbody>
+            <tbody id="linesBody" class="divide-y divide-surface-container-low font-body-sm text-body-sm"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-body">
-          <label class="form-label">ملاحظات</label>
-          <textarea name="notes" class="form-control" rows="2"></textarea>
-        </div>
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ملاحظات</label>
+        <textarea name="notes" rows="2"
+                  class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></textarea>
       </div>
     </div>
 
-    <div class="col-lg-4">
-      <div class="card" style="position:sticky; top:80px;">
-        <div class="card-header">الملخّص</div>
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
-            <dd class="col-6 text-end" id="sumSubtotal">0.000</dd>
-
-            <dt class="col-6 text-muted">الشحن</dt>
-            <dd class="col-6">
-              <input type="number" name="freight" id="freightInput" class="form-control form-control-sm text-end"
-                     step="0.001" min="0" value="0">
-            </dd>
-
-            <dt class="col-6 text-muted">الخصم المكتسب</dt>
-            <dd class="col-6">
-              <input type="number" name="discount_amount" id="discountInput" class="form-control form-control-sm text-end"
-                     step="0.001" min="0" value="0">
-            </dd>
-
-            {% if tax_enabled %}
-            <dt class="col-6 text-muted">الضريبة ({{ tax_rate }}%)</dt>
-            <dd class="col-6 text-end" id="sumTax">0.000</dd>
-            {% endif %}
-
-            <hr>
-            <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
-            <dd class="col-6 text-end fs-5 fw-bold" id="sumTotal">0.000</dd>
-          </dl>
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md sticky top-[86px]">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">الملخّص</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">الإجمالي الفرعي</span>
+            <span class="font-fiscal-numeric-md font-semibold" id="sumSubtotal">0.000</span>
+          </div>
+          <div class="flex justify-between items-center gap-space-xs">
+            <span class="text-on-surface-variant">الشحن</span>
+            <input type="number" name="freight" id="freightInput" step="0.001" min="0" value="0"
+                   class="w-32 h-9 px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary text-end font-fiscal-numeric-md">
+          </div>
+          <div class="flex justify-between items-center gap-space-xs">
+            <span class="text-on-surface-variant">الخصم المكتسب</span>
+            <input type="number" name="discount_amount" id="discountInput" step="0.001" min="0" value="0"
+                   class="w-32 h-9 px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary text-end font-fiscal-numeric-md">
+          </div>
+          {% if tax_enabled %}
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">الضريبة ({{ tax_rate }}%)</span>
+            <span class="font-fiscal-numeric-md font-semibold" id="sumTax">0.000</span>
+          </div>
+          {% endif %}
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الإجمالي</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold" id="sumTotal">0.000</span>
+          </div>
         </div>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-body small text-muted">
-          <ul class="mb-0 ps-3">
-            <li>القيد يعتمد على طريقة الدفع:
-              <ul class="mb-0">
-                <li>نقدي → دائن 1010</li>
-                <li>بنك → دائن حساب البنك المُختار</li>
-                <li>آجل → دائن حساب المورد</li>
-              </ul>
-            </li>
-            <li>الشحن يُضاف على تكلفة المخزون.</li>
-            <li>الخصم يُقيَّد كإيراد مكتسب (5120).</li>
-          </ul>
-        </div>
+      <div class="bg-secondary-fixed text-on-secondary-fixed rounded-xl p-space-md text-body-sm space-y-1">
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>القيد يعتمد على طريقة الدفع (نقدي/بنك/آجل).</span></div>
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الشحن يُضاف على تكلفة المخزون.</span></div>
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الخصم يُقيَّد كإيراد مكتسب (5120).</span></div>
       </div>
     </div>
   </div>
@@ -155,88 +145,84 @@
   const vendorSearch = document.getElementById('vendorSearch');
   const vendorResults = document.getElementById('vendorResults');
   let vendorDebounce;
-
   vendorSearch.addEventListener('input', () => {
     clearTimeout(vendorDebounce);
     document.getElementById('vendor_id').value = '';
     const q = vendorSearch.value.trim();
-    if (!q) { vendorResults.innerHTML = ''; return; }
+    if (!q) { vendorResults.classList.add('hidden'); return; }
     vendorDebounce = setTimeout(async () => {
-      const r = await fetch(`/parties/api/search?type=vendor&q=${encodeURIComponent(q)}`);
-      const data = await r.json();
-      vendorResults.innerHTML = data.map(p => `
-        <button type="button" class="list-group-item list-group-item-action text-start"
-                data-id="${p.id}" data-name="${p.name_ar}">
-          <strong>${p.name_ar}</strong>
-          <span class="text-muted small ms-2" dir="ltr">${p.code}</span>
-          ${p.phone ? `<span class="text-muted small ms-2" dir="ltr">${p.phone}</span>` : ''}
-        </button>
-      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
-      vendorResults.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-          document.getElementById('vendor_id').value = b.dataset.id;
-          vendorSearch.value = b.dataset.name;
-          vendorResults.innerHTML = '';
+      try {
+        const r = await fetch(`/parties/api/search?type=vendor&q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        vendorResults.innerHTML = data.length ? data.map(p => `
+          <button type="button" class="w-full p-space-sm text-right hover:bg-surface-container-low border-b border-surface-container-low last:border-0"
+                  data-id="${p.id}" data-name="${p.name_ar}">
+            <div class="font-semibold text-on-surface">${p.name_ar}</div>
+            <div class="text-[11px] text-on-surface-variant" dir="ltr">${p.code}${p.phone ? ' · '+p.phone : ''}</div>
+          </button>
+        `).join('') : '<div class="p-space-sm text-on-surface-variant text-body-sm">لا نتائج</div>';
+        vendorResults.querySelectorAll('button').forEach(b => {
+          b.addEventListener('click', () => {
+            document.getElementById('vendor_id').value = b.dataset.id;
+            vendorSearch.value = b.dataset.name;
+            vendorResults.classList.add('hidden');
+          });
         });
-      });
+        vendorResults.classList.remove('hidden');
+      } catch (e) { /* silent */ }
     }, 250);
   });
 
   const productSearch = document.getElementById('productSearch');
   const productResults = document.getElementById('productResults');
   let productDebounce;
-
   productSearch.addEventListener('input', () => {
     clearTimeout(productDebounce);
     const q = productSearch.value.trim();
-    if (!q) { productResults.innerHTML = ''; return; }
+    if (!q) { productResults.classList.add('hidden'); return; }
     productDebounce = setTimeout(async () => {
-      const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
-      const data = await r.json();
-      productResults.innerHTML = data.map(v => `
-        <button type="button" class="list-group-item list-group-item-action text-start"
-                data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
-          <strong>${v.name}</strong>
-          <div class="small text-muted" dir="ltr">SKU: ${v.sku} — الرصيد: ${v.stock}</div>
-        </button>
-      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
-      productResults.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-          const v = JSON.parse(b.dataset.payload);
-          addLine(v);
-          productSearch.value = '';
-          productResults.innerHTML = '';
-          productSearch.focus();
+      try {
+        const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        productResults.innerHTML = data.length ? data.map(v => `
+          <button type="button" class="w-full p-space-sm text-right hover:bg-surface-container-low border-b border-surface-container-low last:border-0"
+                  data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
+            <div class="font-semibold text-on-surface">${v.name}</div>
+            <div class="text-[11px] text-on-surface-variant" dir="ltr">SKU: ${v.sku} — الرصيد: ${v.stock}</div>
+          </button>
+        `).join('') : '<div class="p-space-sm text-on-surface-variant text-body-sm">لا نتائج</div>';
+        productResults.querySelectorAll('button').forEach(b => {
+          b.addEventListener('click', () => {
+            addLine(JSON.parse(b.dataset.payload));
+            productSearch.value = '';
+            productResults.classList.add('hidden');
+            productSearch.focus();
+          });
         });
-      });
+        productResults.classList.remove('hidden');
+      } catch (e) { /* silent */ }
     }, 250);
   });
 
   document.addEventListener('click', (e) => {
-    if (!vendorSearch.contains(e.target) && !vendorResults.contains(e.target)) vendorResults.innerHTML = '';
-    if (!productSearch.contains(e.target) && !productResults.contains(e.target)) productResults.innerHTML = '';
+    if (!vendorSearch.contains(e.target) && !vendorResults.contains(e.target)) vendorResults.classList.add('hidden');
+    if (!productSearch.contains(e.target) && !productResults.contains(e.target)) productResults.classList.add('hidden');
   });
 
   function addLine(v) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>
+      <td class="py-space-xs px-space-sm">
         <input type="hidden" name="line_variant_id[]" value="${v.id}">
-        <div class="fw-semibold">${v.name}</div>
-        <div class="small text-muted" dir="ltr">SKU: ${v.sku}</div>
+        <div class="font-semibold text-on-surface">${v.name}</div>
+        <div class="text-[11px] text-on-surface-variant" dir="ltr">SKU: ${v.sku}</div>
       </td>
-      <td>
-        <input type="number" name="line_qty[]" class="form-control form-control-sm line-qty"
-               step="0.001" min="0.001" value="1">
-      </td>
-      <td>
-        <input type="number" name="line_cost[]" class="form-control form-control-sm line-cost"
-               step="0.001" min="0" value="0" placeholder="أدخل سعر التكلفة">
-      </td>
-      <td class="text-end fw-bold line-total">0.000</td>
-      <td>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove(); recalc();">
-          <i class="bi bi-x"></i>
+      <td class="py-space-xs px-space-sm"><input type="number" name="line_qty[]" step="0.001" min="0.001" value="1" class="line-qty h-8 w-full px-space-xs rounded-md bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="py-space-xs px-space-sm"><input type="number" name="line_cost[]" step="0.001" min="0" value="0" placeholder="أدخل سعر التكلفة" class="line-cost h-8 w-full px-space-xs rounded-md bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="py-space-xs px-space-sm text-end font-bold line-total font-fiscal-numeric-md">0.000</td>
+      <td class="py-space-xs px-space-sm">
+        <button type="button" onclick="this.closest('tr').remove(); recalc();" class="h-8 w-8 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
       </td>
     `;
@@ -258,30 +244,23 @@
     const freight = parseFloat(document.getElementById('freightInput').value) || 0;
     const net = Math.max(0, subtotal - discount + freight);
     const tax = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
-    const total = net + tax;
     document.getElementById('sumSubtotal').textContent = subtotal.toFixed(3);
     if (TAX_ENABLED) document.getElementById('sumTax').textContent = tax.toFixed(3);
-    document.getElementById('sumTotal').textContent = total.toFixed(3);
+    document.getElementById('sumTotal').textContent = (net + tax).toFixed(3);
   }
-
   document.getElementById('discountInput').addEventListener('input', recalc);
   document.getElementById('freightInput').addEventListener('input', recalc);
 
   function toggleBank() {
     const val = document.getElementById('paymentMethod').value;
-    document.getElementById('bankRow').style.display = (val === 'bank') ? '' : 'none';
+    const row = document.getElementById('bankRow');
+    if (val === 'bank') row.classList.remove('hidden');
+    else row.classList.add('hidden');
   }
 
   document.getElementById('purchaseForm').addEventListener('submit', (e) => {
-    if (!document.getElementById('vendor_id').value) {
-      e.preventDefault();
-      alert('اختر موردًا.');
-      return;
-    }
-    if (!document.querySelectorAll('#linesBody tr').length) {
-      e.preventDefault();
-      alert('أضف بندًا واحدًا على الأقل.');
-    }
+    if (!document.getElementById('vendor_id').value) { e.preventDefault(); alert('اختر موردًا.'); return; }
+    if (!document.querySelectorAll('#linesBody tr').length) { e.preventDefault(); alert('أضف بندًا واحدًا على الأقل.'); }
   });
 </script>
 {% endblock %}

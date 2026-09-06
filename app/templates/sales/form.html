@@ -1,139 +1,129 @@
 {% extends "layouts/app.html" %}
 {% block title %}فاتورة بيع جديدة{% endblock %}
-{% block page_title %}فاتورة بيع جديدة{% endblock %}
 
 {% block content %}
-<form method="post" id="invoiceForm" novalidate>
+<form method="post" id="invoiceForm" novalidate class="flex flex-col gap-space-lg">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-  <div class="page-header">
-    <h1>فاتورة بيع جديدة</h1>
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('sales.index') }}" class="btn btn-light">إلغاء</a>
-      <button type="submit" class="btn btn-primary" id="saveBtn">
-        <i class="bi bi-check-lg"></i> حفظ الفاتورة
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+        <span>فاتورة جديدة</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">فاتورة بيع جديدة</h1>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('sales.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md">إلغاء</a>
+      <button type="submit"
+              class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">check</span>
+        <span>حفظ الفاتورة</span>
       </button>
     </div>
   </div>
 
-  <div class="row g-3">
-    <!-- بيانات الفاتورة -->
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header">بيانات الفاتورة</div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">العميل *</label>
-              <div class="position-relative">
-                <input type="hidden" name="customer_id" id="customer_id" required>
-                <input type="text" id="customerSearch" class="form-control form-control-lg"
-                       placeholder="ابحث بالاسم أو الهاتف أو الكود..." autocomplete="off">
-                <div id="customerResults" class="list-group position-absolute w-100 shadow-sm"
-                     style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
-              </div>
-              <div class="form-text" id="customerHint">مطلوب — اختر عميل موجود.</div>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">التاريخ</label>
-              <input type="date" name="invoice_date" class="form-control" value="{{ today }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">طريقة الدفع</label>
-              <select name="payment_method" class="form-select">
-                <option value="cash" selected>نقدي</option>
-                <option value="bank">بنك</option>
-              </select>
-            </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2 space-y-space-md">
+      {# Invoice metadata #}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">بيانات الفاتورة</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          <div class="md:col-span-2 relative">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">العميل *</label>
+            <input type="hidden" name="customer_id" id="customer_id" required>
+            <input type="text" id="customerSearch" placeholder="ابحث بالاسم أو الهاتف أو الكود..." autocomplete="off"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+            <div id="customerResults" class="absolute w-full mt-1 bg-surface-container-lowest rounded-lg shadow-lg z-40 max-h-72 overflow-y-auto hidden"></div>
+            <p class="text-[11px] mt-1" id="customerHint">مطلوب — اختر عميل موجود.</p>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">التاريخ</label>
+            <input type="date" name="invoice_date" value="{{ today }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">طريقة الدفع</label>
+            <select name="payment_method" class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              <option value="cash" selected>نقدي</option>
+              <option value="bank">بنك</option>
+              <option value="on_credit">آجل (بدون تحصيل)</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- البنود -->
-      <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>البنود</span>
-          <div class="d-flex gap-2 align-items-center">
-            <div class="position-relative" style="width:280px">
-              <input type="text" id="productSearch" class="form-control form-control-sm"
-                     placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off">
-              <div id="productResults" class="list-group position-absolute w-100 shadow-sm"
-                   style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEmptyLine()">
-              <i class="bi bi-plus"></i> صف يدوي
-            </button>
+      {# Lines #}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <div class="p-space-md flex items-center justify-between gap-space-sm border-b border-surface-container-low">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">البنود</h3>
+          <div class="relative flex-1 max-w-md">
+            <input type="text" id="productSearch" placeholder="بحث سريع (اسم / SKU / باركود)..." autocomplete="off"
+                   class="h-9 w-full pr-9 pl-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary text-body-sm">
+            <span class="material-symbols-outlined absolute right-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+            <div id="productResults" class="absolute w-full mt-1 bg-surface-container-lowest rounded-lg shadow-lg z-40 max-h-72 overflow-y-auto hidden"></div>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0" id="linesTable">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right" id="linesTable">
             <thead>
-              <tr>
-                <th style="width:35%">المنتج</th>
-                <th style="width:15%">السعر</th>
-                <th style="width:15%">الكمية</th>
-                <th style="width:10%">المتاح</th>
-                <th style="width:15%" class="text-end">الإجمالي</th>
-                <th style="width:5%"></th>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-sm w-2/5">المنتج</th>
+                <th class="py-space-xs px-space-sm w-32">السعر</th>
+                <th class="py-space-xs px-space-sm w-32">الكمية</th>
+                <th class="py-space-xs px-space-sm w-24">المتاح</th>
+                <th class="py-space-xs px-space-sm w-32 text-end">الإجمالي</th>
+                <th class="py-space-xs px-space-sm w-12"></th>
               </tr>
             </thead>
-            <tbody id="linesBody">
-              <!-- الصفوف تُضاف ديناميكيًا -->
-            </tbody>
+            <tbody id="linesBody" class="divide-y divide-surface-container-low font-body-sm text-body-sm"></tbody>
           </table>
         </div>
-        <div id="noLinesHint" class="empty-state">
-          <div class="icon"><i class="bi bi-arrow-up"></i></div>
-          <p class="mb-0">ابحث عن منتج في الأعلى لإضافته</p>
+        <div id="noLinesHint" class="p-space-3xl text-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[32px] block mb-space-xs">search</span>
+          ابحث عن منتج في الأعلى لإضافته
         </div>
       </div>
 
-      <!-- ملاحظات -->
-      <div class="card mt-3">
-        <div class="card-body">
-          <label class="form-label">ملاحظات</label>
-          <textarea name="notes" class="form-control" rows="2"></textarea>
-        </div>
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ملاحظات</label>
+        <textarea name="notes" rows="2"
+                  class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></textarea>
       </div>
     </div>
 
-    <!-- الملخّص -->
-    <div class="col-lg-4">
-      <div class="card" style="position:sticky; top:80px;">
-        <div class="card-header">الملخّص</div>
-        <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-6 text-muted">الإجمالي الفرعي</dt>
-            <dd class="col-6 text-end" id="sumSubtotal">0.000</dd>
-
-            <dt class="col-6 text-muted d-flex align-items-center">
-              الخصم
-            </dt>
-            <dd class="col-6">
-              <input type="number" name="discount_amount" id="discountInput"
-                     class="form-control form-control-sm text-end" step="0.001" min="0" value="0">
-            </dd>
-
-            {% if tax_enabled %}
-            <dt class="col-6 text-muted">الضريبة ({{ tax_rate }}%)</dt>
-            <dd class="col-6 text-end" id="sumTax">0.000</dd>
-            {% endif %}
-
-            <hr>
-            <dt class="col-6 fs-5 fw-bold">الإجمالي</dt>
-            <dd class="col-6 text-end fs-5 fw-bold" id="sumTotal">0.000</dd>
-          </dl>
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md sticky top-[86px]">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">الملخّص</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">الإجمالي الفرعي</span>
+            <span class="font-fiscal-numeric-md font-semibold" id="sumSubtotal">0.000</span>
+          </div>
+          <div class="flex justify-between items-center gap-space-xs">
+            <span class="text-on-surface-variant">الخصم</span>
+            <input type="number" name="discount_amount" id="discountInput" step="0.001" min="0" value="0"
+                   class="w-32 h-9 px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary text-end font-fiscal-numeric-md">
+          </div>
+          {% if tax_enabled %}
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">الضريبة ({{ tax_rate }}%)</span>
+            <span class="font-fiscal-numeric-md font-semibold" id="sumTax">0.000</span>
+          </div>
+          {% endif %}
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الإجمالي</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold" id="sumTotal">0.000</span>
+          </div>
         </div>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-body small text-muted">
-          <ul class="mb-0 ps-3">
-            <li>الحفظ يُنشِئ 3 قيود تلقائيًا (بيع + تحصيل + COGS).</li>
-            <li>يُخصم من المخزون فوريًا.</li>
-            <li>لا يمكن حذف الفاتورة بعد الحفظ — استخدم المرتجع.</li>
-          </ul>
-        </div>
+      <div class="bg-secondary-fixed text-on-secondary-fixed rounded-xl p-space-md text-body-sm space-y-1">
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الحفظ يُنشِئ 3 قيود تلقائيًا (بيع + تحصيل + COGS).</span></div>
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>يُخصم من المخزون فوريًا.</span></div>
+        <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>لا يمكن حذف الفاتورة — استخدم المرتجع.</span></div>
       </div>
     </div>
   </div>
@@ -144,7 +134,6 @@
   const TAX_RATE = parseFloat("{{ tax_rate }}") || 0;
   let lineIdx = 0;
 
-  // ---------- بحث العميل ----------
   const customerSearch = document.getElementById('customerSearch');
   const customerResults = document.getElementById('customerResults');
   const customerHint = document.getElementById('customerHint');
@@ -154,37 +143,41 @@
     clearTimeout(customerDebounce);
     document.getElementById('customer_id').value = '';
     const q = customerSearch.value.trim();
-    if (!q) { customerResults.innerHTML = ''; return; }
+    if (!q) { customerResults.classList.add('hidden'); return; }
     customerDebounce = setTimeout(async () => {
-      const r = await fetch(`/parties/api/search?type=customer&q=${encodeURIComponent(q)}`);
-      const data = await r.json();
-      customerResults.innerHTML = data.map(p => `
-        <button type="button" class="list-group-item list-group-item-action text-start"
-                data-id="${p.id}" data-name="${p.name_ar}">
-          <strong>${p.name_ar}</strong>
-          <span class="text-muted small ms-2" dir="ltr">${p.code}</span>
-          ${p.phone ? `<span class="text-muted small ms-2" dir="ltr">${p.phone}</span>` : ''}
-        </button>
-      `).join('') || '<div class="list-group-item text-muted">لا نتائج — أنشئ عميلًا جديدًا أولاً.</div>';
-      customerResults.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-          document.getElementById('customer_id').value = b.dataset.id;
-          customerSearch.value = b.dataset.name;
-          customerResults.innerHTML = '';
-          customerHint.textContent = '✓ محدد';
-          customerHint.classList.add('text-success');
-        });
-      });
+      try {
+        const r = await fetch(`/parties/api/search?type=customer&q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        if (!data.length) {
+          customerResults.innerHTML = '<div class="p-space-sm text-on-surface-variant text-body-sm">لا نتائج — أنشئ عميلًا جديدًا أولاً.</div>';
+        } else {
+          customerResults.innerHTML = data.map(p => `
+            <button type="button" class="w-full p-space-sm text-right hover:bg-surface-container-low border-b border-surface-container-low last:border-0"
+                    data-id="${p.id}" data-name="${p.name_ar}">
+              <div class="font-semibold text-on-surface">${p.name_ar}</div>
+              <div class="text-[11px] text-on-surface-variant" dir="ltr">${p.code}${p.phone ? ' · '+p.phone : ''}</div>
+            </button>
+          `).join('');
+          customerResults.querySelectorAll('button').forEach(b => {
+            b.addEventListener('click', () => {
+              document.getElementById('customer_id').value = b.dataset.id;
+              customerSearch.value = b.dataset.name;
+              customerResults.classList.add('hidden');
+              customerHint.textContent = '✓ محدد';
+              customerHint.className = 'text-[11px] mt-1 text-secondary font-semibold';
+            });
+          });
+        }
+        customerResults.classList.remove('hidden');
+      } catch (e) { /* silent */ }
     }, 250);
   });
-
   document.addEventListener('click', (e) => {
     if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
-      customerResults.innerHTML = '';
+      customerResults.classList.add('hidden');
     }
   });
 
-  // ---------- بحث المنتج ----------
   const productSearch = document.getElementById('productSearch');
   const productResults = document.getElementById('productResults');
   let productDebounce;
@@ -192,78 +185,70 @@
   productSearch.addEventListener('input', () => {
     clearTimeout(productDebounce);
     const q = productSearch.value.trim();
-    if (!q) { productResults.innerHTML = ''; return; }
+    if (!q) { productResults.classList.add('hidden'); return; }
     productDebounce = setTimeout(async () => {
-      const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
-      const data = await r.json();
-      productResults.innerHTML = data.map(v => `
-        <button type="button" class="list-group-item list-group-item-action text-start"
-                data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
-          <strong>${v.name}</strong>
-          <div class="small text-muted" dir="ltr">
-            SKU: ${v.sku} — السعر: ${v.price} — الرصيد: ${v.stock}
-          </div>
-        </button>
-      `).join('') || '<div class="list-group-item text-muted">لا نتائج</div>';
-      productResults.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-          const v = JSON.parse(b.dataset.payload);
-          addLine(v);
-          productSearch.value = '';
-          productResults.innerHTML = '';
-          productSearch.focus();
-        });
-      });
+      try {
+        const r = await fetch(`/products/api/search?q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        if (!data.length) {
+          productResults.innerHTML = '<div class="p-space-sm text-on-surface-variant text-body-sm">لا نتائج</div>';
+        } else {
+          productResults.innerHTML = data.map(v => `
+            <button type="button" class="w-full p-space-sm text-right hover:bg-surface-container-low border-b border-surface-container-low last:border-0"
+                    data-payload='${JSON.stringify(v).replace(/'/g, '&#39;')}'>
+              <div class="font-semibold text-on-surface">${v.name}</div>
+              <div class="text-[11px] text-on-surface-variant" dir="ltr">SKU: ${v.sku} — السعر: ${v.price} — الرصيد: ${v.stock}</div>
+            </button>
+          `).join('');
+          productResults.querySelectorAll('button').forEach(b => {
+            b.addEventListener('click', () => {
+              addLine(JSON.parse(b.dataset.payload));
+              productSearch.value = '';
+              productResults.classList.add('hidden');
+              productSearch.focus();
+            });
+          });
+        }
+        productResults.classList.remove('hidden');
+      } catch (e) { /* silent */ }
     }, 250);
   });
-
   document.addEventListener('click', (e) => {
     if (!productSearch.contains(e.target) && !productResults.contains(e.target)) {
-      productResults.innerHTML = '';
+      productResults.classList.add('hidden');
     }
   });
 
-  // ---------- إضافة سطر ----------
   function addLine(variant) {
     document.getElementById('noLinesHint').style.display = 'none';
-    const idx = lineIdx++;
     const tr = document.createElement('tr');
-    tr.dataset.stock = variant.stock;
     tr.innerHTML = `
-      <td>
+      <td class="py-space-xs px-space-sm">
         <input type="hidden" name="line_variant_id[]" value="${variant.id}">
-        <div class="fw-semibold">${variant.name}</div>
-        <div class="small text-muted" dir="ltr">SKU: ${variant.sku}</div>
+        <div class="font-semibold text-on-surface">${variant.name}</div>
+        <div class="text-[11px] text-on-surface-variant" dir="ltr">SKU: ${variant.sku}</div>
       </td>
-      <td>
-        <input type="number" name="line_price[]" class="form-control form-control-sm line-price"
-               step="0.001" min="0" value="${variant.price}">
+      <td class="py-space-xs px-space-sm">
+        <input type="number" name="line_price[]" step="0.001" min="0" value="${variant.price}"
+               class="line-price h-8 w-full px-space-xs rounded-md bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
       </td>
-      <td>
-        <input type="number" name="line_qty[]" class="form-control form-control-sm line-qty"
-               step="0.001" min="0.001" max="${variant.stock}" value="1" required>
+      <td class="py-space-xs px-space-sm">
+        <input type="number" name="line_qty[]" step="0.001" min="0.001" max="${variant.stock}" value="1" required
+               class="line-qty h-8 w-full px-space-xs rounded-md bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
       </td>
-      <td class="text-muted small">${variant.stock}</td>
-      <td class="text-end fw-bold line-total">0.000</td>
-      <td>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove(); recalc();">
-          <i class="bi bi-x"></i>
+      <td class="py-space-xs px-space-sm text-on-surface-variant text-[11px]">${variant.stock}</td>
+      <td class="py-space-xs px-space-sm text-end font-bold line-total font-fiscal-numeric-md">0.000</td>
+      <td class="py-space-xs px-space-sm">
+        <button type="button" onclick="this.closest('tr').remove(); recalc();" class="h-8 w-8 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
       </td>
     `;
     document.getElementById('linesBody').appendChild(tr);
-    tr.querySelectorAll('.line-price, .line-qty').forEach(inp => {
-      inp.addEventListener('input', recalc);
-    });
+    tr.querySelectorAll('.line-price, .line-qty').forEach(inp => inp.addEventListener('input', recalc));
     recalc();
   }
 
-  function addEmptyLine() {
-    // نُلاحظ: صف يدوي يحتاج تحديد variant عبر البحث (يمكن توسيع لاحقًا)
-    alert('استخدم البحث في الأعلى لإضافة منتج.');
-  }
-
-  // ---------- حساب الإجماليات ----------
   function recalc() {
     let subtotal = 0;
     document.querySelectorAll('#linesBody tr').forEach(tr => {
@@ -276,25 +261,18 @@
     const discount = parseFloat(document.getElementById('discountInput').value) || 0;
     const net = Math.max(0, subtotal - discount);
     const tax = TAX_ENABLED ? net * (TAX_RATE / 100) : 0;
-    const total = net + tax;
     document.getElementById('sumSubtotal').textContent = subtotal.toFixed(3);
     if (TAX_ENABLED) document.getElementById('sumTax').textContent = tax.toFixed(3);
-    document.getElementById('sumTotal').textContent = total.toFixed(3);
+    document.getElementById('sumTotal').textContent = (net + tax).toFixed(3);
   }
-
   document.getElementById('discountInput').addEventListener('input', recalc);
 
-  // ---------- التحقق قبل الحفظ ----------
   document.getElementById('invoiceForm').addEventListener('submit', (e) => {
     if (!document.getElementById('customer_id').value) {
-      e.preventDefault();
-      alert('اختر عميلًا أولاً.');
-      return;
+      e.preventDefault(); alert('اختر عميلًا أولاً.'); return;
     }
     if (!document.querySelectorAll('#linesBody tr').length) {
-      e.preventDefault();
-      alert('أضف بندًا واحدًا على الأقل.');
-      return;
+      e.preventDefault(); alert('أضف بندًا واحدًا على الأقل.'); return;
     }
   });
 </script>

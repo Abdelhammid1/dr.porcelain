@@ -1,231 +1,232 @@
 {% extends "layouts/app.html" %}
 {% block title %}{{ product.name_ar }}{% endblock %}
-{% block page_title %}{{ product.name_ar }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      {{ product.name_ar }}
-      {% if not product.is_active %}<span class="badge-status muted">موقوف</span>{% endif %}
-    </h1>
-    <div class="subtitle">
-      {{ product.category.full_path_ar if product.category else "—" }}
-      {% if product.brand %} · {{ product.brand }}{% endif %}
-    </div>
-  </div>
-  <div class="d-flex gap-2">
-    {% if current_user.can("products.manage") %}
-    <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-outline-secondary">
-      <i class="bi bi-pencil"></i> تعديل
-    </a>
-    {% endif %}
-    <a href="{{ url_for('products.index') }}" class="btn btn-light">
-      <i class="bi bi-arrow-right"></i> رجوع
-    </a>
-  </div>
-</div>
-
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-boxes"></i></div>
-      <div>
-        <div class="kpi-label">إجمالي المخزون</div>
-        <div class="kpi-value">{{ product.total_stock | qty }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+        <span>{{ product.category.full_path_ar if product.category else "—" }}</span>
+        {% if product.brand %}<span>·</span><span>{{ product.brand }}</span>{% endif %}
       </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-palette"></i></div>
-      <div>
-        <div class="kpi-label">عدد المتغيرات</div>
-        <div class="kpi-value">{{ product.variants|length }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-tag"></i></div>
-      <div>
-        <div class="kpi-label">السعر الافتراضي</div>
-        <div class="kpi-value" style="font-size:1.1rem">{{ product.default_price | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-percent"></i></div>
-      <div>
-        <div class="kpi-label">الضريبة</div>
-        <div class="kpi-value" style="font-size:1.1rem">
-          {% if product.tax_rate_override is not none %}{{ product.tax_rate_override }}%{% else %}افتراضي{% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span>المتغيرات والمخزون</span>
-    {% if current_user.can("products.manage") %}
-    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addVariantModal">
-      <i class="bi bi-plus"></i> إضافة متغير
-    </button>
-    {% endif %}
-  </div>
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>اللون</th>
-          <th>الباركود</th>
-          <th>السعر</th>
-          <th>سعر قبل الخصم</th>
-          <th>متوسط التكلفة</th>
-          <th>الرصيد</th>
-          <th>الحد الأدنى</th>
-          <th>الحالة</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for v in product.variants %}
-        <tr>
-          <td dir="ltr" class="fw-semibold">{{ v.sku }}</td>
-          <td>{{ v.color or "—" }}</td>
-          <td dir="ltr" class="small text-muted">{{ v.barcode or "—" }}</td>
-          <td>
-            {{ v.price | money }}
-            {% if v.is_on_sale %}<span class="badge bg-danger ms-1">-{{ v.discount_percent }}%</span>{% endif %}
-          </td>
-          <td>{% if v.compare_at_price %}{{ v.compare_at_price | money }}{% else %}—{% endif %}</td>
-          <td>{{ v.avg_cost | money }}</td>
-          <td>
-            {{ v.stock_qty | qty }}
-            {% if v.is_low_stock %}<span class="badge-status warning ms-1">منخفض</span>{% endif %}
-          </td>
-          <td>{{ v.reorder_level | qty }}</td>
-          <td>
-            {% if v.is_active %}<span class="badge-status success">نشط</span>
-            {% else %}<span class="badge-status muted">موقوف</span>{% endif %}
-          </td>
-          <td class="text-end">
-            <a href="{{ url_for('products.variant_movements', variant_id=v.id) }}"
-               class="btn btn-sm btn-outline-primary" title="حركة المخزون">
-              <i class="bi bi-list-ul"></i>
-            </a>
-            {% if current_user.can("products.manage") %}
-            <button class="btn btn-sm btn-outline-secondary" title="تعديل"
-                    data-bs-toggle="modal" data-bs-target="#editVariant{{ v.id }}">
-              <i class="bi bi-pencil"></i>
-            </button>
-            {% endif %}
-          </td>
-        </tr>
-
-        {% if current_user.can("products.manage") %}
-        <!-- Modal تعديل المتغير -->
-        <div class="modal fade" id="editVariant{{ v.id }}" tabindex="-1">
-          <div class="modal-dialog">
-            <form method="post" action="{{ url_for('products.variants_edit', variant_id=v.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">تعديل المتغير</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label">SKU</label>
-                      <input name="sku" class="form-control" value="{{ v.sku }}" dir="ltr">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">اللون</label>
-                      <input name="color" class="form-control" value="{{ v.color or '' }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">الباركود</label>
-                      <input name="barcode" class="form-control" value="{{ v.barcode or '' }}" dir="ltr">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">السعر</label>
-                      <input name="price" type="number" step="0.001" class="form-control" value="{{ v.price }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">الحد الأدنى</label>
-                      <input name="reorder_level" type="number" step="0.001" class="form-control" value="{{ v.reorder_level }}">
-                    </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                      <div class="form-check">
-                        <input type="checkbox" class="form-check-input" name="is_active" id="active{{ v.id }}"
-                               {% if v.is_active %}checked{% endif %}>
-                        <label class="form-check-label" for="active{{ v.id }}">نشط</label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-                  <button type="submit" class="btn btn-primary">حفظ</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold flex items-center gap-space-xs">
+        {{ product.name_ar }}
+        {% if not product.is_active %}
+        <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">موقوف</span>
         {% endif %}
-        {% endfor %}
-      </tbody>
-    </table>
+      </h1>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      {% if current_user.can("products.manage") %}
+      <a href="{{ url_for('products.edit', product_id=product.id) }}"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">edit</span>
+        <span>تعديل</span>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('products.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>رجوع</span>
+      </a>
+    </div>
   </div>
-</div>
 
-{% if product.description %}
-<div class="card mt-3">
-  <div class="card-header">الوصف</div>
-  <div class="card-body" style="white-space:pre-line">{{ product.description }}</div>
-</div>
-{% endif %}
-
-<!-- Modal إضافة متغير جديد -->
-{% if current_user.can("products.manage") %}
-<div class="modal fade" id="addVariantModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="post" action="{{ url_for('products.variants_add', product_id=product.id) }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">إضافة متغير جديد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">اللون</label>
-              <input name="color" class="form-control" placeholder="مثال: أزرق">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">السعر</label>
-              <input name="price" type="number" step="0.001" class="form-control"
-                     value="{{ product.default_price }}">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">الحد الأدنى للتنبيه</label>
-              <input name="reorder_level" type="number" step="0.001" class="form-control" value="0">
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">إضافة</button>
+  {# KPI grid #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي المخزون</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ product.total_stock | qty }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">shelves</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">عدد المتغيرات</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ product.variants|length }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">palette</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">السعر الافتراضي</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ product.default_price | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">sell</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">الضريبة</span>
+        <div class="mt-1">
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">
+            {% if product.tax_rate_override is not none %}{{ product.tax_rate_override }}%{% else %}افتراضي{% endif %}
+          </span>
         </div>
       </div>
-    </form>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">percent</span>
+      </div>
+    </div>
   </div>
+
+  {# Variants table #}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md flex items-center justify-between border-b border-surface-container-low">
+      <div class="flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-secondary text-[20px]">grid_view</span>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">المتغيرات والمخزون</h2>
+      </div>
+      {% if current_user.can("products.manage") %}
+      <button onclick="document.getElementById('addVariantModal').showModal()"
+              class="h-9 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>متغير جديد</span>
+      </button>
+      {% endif %}
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md">SKU</th>
+            <th class="py-space-xs px-space-md">اللون</th>
+            <th class="py-space-xs px-space-md">الباركود</th>
+            <th class="py-space-xs px-space-md">السعر</th>
+            <th class="py-space-xs px-space-md">قبل الخصم</th>
+            <th class="py-space-xs px-space-md">م. التكلفة</th>
+            <th class="py-space-xs px-space-md">الرصيد</th>
+            <th class="py-space-xs px-space-md">الحد الأدنى</th>
+            <th class="py-space-xs px-space-md">الحالة</th>
+            <th class="py-space-xs px-space-md text-left"></th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for v in product.variants %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-semibold" dir="ltr">{{ v.sku }}</td>
+            <td class="py-space-xs px-space-md text-on-surface">{{ v.color or "—" }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ v.barcode or "—" }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md">
+              {{ v.price | money }}
+              {% if v.is_on_sale %}<span class="inline-flex items-center px-space-2xs py-0 rounded-md bg-error text-on-error text-[10px] font-bold ms-1">-{{ v.discount_percent }}%</span>{% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface-variant">{% if v.compare_at_price %}{{ v.compare_at_price | money }}{% else %}—{% endif %}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant">{{ v.avg_cost | money }}</td>
+            <td class="py-space-xs px-space-md">
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ v.stock_qty | qty }}</span>
+              {% if v.is_low_stock %}
+              <span class="inline-flex items-center px-space-2xs py-0 rounded-md bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold ms-1">منخفض</span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">{{ v.reorder_level | qty }}</td>
+            <td class="py-space-xs px-space-md">
+              {% if v.is_active %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">نشط</span>
+              {% else %}
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">موقوف</span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-left">
+              <div class="flex items-center gap-1 justify-end">
+                <a href="{{ url_for('products.variant_movements', variant_id=v.id) }}"
+                   class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="حركة المخزون">
+                  <span class="material-symbols-outlined text-[16px]">history</span>
+                </a>
+                {% if current_user.can("products.manage") %}
+                <button onclick="document.getElementById('editVariant{{ v.id }}').showModal()"
+                        class="h-8 w-8 rounded-md bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center" title="تعديل">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if product.description %}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">الوصف</h3>
+    <p class="whitespace-pre-line font-body-md text-body-md text-on-surface-variant">{{ product.description }}</p>
+  </div>
+  {% endif %}
 </div>
+
+{# Edit variant dialogs #}
+{% if current_user.can("products.manage") %}
+{% for v in product.variants %}
+<dialog id="editVariant{{ v.id }}" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-lg">
+  <form method="post" action="{{ url_for('products.variants_edit', variant_id=v.id) }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">تعديل المتغير</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">SKU</label>
+        <input name="sku" value="{{ v.sku }}" dir="ltr" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">اللون</label>
+        <input name="color" value="{{ v.color or '' }}" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الباركود</label>
+        <input name="barcode" value="{{ v.barcode or '' }}" dir="ltr" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">السعر</label>
+        <input name="price" type="number" step="0.001" value="{{ v.price }}" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الحد الأدنى</label>
+        <input name="reorder_level" type="number" step="0.001" value="{{ v.reorder_level }}" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+      <label class="flex items-center gap-space-xs cursor-pointer">
+        <input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %} class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+        <span class="font-label-md text-label-md text-on-surface">نشط</span>
+      </label>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('editVariant{{ v.id }}').close()" class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit" class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">حفظ</button>
+    </div>
+  </form>
+</dialog>
+{% endfor %}
+
+<dialog id="addVariantModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-lg">
+  <form method="post" action="{{ url_for('products.variants_add', product_id=product.id) }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">إضافة متغير جديد</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">اللون</label>
+        <input name="color" placeholder="مثال: أزرق" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">السعر</label>
+        <input name="price" type="number" step="0.001" value="{{ product.default_price }}" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الحد الأدنى للتنبيه</label>
+        <input name="reorder_level" type="number" step="0.001" value="0" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('addVariantModal').close()" class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit" class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm">إضافة</button>
+    </div>
+  </form>
+</dialog>
 {% endif %}
 {% endblock %}

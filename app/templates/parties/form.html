@@ -1,128 +1,120 @@
 {% extends "layouts/app.html" %}
 {% block title %}{% if mode == 'create' %}{{ labels.new }}{% else %}تعديل {{ party.name_ar }}{% endif %}{% endblock %}
-{% block page_title %}{% if mode == 'create' %}{{ labels.new }}{% else %}تعديل {{ labels.singular }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>{% if mode == 'create' %}إضافة {{ labels.new }}{% else %}تعديل {{ party.name_ar }} <span class="text-muted" dir="ltr" style="font-size:0.75em">({{ party.code }})</span>{% endif %}</h1>
-    <div class="subtitle">
-      {% if mode == 'create' %}
-        سيتم فتح حساب فرعي تلقائي تحت {{ '1200 (ذمم عملاء)' if party_type.value == 'customer' else '2100 (ذمم موردين)' }}.
-      {% else %}
-        الحساب المرتبط: <strong dir="ltr">{{ party.account.code }}</strong>
-      {% endif %}
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+        {% if mode == 'create' %}إضافة {{ labels.new }}
+        {% else %}تعديل {{ party.name_ar }} <span class="text-on-surface-variant text-body-md" dir="ltr">({{ party.code }})</span>
+        {% endif %}
+      </h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        {% if mode == 'create' %}
+          سيتم فتح حساب فرعي تلقائي تحت {{ '1200 (ذمم عملاء)' if party_type.value == 'customer' else '2100 (ذمم موردين)' }}.
+        {% else %}
+          الحساب المرتبط: <strong dir="ltr" class="text-secondary">{{ party.account.code }}</strong>
+        {% endif %}
+      </p>
     </div>
+    <a href="{{ url_for('parties.index', type_str=party_type.value) }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      <span>رجوع</span>
+    </a>
   </div>
-  <a href="{{ url_for('parties.index', type_str=party_type.value) }}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
 
-<div class="row">
-  <div class="col-lg-8">
-    <div class="card">
-      <form method="post" novalidate>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2">
+      <form method="post" novalidate class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg space-y-space-md">
         {{ form.hidden_tag() }}
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              {{ form.name_ar.label(class="form-label") }}
-              {{ form.name_ar(class="form-control form-control-lg") }}
-              {% for e in form.name_ar.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-6">
-              {{ form.phone.label(class="form-label") }}
-              {{ form.phone(class="form-control form-control-lg") }}
-              {% for e in form.phone.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-
-            <div class="col-md-6">
-              {{ form.email.label(class="form-label") }}
-              {{ form.email(class="form-control") }}
-              {% for e in form.email.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-6">
-              {{ form.tax_number.label(class="form-label") }}
-              {{ form.tax_number(class="form-control") }}
-              {% for e in form.tax_number.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-
-            <div class="col-12">
-              {{ form.address.label(class="form-label") }}
-              {{ form.address(class="form-control") }}
-            </div>
-
-            <div class="col-12">
-              {{ form.notes.label(class="form-label") }}
-              {{ form.notes(class="form-control") }}
-            </div>
-
-            {% if mode == 'edit' %}
-            <div class="col-12">
-              <div class="form-check">
-                {{ form.is_active(class="form-check-input") }}
-                {{ form.is_active.label(class="form-check-label") }}
-                <div class="form-text">عند إلغاء التنشيط لن يظهر الطرف في الفواتير الجديدة، لكن يظل في الكشوف والتقارير.</div>
-              </div>
-            </div>
-            {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.name_ar.label.text }}</label>
+            {{ form.name_ar(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary") }}
+            {% for e in form.name_ar.errors %}<div class="text-error text-body-sm mt-1">{{ e }}</div>{% endfor %}
           </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.phone.label.text }}</label>
+            {{ form.phone(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary", dir="ltr") }}
+            {% for e in form.phone.errors %}<div class="text-error text-body-sm mt-1">{{ e }}</div>{% endfor %}
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.email.label.text }}</label>
+            {{ form.email(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary", dir="ltr") }}
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.tax_number.label.text }}</label>
+            {{ form.tax_number(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary", dir="ltr") }}
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.address.label.text }}</label>
+            {{ form.address(class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary") }}
+          </div>
+          <div class="md:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.notes.label.text }}</label>
+            {{ form.notes(class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary") }}
+          </div>
+          {% if mode == 'edit' %}
+          <div class="md:col-span-2">
+            <label class="flex items-center gap-space-xs cursor-pointer">
+              {{ form.is_active(class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary") }}
+              <span class="font-label-md text-label-md text-on-surface">{{ form.is_active.label.text }}</span>
+            </label>
+            <p class="text-[11px] text-on-surface-variant mt-1">عند إلغاء التنشيط لن يظهر الطرف في الفواتير الجديدة، لكن يظل في الكشوف.</p>
+          </div>
+          {% endif %}
         </div>
-        <div class="card-footer d-flex justify-content-between align-items-center">
+        <div class="flex items-center justify-between pt-space-md border-t border-surface-container-low">
           <div>
             {% if mode == 'edit' and current_user.can("parties.manage") %}
-              <button type="button" class="btn btn-outline-danger btn-sm"
-                      data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="bi bi-trash"></i> حذف نهائي
-              </button>
+            <button type="button" onclick="document.getElementById('deleteModal').showModal()"
+                    class="h-9 px-space-sm bg-error-container text-on-error-container hover:bg-error hover:text-on-error rounded-lg font-label-md text-label-md flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+              <span>حذف نهائي</span>
+            </button>
             {% endif %}
           </div>
-          <div>
-            <a href="{{ url_for('parties.index', type_str=party_type.value) }}" class="btn btn-light">إلغاء</a>
-            {{ form.submit(class="btn btn-primary") }}
+          <div class="flex gap-space-xs">
+            <a href="{{ url_for('parties.index', type_str=party_type.value) }}"
+               class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center">إلغاء</a>
+            <button type="submit"
+                    class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              <span>حفظ</span>
+            </button>
           </div>
         </div>
       </form>
     </div>
-  </div>
 
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header">تلميحات</div>
-      <div class="card-body small text-muted">
-        <ul class="mb-0 ps-3">
-          <li>الاسم الوحيد الإجباري.</li>
-          <li>رقم الهاتف يجب أن يكون فريدًا لكل {{ labels.singular }}.</li>
-          <li>الرقم الضريبي مطلوب فقط للتعاملات B2B الرسمية.</li>
-          <li>لا يمكن حذف {{ labels.singular }} له حركة محاسبية — يمكن إيقافه فقط.</li>
-        </ul>
-      </div>
+    <div class="bg-secondary-fixed text-on-secondary-fixed rounded-xl p-space-md text-body-sm space-y-1">
+      <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الاسم الوحيد الإجباري.</span></div>
+      <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الهاتف يجب أن يكون فريدًا لكل {{ labels.singular }}.</span></div>
+      <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>الرقم الضريبي مطلوب للـ B2B الرسمي.</span></div>
+      <div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] mt-0.5">check_circle</span><span>لا يمكن حذف طرف له حركة — يمكن إيقافه.</span></div>
     </div>
   </div>
 </div>
 
 {% if mode == 'edit' %}
-<div class="modal fade" id="deleteModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">تأكيد الحذف</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        هل أنت متأكد من حذف <strong>{{ party.name_ar }}</strong> نهائيًا؟<br>
-        <span class="text-danger">لا يمكن التراجع.</span> لن يتم الحذف إذا كان له أي حركة محاسبية.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-        <form method="post" action="{{ url_for('parties.delete', type_str=party_type.value, party_id=party.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-danger">حذف نهائي</button>
-        </form>
-      </div>
+<dialog id="deleteModal" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
+  <div class="bg-surface-container-lowest p-space-lg">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">تأكيد الحذف</h3>
+    <p class="font-body-md text-body-md text-on-surface mb-space-md">
+      هل أنت متأكد من حذف <strong>{{ party.name_ar }}</strong> نهائيًا؟
+      <br><span class="text-error font-semibold">لا يمكن التراجع.</span> لن يتم الحذف إذا كان له أي حركة.
+    </p>
+    <div class="flex justify-end gap-space-xs">
+      <button type="button" onclick="document.getElementById('deleteModal').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <form method="post" action="{{ url_for('parties.delete', type_str=party_type.value, party_id=party.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold shadow-sm">حذف نهائي</button>
+      </form>
     </div>
   </div>
-</div>
+</dialog>
 {% endif %}
 {% endblock %}

@@ -1,187 +1,183 @@
 {% extends "layouts/app.html" %}
 {% block title %}جدول سداد {{ schedule.purchase_invoice.doc_number }}{% endblock %}
-{% block page_title %}جدول سداد المورد{% endblock %}
 
-{% set status_labels = {
-  'active':    ('نشط',    'info'),
-  'completed': ('مكتمل',  'success'),
-  'cancelled': ('ملغى',   'muted'),
+{% set status_meta = {
+  'active':    ('نشط',    'bg-secondary-fixed text-on-secondary-fixed'),
+  'completed': ('مكتمل',  'bg-secondary-fixed text-on-secondary-fixed'),
+  'cancelled': ('ملغى',   'bg-surface-container-high text-on-surface-variant'),
 } %}
-{% set line_status = {
-  'pending': ('مستحق',   'muted'),
-  'partial': ('جزئي',    'warning'),
-  'paid':    ('مسدَّد',    'success'),
-  'overdue': ('متأخر',   'danger'),
+{% set line_meta = {
+  'pending': ('مستحق', 'bg-surface-container-high text-on-surface-variant'),
+  'partial': ('جزئي',  'bg-tertiary-fixed text-on-tertiary-fixed-variant'),
+  'paid':    ('مسدَّد', 'bg-secondary-fixed text-on-secondary-fixed'),
+  'overdue': ('متأخر', 'bg-error-container text-on-error-container'),
 } %}
-{% set st = status_labels.get(schedule.status.value, (schedule.status.value, 'muted')) %}
+{% set st = status_meta.get(schedule.status.value, (schedule.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      جدول سداد لفاتورة <span dir="ltr">{{ schedule.purchase_invoice.doc_number }}</span>
-      <span class="badge badge-{{ st[1] }} ms-2">{{ st[0] }}</span>
-    </h1>
-    <div class="subtitle">
-      {{ schedule.vendor.name_ar }} · إجمالي:
-      <strong>{{ schedule.total_amount | money }}</strong>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+          جدول سداد لفاتورة <span dir="ltr" class="text-secondary">{{ schedule.purchase_invoice.doc_number }}</span>
+        </h1>
+        <span class="inline-flex items-center px-space-xs py-0.5 rounded-full {{ st[1] }} font-label-md text-label-md font-semibold">{{ st[0] }}</span>
+      </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        {{ schedule.vendor.name_ar }} · إجمالي: <strong class="text-on-surface">{{ schedule.total_amount | money }}</strong>
+      </p>
     </div>
+    <a href="{{ url_for('purchases.view', invoice_id=schedule.purchase_invoice.id) }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع للفاتورة</span>
+    </a>
   </div>
-  <a href="{{ url_for('purchases.view', invoice_id=schedule.purchase_invoice.id) }}" class="btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع للفاتورة
-  </a>
-</div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-cash"></i></div>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+    {% for label, val, icon, tint in [
+      ('إجمالي الفاتورة', schedule.total_amount,  'payments',      'text-on-surface'),
+      ('المسدَّد',        schedule.total_paid,    'check_circle',  'text-secondary'),
+      ('المتبقي',         schedule.total_remaining,'pending',       'text-error'),
+    ] %}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
       <div>
-        <div class="stat-tile-label">إجمالي الفاتورة</div>
-        <div class="stat-tile-value">{{ schedule.total_amount | money }}</div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
       </div>
     </div>
+    {% endfor %}
   </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon tone-success">
-      <div class="stat-tile-icon"><i class="bi bi-check2-all"></i></div>
-      <div>
-        <div class="stat-tile-label">المسدَّد</div>
-        <div class="stat-tile-value">{{ schedule.total_paid | money }}</div>
-      </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">الدفعات المقررة</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+            <th class="py-space-xs px-space-md">#</th>
+            <th class="py-space-xs px-space-md">تاريخ الاستحقاق</th>
+            <th class="py-space-xs px-space-md">المبلغ</th>
+            <th class="py-space-xs px-space-md">المسدَّد</th>
+            <th class="py-space-xs px-space-md">المتبقي</th>
+            <th class="py-space-xs px-space-md">الحالة</th>
+            <th class="py-space-xs px-space-md text-end">سداد</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for line in schedule.lines %}
+          {% set lst = line_meta.get(line.status.value, (line.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md font-bold">{{ line.number }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant">{{ line.due_date.strftime('%Y/%m/%d') }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.amount | money }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-secondary">{{ line.paid_amount | money }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold">{{ line.remaining | money }}</td>
+            <td class="py-space-xs px-space-md">
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md {{ lst[1] }} font-label-sm text-label-sm font-semibold">{{ lst[0] }}</span>
+            </td>
+            <td class="py-space-xs px-space-md text-end">
+              {% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
+              <button onclick="document.getElementById('payModal{{ line.id }}').showModal()"
+                      class="h-8 px-space-sm bg-secondary text-on-secondary hover:bg-secondary/90 rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">payments</span>
+                سداد
+              </button>
+              {% else %}
+              <span class="text-on-surface-variant/40 text-body-sm">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon tone-danger">
-      <div class="stat-tile-icon"><i class="bi bi-exclamation-circle"></i></div>
-      <div>
-        <div class="stat-tile-label">المتبقي</div>
-        <div class="stat-tile-value">{{ schedule.total_remaining | money }}</div>
-      </div>
+
+  {% if schedule.payments %}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="p-space-md border-b border-surface-container-low">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">سجل السدادات</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+            <th class="py-space-xs px-space-md">رقم السند</th>
+            <th class="py-space-xs px-space-md">التاريخ</th>
+            <th class="py-space-xs px-space-md">الدفعة</th>
+            <th class="py-space-xs px-space-md">المبلغ</th>
+            <th class="py-space-xs px-space-md">الطريقة</th>
+            <th class="py-space-xs px-space-md">ملاحظة</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for p in schedule.payments %}
+          <tr>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold" dir="ltr">{{ p.doc_number }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant">{{ p.payment_date.strftime('%Y/%m/%d') }}</td>
+            <td class="py-space-xs px-space-md">#{{ p.schedule_line.number }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold text-secondary">{{ p.amount | money }}</td>
+            <td class="py-space-xs px-space-md">{% if p.method == 'cash' %}نقدي{% elif p.method == 'bank' %}بنك{% else %}{{ p.method }}{% endif %}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant">{{ p.memo or "—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
+  {% endif %}
 </div>
 
-<div class="card">
-  <div class="card-header">الدفعات المقررة</div>
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>تاريخ الاستحقاق</th>
-          <th>المبلغ</th>
-          <th>المسدَّد</th>
-          <th>المتبقي</th>
-          <th>الحالة</th>
-          <th class="text-end">سداد</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for line in schedule.lines %}
-        {% set lst = line_status.get(line.status.value, (line.status.value, 'muted')) %}
-        <tr>
-          <td class="fw-bold">{{ line.number }}</td>
-          <td>{{ line.due_date.strftime('%Y/%m/%d') }}</td>
-          <td>{{ line.amount | money }}</td>
-          <td>{{ line.paid_amount | money }}</td>
-          <td class="fw-bold">{{ line.remaining | money }}</td>
-          <td><span class="badge badge-{{ lst[1] }}">{{ lst[0] }}</span></td>
-          <td class="text-end">
-            {% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
-            <button class="btn-primary btn-sm" data-bs-toggle="modal"
-                    data-bs-target="#payModal{{ line.id }}">
-              <i class="bi bi-cash"></i> سداد
-            </button>
-            {% else %}
-            <span class="text-muted small">—</span>
-            {% endif %}
-          </td>
-        </tr>
-
-        {% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
-        <div class="modal fade" id="payModal{{ line.id }}" tabindex="-1">
-          <div class="modal-dialog">
-            <form method="post" action="{{ url_for('vendor_payments.pay', line_id=line.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">سداد دفعة {{ line.number }} — {{ schedule.vendor.name_ar }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="dp-callout tone-info">
-                    <div>
-                      <strong>المتبقي على الدفعة:</strong> {{ line.remaining | money }}<br>
-                      تاريخ الاستحقاق: {{ line.due_date.strftime('%Y/%m/%d') }}
-                    </div>
-                  </div>
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label">المبلغ *</label>
-                      <input type="number" name="amount" class="form-control form-control-lg"
-                             step="0.001" min="0.001" max="{{ line.remaining }}"
-                             value="{{ line.remaining }}" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">تاريخ الدفع</label>
-                      <input type="date" name="payment_date" class="form-control" value="{{ today }}">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">طريقة الدفع</label>
-                      <select name="method" class="form-select">
-                        <option value="cash" selected>نقدي</option>
-                        <option value="bank">بنك</option>
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">ملاحظة</label>
-                      <input type="text" name="memo" class="form-control">
-                    </div>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn-light" data-bs-dismiss="modal">إلغاء</button>
-                  <button type="submit" class="btn-primary">
-                    <i class="bi bi-check-lg"></i> تأكيد السداد
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-{% if schedule.payments %}
-<div class="card mt-3">
-  <div class="card-header">سجل السدادات</div>
-  <div class="table-scroll">
-    <table class="table table-sm mb-0">
-      <thead>
-        <tr>
-          <th>رقم السند</th><th>التاريخ</th><th>الدفعة</th><th>المبلغ</th>
-          <th>طريقة الدفع</th><th>ملاحظة</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in schedule.payments %}
-        <tr>
-          <td dir="ltr">{{ p.doc_number }}</td>
-          <td>{{ p.payment_date.strftime('%Y/%m/%d') }}</td>
-          <td>#{{ p.schedule_line.number }}</td>
-          <td class="fw-bold">{{ p.amount | money }}</td>
-          <td>{% if p.method == 'cash' %}نقدي{% elif p.method == 'bank' %}بنك{% else %}{{ p.method }}{% endif %}</td>
-          <td class="small text-muted">{{ p.memo or "—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+{% for line in schedule.lines %}
+{% if line.status.value != 'paid' and schedule.status.value == 'active' and current_user.can("vendor_payments.pay") %}
+<dialog id="payModal{{ line.id }}" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-lg">
+  <form method="post" action="{{ url_for('vendor_payments.pay', line_id=line.id) }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-md">سداد دفعة {{ line.number }} — {{ schedule.vendor.name_ar }}</h3>
+    <div class="p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed mb-space-md text-body-sm">
+      <div><strong>المتبقي على الدفعة:</strong> {{ line.remaining | money }}</div>
+      <div>تاريخ الاستحقاق: {{ line.due_date.strftime('%Y/%m/%d') }}</div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">المبلغ *</label>
+        <input type="number" name="amount" step="0.001" min="0.001" max="{{ line.remaining }}" value="{{ line.remaining }}" required
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">تاريخ الدفع</label>
+        <input type="date" name="payment_date" value="{{ today }}"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">طريقة الدفع</label>
+        <select name="method" class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          <option value="cash" selected>نقدي</option>
+          <option value="bank">بنك</option>
+        </select>
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ملاحظة</label>
+        <input type="text" name="memo"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-md">
+      <button type="button" onclick="document.getElementById('payModal{{ line.id }}').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">check</span><span>تأكيد السداد</span>
+      </button>
+    </div>
+  </form>
+</dialog>
 {% endif %}
+{% endfor %}
 {% endblock %}

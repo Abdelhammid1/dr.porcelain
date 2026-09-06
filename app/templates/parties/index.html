@@ -1,95 +1,104 @@
 {% extends "layouts/app.html" %}
 {% block title %}{{ labels.plural }}{% endblock %}
-{% block page_title %}{{ labels.plural }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>{{ labels.plural }}</h1>
-    <div class="subtitle">{{ parties|length }} {{ labels.singular }}{% if parties|length > 2 %}ون{% elif parties|length == 2 %}ان{% endif %}</div>
-  </div>
-  <div class="d-flex gap-2">
-    <form class="d-flex" method="get" action="">
-      <div class="input-group">
-        <input type="search" name="q" value="{{ q }}"
-               class="form-control" placeholder="بحث بالاسم / الكود / الهاتف">
-        <button class="btn btn-outline-primary" type="submit">
-          <i class="bi bi-search"></i>
-        </button>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">{{ 'group' if party_type.value == 'customer' else 'local_shipping' }}</span>
+        <span>{{ labels.plural }}</span>
       </div>
-    </form>
-    {% if current_user.can("parties.manage") %}
-    <a href="{{ url_for('parties.create', type_str=party_type.value) }}" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> {{ labels.new }}
-    </a>
-    {% endif %}
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">{{ labels.plural }}</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ parties|length }} {{ labels.singular }}</p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <form method="get" class="relative">
+        <input type="search" name="q" value="{{ q }}" placeholder="بحث بالاسم / الكود / الهاتف"
+               class="h-10 pr-10 pl-space-md rounded-lg bg-surface-container-lowest outline outline-1 outline-outline-variant/60 focus:outline-secondary w-64">
+        <button type="submit" class="absolute right-space-sm top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface">
+          <span class="material-symbols-outlined text-[18px]">search</span>
+        </button>
+      </form>
+      {% if current_user.can("parties.manage") %}
+      <a href="{{ url_for('parties.create', type_str=party_type.value) }}"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">person_add</span>
+        <span>+ {{ labels.new }}</span>
+      </a>
+      {% endif %}
+    </div>
   </div>
-</div>
 
-<div class="card">
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>الكود</th>
-          <th>الاسم</th>
-          <th>الهاتف</th>
-          <th>الحساب المرتبط</th>
-          <th>الرصيد الحالي</th>
-          <th>الحالة</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in parties %}
-        <tr>
-          <td class="fw-bold" dir="ltr">{{ p.code }}</td>
-          <td>
-            <a href="{{ url_for('parties.view', type_str=party_type.value, party_id=p.id) }}"
-               class="text-decoration-none fw-semibold">{{ p.name_ar }}</a>
-          </td>
-          <td dir="ltr">{{ p.phone or "—" }}</td>
-          <td dir="ltr">
-            <span class="text-muted">{{ p.account.code if p.account else "—" }}</span>
-          </td>
-          <td>{{ (p.account.compute_balance() if p.account else 0) | money }}</td>
-          <td>
-            {% if p.is_active %}
-              <span class="badge-status success">نشط</span>
-            {% else %}
-              <span class="badge-status muted">موقوف</span>
-            {% endif %}
-          </td>
-          <td class="text-end">
-            <a href="{{ url_for('parties.statement', type_str=party_type.value, party_id=p.id) }}"
-               class="btn btn-sm btn-outline-primary" title="كشف حساب">
-              <i class="bi bi-file-earmark-text"></i>
-            </a>
-            {% if current_user.can("parties.manage") %}
-            <a href="{{ url_for('parties.edit', type_str=party_type.value, party_id=p.id) }}"
-               class="btn btn-sm btn-outline-secondary" title="تعديل">
-              <i class="bi bi-pencil"></i>
-            </a>
-            {% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="7">
-            <div class="empty-state">
-              <div class="icon"><i class="bi bi-people"></i></div>
-              <h5>لا يوجد {{ labels.plural }}{% if q %} مطابقون للبحث{% endif %}</h5>
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md">الكود</th>
+            <th class="py-space-xs px-space-md">الاسم</th>
+            <th class="py-space-xs px-space-md">الهاتف</th>
+            <th class="py-space-xs px-space-md">الحساب</th>
+            <th class="py-space-xs px-space-md">الرصيد</th>
+            <th class="py-space-xs px-space-md">الحالة</th>
+            <th class="py-space-xs px-space-md text-left"></th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for p in parties %}
+          <tr class="hover:bg-surface-container-low/40 transition-colors">
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-bold" dir="ltr">{{ p.code }}</td>
+            <td class="py-space-xs px-space-md">
+              <a href="{{ url_for('parties.view', type_str=party_type.value, party_id=p.id) }}"
+                 class="font-label-lg text-label-lg font-bold text-on-surface hover:text-secondary">{{ p.name_ar }}</a>
+            </td>
+            <td class="py-space-xs px-space-md text-on-surface-variant" dir="ltr">{{ p.phone or "—" }}</td>
+            <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ p.account.code if p.account else "—" }}</td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ (p.account.compute_balance() if p.account else 0) | money }}</td>
+            <td class="py-space-xs px-space-md">
+              {% if p.is_active %}
+              <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>نشط
+              </span>
+              {% else %}
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">موقوف</span>
+              {% endif %}
+            </td>
+            <td class="py-space-xs px-space-md text-left">
+              <div class="flex items-center gap-1 justify-end">
+                <a href="{{ url_for('parties.statement', type_str=party_type.value, party_id=p.id) }}"
+                   class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="كشف حساب">
+                  <span class="material-symbols-outlined text-[16px]">receipt</span>
+                </a>
+                {% if current_user.can("parties.manage") %}
+                <a href="{{ url_for('parties.edit', type_str=party_type.value, party_id=p.id) }}"
+                   class="h-8 w-8 rounded-md bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center" title="تعديل">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="py-space-3xl text-center">
+              <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-md">
+                <span class="material-symbols-outlined text-[32px]">{{ 'group' if party_type.value == 'customer' else 'local_shipping' }}</span>
+              </div>
+              <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا يوجد {{ labels.plural }}{% if q %} مطابقون{% endif %}</p>
               {% if current_user.can("parties.manage") %}
-              <a href="{{ url_for('parties.create', type_str=party_type.value) }}" class="btn btn-primary mt-3">
-                <i class="bi bi-plus-lg"></i> إضافة {{ labels.new }}
+              <a href="{{ url_for('parties.create', type_str=party_type.value) }}"
+                 class="mt-space-md inline-flex items-center gap-space-xs h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">person_add</span>
+                <span>+ إضافة {{ labels.new }}</span>
               </a>
               {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

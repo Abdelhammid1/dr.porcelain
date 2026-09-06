@@ -1,98 +1,100 @@
 {% extends "layouts/app.html" %}
 {% block title %}مرتجع فاتورة {{ invoice.doc_number }}{% endblock %}
-{% block page_title %}مرتجع شراء{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>مرتجع فاتورة <span dir="ltr">{{ invoice.doc_number }}</span></h1>
-    <div class="subtitle">{{ invoice.vendor.name_ar }} · {{ invoice.invoice_date | hdate }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-tertiary-fixed-dim font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">undo</span>
+        <span>مرتجع شراء</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">مرتجع فاتورة <span dir="ltr" class="text-secondary">{{ invoice.doc_number }}</span></h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ invoice.vendor.name_ar }} · {{ invoice.invoice_date | hdate }}</p>
+    </div>
+    <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع للفاتورة</span>
+    </a>
   </div>
-  <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}" class="btn btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع للفاتورة
-  </a>
-</div>
 
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>البنود القابلة للمرتجع</span>
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" name="full_return" id="fullReturn" value="1"
-                   onchange="toggleFull(this.checked)">
-            <label class="form-check-label" for="fullReturn">مرتجع كامل</label>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>المنتج</th><th>الأصلية</th><th>مرتجع سابقًا</th><th>المتاح</th>
-                <th style="width:150px">كمية المرتجع</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for line in invoice.lines %}
-              {% set returned = invoice.total_returned_qty_per_line.get(line.id, 0) %}
-              {% set available = invoice.line_returnable_qty(line) %}
-              <tr>
-                <td>
-                  {{ line.product_name }}
-                  <div class="small text-muted" dir="ltr">SKU: {{ line.sku }}</div>
-                </td>
-                <td>{{ line.qty | qty }}</td>
-                <td>{{ returned | qty }}</td>
-                <td class="fw-bold">{{ available | qty }}</td>
-                <td>
-                  <input type="hidden" name="return_line_id[]" value="{{ line.id }}">
-                  <input type="number" name="return_qty[]" class="form-control form-control-sm return-qty"
-                         step="0.001" min="0" max="{{ available }}" value="0"
-                         data-max="{{ available }}" {% if available <= 0 %}disabled{% endif %}>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+  <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+      <div class="p-space-md flex items-center justify-between border-b border-surface-container-low">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">البنود القابلة للمرتجع</h3>
+        <label class="flex items-center gap-space-xs cursor-pointer">
+          <input type="checkbox" name="full_return" value="1" onchange="toggleFull(this.checked)"
+                 class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+          <span class="font-label-md text-label-md text-on-surface font-semibold">مرتجع كامل</span>
+        </label>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-right">
+          <thead>
+            <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+              <th class="py-space-xs px-space-md">المنتج</th>
+              <th class="py-space-xs px-space-md">الأصلية</th>
+              <th class="py-space-xs px-space-md">مرتجع سابقًا</th>
+              <th class="py-space-xs px-space-md">المتاح</th>
+              <th class="py-space-xs px-space-md w-40">كمية المرتجع</th>
+            </tr>
+          </thead>
+          <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+            {% for line in invoice.lines %}
+            {% set returned = invoice.total_returned_qty_per_line.get(line.id, 0) %}
+            {% set available = invoice.line_returnable_qty(line) %}
+            <tr>
+              <td class="py-space-xs px-space-md">
+                <div class="text-on-surface font-medium">{{ line.product_name }}</div>
+                <div class="text-[11px] text-on-surface-variant" dir="ltr">SKU: {{ line.sku }}</div>
+              </td>
+              <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.qty | qty }}</td>
+              <td class="py-space-xs px-space-md font-fiscal-numeric-md text-on-surface-variant">{{ returned | qty }}</td>
+              <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold text-secondary">{{ available | qty }}</td>
+              <td class="py-space-xs px-space-md">
+                <input type="hidden" name="return_line_id[]" value="{{ line.id }}">
+                <input type="number" name="return_qty[]" step="0.001" min="0" max="{{ available }}" value="0"
+                       data-max="{{ available }}" {% if available <= 0 %}disabled{% endif %}
+                       class="return-qty h-9 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="col-lg-4">
-      <div class="card">
-        <div class="card-header">تفاصيل المرتجع</div>
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">تاريخ المرتجع</label>
-            <input type="date" name="return_date" class="form-control" value="{{ today }}">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">السبب *</label>
-            <textarea name="reason" class="form-control" rows="3" required></textarea>
-          </div>
-        </div>
-        <div class="card-footer d-flex justify-content-end gap-2">
-          <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}" class="btn btn-light">إلغاء</a>
-          <button type="submit" class="btn btn-warning">
-            <i class="bi bi-check-lg"></i> تأكيد المرتجع
-          </button>
-        </div>
+
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md space-y-space-md">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفاصيل المرتجع</h3>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">تاريخ المرتجع</label>
+        <input type="date" name="return_date" value="{{ today }}"
+               class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </div>
+      <div>
+        <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">السبب *</label>
+        <textarea name="reason" rows="3" required
+                  class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></textarea>
+      </div>
+      <div class="flex items-center justify-end gap-space-xs pt-space-sm border-t border-surface-container-low">
+        <a href="{{ url_for('purchases.view', invoice_id=invoice.id) }}"
+           class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</a>
+        <button type="submit"
+                class="h-10 px-space-md rounded-lg bg-tertiary-fixed-dim text-on-tertiary-fixed hover:bg-tertiary-fixed font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">check</span><span>تأكيد المرتجع</span>
+        </button>
       </div>
     </div>
-  </div>
-</form>
+  </form>
+</div>
 
 <script>
   function toggleFull(checked) {
     document.querySelectorAll('.return-qty').forEach(inp => {
-      if (checked) {
-        inp.value = inp.dataset.max;
-        inp.disabled = true;
-      } else {
-        inp.value = 0;
-        inp.disabled = (parseFloat(inp.dataset.max) || 0) <= 0;
-      }
+      if (checked) { inp.value = inp.dataset.max; inp.disabled = true; }
+      else { inp.value = 0; inp.disabled = (parseFloat(inp.dataset.max) || 0) <= 0; }
     });
   }
 </script>

@@ -1,118 +1,123 @@
 {% extends "layouts/app.html" %}
 {% block title %}{{ party.name_ar }}{% endblock %}
-{% block page_title %}{{ labels.singular }} — {{ party.name_ar }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      {{ party.name_ar }}
-      <span class="text-muted" dir="ltr" style="font-size:0.7em">{{ party.code }}</span>
-      {% if not party.is_active %}<span class="badge-status muted">موقوف</span>{% endif %}
-    </h1>
-    <div class="subtitle">حساب فرعي: <strong dir="ltr">{{ party.account.code }}</strong></div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">{{ party.name_ar }}</h1>
+        <span class="text-on-surface-variant text-body-md" dir="ltr">{{ party.code }}</span>
+        {% if not party.is_active %}
+        <span class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md font-semibold">موقوف</span>
+        {% endif %}
+      </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        حساب فرعي: <strong dir="ltr" class="text-secondary">{{ party.account.code }}</strong>
+      </p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('parties.statement', type_str=party_type.value, party_id=party.id) }}"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">receipt</span>
+        <span>كشف الحساب</span>
+      </a>
+      {% if current_user.can("parties.manage") %}
+      <a href="{{ url_for('parties.edit', type_str=party_type.value, party_id=party.id) }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">edit</span>
+        <span>تعديل</span>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('parties.index', type_str=party_type.value) }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>رجوع</span>
+      </a>
+    </div>
   </div>
-  <div class="d-flex gap-2">
-    <a href="{{ url_for('parties.statement', type_str=party_type.value, party_id=party.id) }}"
-       class="btn btn-primary">
-      <i class="bi bi-file-earmark-text"></i> كشف الحساب
-    </a>
-    {% if current_user.can("parties.manage") %}
-    <a href="{{ url_for('parties.edit', type_str=party_type.value, party_id=party.id) }}"
-       class="btn btn-outline-secondary">
-      <i class="bi bi-pencil"></i> تعديل
-    </a>
-    {% endif %}
-    <a href="{{ url_for('parties.index', type_str=party_type.value) }}"
-       class="btn btn-light">
-      <i class="bi bi-arrow-right"></i> رجوع
-    </a>
-  </div>
-</div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
       <div>
-        <div class="kpi-label">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">
           {% if party_type.value == 'customer' %}مستحق على العميل{% else %}مستحق للمورد{% endif %}
+        </span>
+        <div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ balance | money }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">تاريخ التسجيل</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ party.created_at | hdate }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">event</span>
+      </div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">النوع</span>
+        <div class="mt-1"><span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ labels.singular }}</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+        <span class="material-symbols-outlined text-[24px]">{{ 'group' if party_type.value == 'customer' else 'local_shipping' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">بيانات التواصل</h3>
+      <div class="space-y-space-xs font-body-md text-body-md">
+        {% for label, value, is_ltr in [
+          ('الاسم',        party.name_ar,     False),
+          ('الهاتف',       party.phone or '—', True),
+          ('البريد',       party.email or '—', True),
+          ('العنوان',      party.address or '—', False),
+          ('الرقم الضريبي', party.tax_number or '—', True),
+        ] %}
+        <div class="grid grid-cols-3 gap-space-sm">
+          <span class="text-on-surface-variant">{{ label }}</span>
+          <span class="col-span-2 text-on-surface whitespace-pre-line" {% if is_ltr %}dir="ltr"{% endif %}>{{ value }}</span>
         </div>
-        <div class="kpi-value">{{ balance | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-calendar-check"></i></div>
-      <div>
-        <div class="kpi-label">تاريخ التسجيل</div>
-        <div class="kpi-value" style="font-size:1rem">{{ party.created_at | hdate }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-{{ 'person-check' if party_type.value == 'customer' else 'truck' }}"></i></div>
-      <div>
-        <div class="kpi-label">النوع</div>
-        <div class="kpi-value" style="font-size:1rem">{{ labels.singular }}</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header">بيانات التواصل</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-4 text-muted">الاسم</dt>
-          <dd class="col-sm-8">{{ party.name_ar }}</dd>
-
-          <dt class="col-sm-4 text-muted">الهاتف</dt>
-          <dd class="col-sm-8" dir="ltr">{{ party.phone or "—" }}</dd>
-
-          <dt class="col-sm-4 text-muted">البريد</dt>
-          <dd class="col-sm-8" dir="ltr">{{ party.email or "—" }}</dd>
-
-          <dt class="col-sm-4 text-muted">العنوان</dt>
-          <dd class="col-sm-8" style="white-space:pre-line">{{ party.address or "—" }}</dd>
-
-          <dt class="col-sm-4 text-muted">الرقم الضريبي</dt>
-          <dd class="col-sm-8" dir="ltr">{{ party.tax_number or "—" }}</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header">الحساب المحاسبي المرتبط</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-4 text-muted">كود الحساب</dt>
-          <dd class="col-sm-8" dir="ltr"><strong>{{ party.account.code }}</strong></dd>
-
-          <dt class="col-sm-4 text-muted">اسم الحساب</dt>
-          <dd class="col-sm-8">{{ party.account.name_ar }}</dd>
-
-          <dt class="col-sm-4 text-muted">النوع</dt>
-          <dd class="col-sm-8">{{ party.account.type.label_ar }}</dd>
-
-          <dt class="col-sm-4 text-muted">الحساب الأب</dt>
-          <dd class="col-sm-8" dir="ltr">{{ party.account.parent.code }} - {{ party.account.parent.name_ar }}</dd>
-        </dl>
+        {% endfor %}
       </div>
     </div>
 
-    {% if party.notes %}
-    <div class="card mt-3">
-      <div class="card-header">ملاحظات</div>
-      <div class="card-body" style="white-space:pre-line">{{ party.notes }}</div>
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">الحساب المحاسبي</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="grid grid-cols-3 gap-space-sm">
+            <span class="text-on-surface-variant">كود الحساب</span>
+            <span class="col-span-2 font-bold text-secondary" dir="ltr">{{ party.account.code }}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-space-sm">
+            <span class="text-on-surface-variant">اسم الحساب</span>
+            <span class="col-span-2">{{ party.account.name_ar }}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-space-sm">
+            <span class="text-on-surface-variant">النوع</span>
+            <span class="col-span-2">{{ party.account.type.label_ar }}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-space-sm">
+            <span class="text-on-surface-variant">الحساب الأب</span>
+            <span class="col-span-2" dir="ltr">{{ party.account.parent.code }} — {{ party.account.parent.name_ar }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% if party.notes %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">ملاحظات</h3>
+        <p class="whitespace-pre-line font-body-md text-body-md text-on-surface-variant">{{ party.notes }}</p>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

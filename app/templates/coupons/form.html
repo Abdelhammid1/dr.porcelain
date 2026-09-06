@@ -1,124 +1,141 @@
 {% extends "layouts/app.html" %}
 {% block title %}{% if coupon %}تعديل كوبون {{ coupon.code }}{% else %}كوبون جديد{% endif %}{% endblock %}
-{% block page_title %}{% if coupon %}تعديل كوبون{% else %}كوبون جديد{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>{% if coupon %}كوبون: <span dir="ltr">{{ coupon.code }}</span>{% else %}كوبون جديد{% endif %}</h1>
-  <a href="{{ url_for('coupons.index') }}" class="btn btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-8">
-    <form method="post" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="card">
-        <div class="card-body">
-          <div class="row g-3">
-            {% if not coupon %}
-            <div class="col-md-6">
-              <label class="form-label">الكود</label>
-              <input type="text" name="code" class="form-control" required
-                     style="text-transform:uppercase; font-weight:700;"
-                     placeholder="WELCOME10">
-              <div class="form-text small">أحرف كبيرة وأرقام. لا يمكن تغييره بعد الحفظ.</div>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">النوع</label>
-              <select name="discount_type" class="form-select">
-                <option value="percentage">نسبة %</option>
-                <option value="fixed_amount">مبلغ ثابت</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">القيمة</label>
-              <input type="number" name="discount_value" step="0.001" min="0.001" class="form-control" required>
-            </div>
-            {% else %}
-            <div class="col-md-6">
-              <label class="form-label">النوع</label>
-              <div class="form-control-plaintext">
-                {% if coupon.discount_type.value == 'percentage' %}نسبة %{% else %}مبلغ ثابت{% endif %}
-              </div>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">القيمة</label>
-              <input type="number" name="discount_value" step="0.001" min="0.001" class="form-control"
-                     value="{{ coupon.discount_value }}">
-            </div>
-            {% endif %}
-            <div class="col-md-6">
-              <label class="form-label">الحد الأدنى لقيمة الطلب (اختياري)</label>
-              <input type="number" name="min_order_amount" step="0.001" min="0" class="form-control"
-                     value="{{ coupon.min_order_amount if coupon and coupon.min_order_amount else '' }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">حد الاستخدام الكلي (اختياري)</label>
-              <input type="number" name="max_uses" min="1" class="form-control"
-                     value="{{ coupon.max_uses if coupon and coupon.max_uses else '' }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">لكل عميل</label>
-              <input type="number" name="max_uses_per_customer" min="1" class="form-control"
-                     value="{{ coupon.max_uses_per_customer if coupon and coupon.max_uses_per_customer is not none else 1 }}">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">صالح من (اختياري)</label>
-              <input type="datetime-local" name="valid_from" class="form-control"
-                     value="{{ coupon.valid_from.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.valid_from else '' }}">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">صالح إلى (اختياري)</label>
-              <input type="datetime-local" name="valid_until" class="form-control"
-                     value="{{ coupon.valid_until.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.valid_until else '' }}">
-            </div>
-            <div class="col-12">
-              <div class="form-check">
-                <input type="checkbox" name="is_active" class="form-check-input" id="active"
-                       {% if not coupon or coupon.is_active %}checked{% endif %}>
-                <label class="form-check-label" for="active">نشط</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer text-end">
-          <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
-        </div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">sell</span>
+        <span>{{ 'تعديل كوبون' if coupon else 'كوبون جديد' }}</span>
       </div>
-    </form>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+        {% if coupon %}كوبون: <span dir="ltr" class="text-secondary">{{ coupon.code }}</span>{% else %}كوبون جديد{% endif %}
+      </h1>
+    </div>
+    <a href="{{ url_for('coupons.index') }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      <span>رجوع</span>
+    </a>
   </div>
 
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header"><i class="bi bi-info-circle"></i> ملاحظات محاسبية</div>
-      <div class="card-body small text-muted">
-        قيمة الخصم تُخفَض من <strong>subtotal</strong> على مستوى الطلب،
-        وتنتقل تلقائيًا لـ <code>SalesInvoice.discount_amount</code> عند التسليم،
-        فتنعكس القيد المحاسبي على المبلغ الصافي (المدفوع فعليًا).
-      </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2">
+      <form method="post" novalidate class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg space-y-space-md">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          {% if not coupon %}
+          <div class="md:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الكود</label>
+            <input type="text" name="code" required placeholder="WELCOME10"
+                   style="text-transform:uppercase; font-weight:700;"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+            <p class="text-[11px] text-on-surface-variant mt-1">أحرف كبيرة وأرقام. لا يمكن تغييره بعد الحفظ.</p>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">النوع</label>
+            <select name="discount_type" class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+              <option value="percentage">نسبة %</option>
+              <option value="fixed_amount">مبلغ ثابت</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">القيمة</label>
+            <input type="number" name="discount_value" step="0.001" min="0.001" required
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+          </div>
+          {% else %}
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">النوع</label>
+            <div class="h-11 px-space-sm flex items-center rounded-lg bg-surface-container-low font-body-md text-body-md">
+              {% if coupon.discount_type.value == 'percentage' %}نسبة %{% else %}مبلغ ثابت{% endif %}
+            </div>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">القيمة</label>
+            <input type="number" name="discount_value" step="0.001" min="0.001" value="{{ coupon.discount_value }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+          </div>
+          {% endif %}
+
+          <div class="md:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الحد الأدنى لقيمة الطلب (اختياري)</label>
+            <input type="number" name="min_order_amount" step="0.001" min="0"
+                   value="{{ coupon.min_order_amount if coupon and coupon.min_order_amount else '' }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">حد الاستخدام الكلي (اختياري)</label>
+            <input type="number" name="max_uses" min="1" value="{{ coupon.max_uses if coupon and coupon.max_uses else '' }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">لكل عميل</label>
+            <input type="number" name="max_uses_per_customer" min="1"
+                   value="{{ coupon.max_uses_per_customer if coupon and coupon.max_uses_per_customer is not none else 1 }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">صالح من (اختياري)</label>
+            <input type="datetime-local" name="valid_from"
+                   value="{{ coupon.valid_from.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.valid_from else '' }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">صالح إلى (اختياري)</label>
+            <input type="datetime-local" name="valid_until"
+                   value="{{ coupon.valid_until.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.valid_until else '' }}"
+                   class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          </div>
+          <label class="md:col-span-2 flex items-center gap-space-xs cursor-pointer">
+            <input type="checkbox" name="is_active" {% if not coupon or coupon.is_active %}checked{% endif %}
+                   class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary">
+            <span class="font-label-md text-label-md text-on-surface">نشط</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end pt-space-md border-t border-surface-container-low">
+          <button type="submit"
+                  class="h-10 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>حفظ</span>
+          </button>
+        </div>
+      </form>
     </div>
 
-    {% if coupon and usages %}
-    <div class="card mt-3">
-      <div class="card-header">آخر الاستخدامات</div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead><tr><th>الطلب</th><th>العميل</th><th>الخصم</th></tr></thead>
-          <tbody>
-            {% for u in usages[:20] %}
-            <tr>
-              <td dir="ltr" class="small">{{ u.order.doc_number if u.order else '—' }}</td>
-              <td class="small">{{ u.customer.name_ar if u.customer else '—' }}</td>
-              <td class="small">{{ u.discount_amount | money }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <div class="space-y-space-md">
+      <div class="bg-secondary-fixed text-on-secondary-fixed rounded-xl p-space-md">
+        <div class="flex items-start gap-space-xs">
+          <span class="material-symbols-outlined text-[20px] mt-0.5">info</span>
+          <div class="text-body-sm">
+            قيمة الخصم تُخفَض من <strong>subtotal</strong> على مستوى الطلب،
+            وتنتقل تلقائيًا لـ <code class="bg-surface-container-lowest px-1 rounded font-fiscal-numeric-md">SalesInvoice.discount_amount</code>
+            عند التسليم، فتنعكس القيد المحاسبي على المبلغ الصافي (المدفوع فعليًا).
+          </div>
+        </div>
       </div>
+
+      {% if coupon and usages %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-md border-b border-surface-container-low">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">آخر الاستخدامات</h3>
+        </div>
+        <div class="divide-y divide-surface-container-low">
+          {% for u in usages[:20] %}
+          <div class="p-space-sm text-body-sm">
+            <div class="flex justify-between items-center">
+              <span dir="ltr" class="font-fiscal-numeric-md text-secondary font-semibold">{{ u.order.doc_number if u.order else '—' }}</span>
+              <span class="font-fiscal-numeric-md font-bold text-error">-{{ u.discount_amount | money }}</span>
+            </div>
+            <div class="text-on-surface-variant text-[11px] mt-1">{{ u.customer.name_ar if u.customer else '—' }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 </div>
 {% endblock %}
