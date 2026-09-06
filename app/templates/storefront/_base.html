@@ -292,12 +292,21 @@
         </div>
       </a>
 
-      <form method="get" action="{{ url_for('storefront.home') }}" class="sf-search">
-        <input type="search" name="q" placeholder="ابحث عن منتج...">
+      <form method="get" action="{{ url_for('storefront.search') }}" class="sf-search">
+        <input type="search" name="q" placeholder="ابحث عن منتج..."
+               value="{{ request.args.get('q', '') if request.endpoint == 'storefront.search' else '' }}">
         <i class="bi bi-search"></i>
       </form>
 
       <div class="sf-header-actions">
+        {% if sf_current_customer %}
+        <a href="{{ url_for('storefront.account_wishlist') }}" class="sf-icon-btn" title="المفضلة">
+          <i class="bi bi-heart" style="font-size:1.15rem"></i>
+          {% if sf_wishlist_count and sf_wishlist_count > 0 %}
+          <span class="sf-cart-badge">{{ sf_wishlist_count }}</span>
+          {% endif %}
+        </a>
+        {% endif %}
         <a href="{{ url_for('storefront.cart_view') }}" class="sf-icon-btn" title="السلة">
           <i class="bi bi-basket3" style="font-size:1.15rem"></i>
           {% if sf_cart_count and sf_cart_count > 0 %}

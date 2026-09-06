@@ -84,6 +84,23 @@
       <dl class="row mb-0">
         <dt class="col-7 text-muted small">الإجمالي الفرعي</dt>
         <dd class="col-5 text-end">{{ cart.subtotal | money }}</dd>
+
+        {# Ticket 2 Epic 2 — سطر خصم كوبون #}
+        {% if cart.coupon_code %}
+        <dt class="col-7 text-muted small" style="color:#dc2626 !important;">
+          خصم كوبون ({{ cart.coupon_code }})
+          <form method="post" action="{{ url_for('storefront.cart_remove_coupon') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-link p-0" title="إزالة">
+              <i class="bi bi-x-circle" style="color:#dc2626;"></i>
+            </button>
+          </form>
+        </dt>
+        <dd class="col-5 text-end" style="color:#dc2626; font-weight:700;">
+          -{{ cart.discount_amount | money }}
+        </dd>
+        {% endif %}
+
         {% if cart.tax_amount > 0 %}
         <dt class="col-7 text-muted small">الضريبة ({{ cart.tax_rate }}%)</dt>
         <dd class="col-5 text-end">{{ cart.tax_amount | money }}</dd>
@@ -100,6 +117,18 @@
         <dt class="col-7 fs-5 fw-bold">الإجمالي</dt>
         <dd class="col-5 text-end fs-5 fw-bold" style="color:var(--dp-brand);">{{ cart.total | money }}</dd>
       </dl>
+
+      {# Ticket 2 Epic 2 — فورم تطبيق كوبون #}
+      {% if not cart.coupon_code %}
+      <form method="post" action="{{ url_for('storefront.cart_apply_coupon') }}"
+            style="margin-top:14px; display:flex; gap:6px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="code" placeholder="كود الخصم" class="form-control form-control-sm"
+               style="text-transform:uppercase;">
+        <button type="submit" class="btn btn-sm btn-outline-primary">تطبيق</button>
+      </form>
+      {% endif %}
+
       <a href="{{ url_for('storefront.checkout') }}" class="sf-btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
         <i class="bi bi-credit-card-2-back"></i> إتمام الطلب
       </a>

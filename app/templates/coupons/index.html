@@ -1,0 +1,80 @@
+{% extends "layouts/app.html" %}
+{% block title %}أكواد الخصم{% endblock %}
+{% block page_title %}أكواد الخصم{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>أكواد الخصم (كوبونات)</h1>
+    <div class="subtitle">إنشاء ومتابعة كوبونات الخصم على المتجر.</div>
+  </div>
+  {% if current_user.can("coupons.manage") %}
+  <a href="{{ url_for('coupons.create') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> كوبون جديد
+  </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>الكود</th>
+          <th>النوع</th>
+          <th>القيمة</th>
+          <th>الحد الأدنى</th>
+          <th>الاستخدامات</th>
+          <th>الصلاحية</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in coupons %}
+        <tr>
+          <td class="fw-bold" dir="ltr">{{ c.code }}</td>
+          <td>{% if c.discount_type.value == 'percentage' %}نسبة{% else %}مبلغ ثابت{% endif %}</td>
+          <td>
+            {% if c.discount_type.value == 'percentage' %}
+              {{ c.discount_value }}%
+            {% else %}
+              {{ c.discount_value | money }}
+            {% endif %}
+          </td>
+          <td>{% if c.min_order_amount %}{{ c.min_order_amount | money }}{% else %}—{% endif %}</td>
+          <td>
+            {{ usage_counts.get(c.id, 0) }}
+            {% if c.max_uses %}/ {{ c.max_uses }}{% endif %}
+          </td>
+          <td class="small text-muted">
+            {% if c.valid_from %}من {{ c.valid_from | hdate }}<br>{% endif %}
+            {% if c.valid_until %}إلى {{ c.valid_until | hdate }}{% endif %}
+            {% if not c.valid_from and not c.valid_until %}دائم{% endif %}
+          </td>
+          <td>
+            {% if c.is_active %}<span class="badge bg-success">نشط</span>
+            {% else %}<span class="badge bg-secondary">موقوف</span>{% endif %}
+          </td>
+          <td class="text-end">
+            {% if current_user.can("coupons.manage") %}
+            <a href="{{ url_for('coupons.edit', coupon_id=c.id) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{{ url_for('coupons.toggle', coupon_id=c.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-{% if c.is_active %}warning{% else %}success{% endif %}">
+                <i class="bi bi-{% if c.is_active %}pause{% else %}play{% endif %}"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-muted text-center p-4">لا توجد كوبونات بعد.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

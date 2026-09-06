@@ -71,6 +71,14 @@
       ('products.categories_index', 'التصنيفات',   '🏷️', 'products.view'),
     ]) }}
 
+    {{ section('المراجعات', '⭐', [
+      ('reviews.index', 'إدارة المراجعات', '📝', 'reviews.view'),
+    ]) }}
+
+    {{ section('الخصومات', '🎟️', [
+      ('coupons.index', 'أكواد الخصم', '🏷️', 'coupons.view'),
+    ]) }}
+
     {# العملاء والموردون — endpoints need type_str kwarg, so rendered manually #}
     {% if current_user.can('parties.view') %}
     {% set _parties_active = request.endpoint and request.endpoint.startswith('parties.') %}

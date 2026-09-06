@@ -1,0 +1,81 @@
+{# Shared macros لعناصر المتجر المُعاد استخدامها.
+
+  - stars(rating, count): نجوم التقييم مع العدد.
+  - sale_badge(variant): شارة "-N%" لو المتغير on sale.
+  - product_thumb(product): صورة أولية للمنتج أو placeholder.
+#}
+
+{% macro stars(rating, count) -%}
+  {%- set r = (rating or 0) | float -%}
+  {%- set full = r | int -%}
+  {%- set half = 1 if (r - full) >= 0.5 else 0 -%}
+  {%- set empty = 5 - full - half -%}
+  <span class="sf-stars" style="color:#f59e0b;">
+    {%- for _ in range(full) -%}<i class="bi bi-star-fill"></i>{%- endfor -%}
+    {%- if half -%}<i class="bi bi-star-half"></i>{%- endif -%}
+    {%- for _ in range(empty) -%}<i class="bi bi-star" style="color:#e5e7eb;"></i>{%- endfor -%}
+  </span>
+  {% if count and count > 0 %}
+    <span style="color:var(--dp-ink-3); font-size:0.8rem; margin-inline-start:6px;">({{ count }})</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro sale_badge(variant) -%}
+  {%- if variant and variant.is_on_sale -%}
+    <span style="position:absolute; top:10px; inset-inline-start:10px;
+                background:#dc2626; color:white; font-weight:800; font-size:0.75rem;
+                padding:4px 10px; border-radius:999px; z-index:1;">
+      -{{ variant.discount_percent }}%
+    </span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro price_block(variant) -%}
+  {%- if variant and variant.is_on_sale -%}
+    <span style="color:var(--dp-ink-3); text-decoration:line-through; font-size:0.9rem; margin-inline-end:6px;">
+      {{ variant.compare_at_price | money }}
+    </span>
+  {%- endif -%}
+  <span class="sf-product-price">{{ variant.price | money }}</span>
+{%- endmacro %}
+
+{% macro product_thumb(product, icon='bi-box') -%}
+  {%- if product and product.primary_image -%}
+    <img src="{{ url_for('static', filename=product.primary_image.file_path) }}"
+         alt="{{ product.name_ar }}"
+         style="width:100%; height:100%; object-fit:cover;">
+  {%- else -%}
+    <i class="bi {{ icon }}"></i>
+  {%- endif -%}
+{%- endmacro %}
+
+{# Ticket 2 Epic 3 — تنبيه "متبقي X قطع بس" #}
+{# يظهر فقط لو 0 < stock_qty <= reorder_level (والحد > 0) #}
+{% macro low_stock_alert(variant) -%}
+  {%- if variant and variant.stock_qty and variant.stock_qty > 0
+        and variant.reorder_level and variant.reorder_level > 0
+        and variant.stock_qty <= variant.reorder_level -%}
+    <div style="color:#dc2626; font-size:0.75rem; font-weight:700; margin-top:4px;">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      متبقي {{ variant.stock_qty | qty }} قطع بس
+    </div>
+  {%- endif -%}
+{%- endmacro %}
+
+{# Ticket 2 Epic 4 — زر إضافة للمفضلة (يعمل حتى للضيف — يوجّه للتسجيل) #}
+{% macro wishlist_button(product, in_wishlist=false) -%}
+  <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=product.id) }}"
+        style="position:absolute; top:10px; inset-inline-end:10px; z-index:2;"
+        onclick="event.stopPropagation();">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit"
+            title="{{ 'إزالة من المفضلة' if in_wishlist else 'أضف للمفضلة' }}"
+            style="width:36px; height:36px; border-radius:50%; background:white;
+                   border:1px solid #e5e7eb; cursor:pointer; display:grid; place-items:center;
+                   box-shadow:0 2px 6px rgba(0,0,0,0.08);"
+            onclick="event.stopPropagation();">
+      <i class="bi {{ 'bi-heart-fill' if in_wishlist else 'bi-heart' }}"
+         style="color:{{ '#dc2626' if in_wishlist else '#94a3b8' }}; font-size:1rem;"></i>
+    </button>
+  </form>
+{%- endmacro %}

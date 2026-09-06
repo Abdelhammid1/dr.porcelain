@@ -34,7 +34,12 @@
     <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 4px;">
       طلب <span dir="ltr">{{ order.doc_number }}</span>
     </h1>
-    <div style="color:var(--dp-ink-3);">{{ order.order_date | hdate }}</div>
+    <div style="color:var(--dp-ink-3);">
+      تاريخ الطلب: {{ order.order_date | hdate }}
+      {% if order.updated_at %}
+      · <span style="font-size:0.85rem;">آخر تحديث: {{ order.updated_at | hdate }}</span>
+      {% endif %}
+    </div>
   </div>
   <span class="badge badge-{{ st[1] }}" style="font-size:0.9rem; padding:6px 14px;">{{ st[0] }}</span>
 </div>

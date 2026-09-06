@@ -1,0 +1,103 @@
+{% extends "layouts/app.html" %}
+{% block title %}إدارة المراجعات{% endblock %}
+{% block page_title %}إدارة المراجعات{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>مراجعات المنتجات</h1>
+    <div class="subtitle">مراجعة تقييمات العملاء والموافقة عليها قبل النشر.</div>
+  </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="btn-group mb-3" role="group">
+  <a href="{{ url_for('reviews.index', status='pending') }}"
+     class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    قيد المراجعة ({{ counts.pending }})
+  </a>
+  <a href="{{ url_for('reviews.index', status='approved') }}"
+     class="btn {% if status_filter == 'approved' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    معتمدة ({{ counts.approved }})
+  </a>
+  <a href="{{ url_for('reviews.index', status='all') }}"
+     class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    الكل ({{ counts.all }})
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>المنتج</th>
+          <th>العميل</th>
+          <th>التقييم</th>
+          <th>التعليق</th>
+          <th>التاريخ</th>
+          <th>الحالة</th>
+          <th class="text-end">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reviews %}
+        <tr>
+          <td>
+            {% if r.product %}
+            <a href="{{ url_for('products.view', product_id=r.product.id) }}">{{ r.product.name_ar }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ r.customer.name_ar if r.customer else '—' }}</td>
+          <td>
+            <span style="color:#f59e0b;">
+              {% for _ in range(r.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
+              {% for _ in range(5 - r.rating) %}<i class="bi bi-star" style="color:#e5e7eb;"></i>{% endfor %}
+            </span>
+          </td>
+          <td style="max-width:300px;">
+            {% if r.comment %}<span style="white-space:pre-line">{{ r.comment }}</span>
+            {% else %}<span class="text-muted">(بدون تعليق)</span>{% endif %}
+          </td>
+          <td class="small text-muted">{{ r.created_at | hdate }}</td>
+          <td>
+            {% if r.is_approved %}
+            <span class="badge bg-success">معتمدة</span>
+            {% else %}
+            <span class="badge bg-warning">قيد المراجعة</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if current_user.can("reviews.moderate") %}
+              {% if not r.is_approved %}
+              <form method="post" action="{{ url_for('reviews.approve', review_id=r.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-success" title="اعتماد">
+                  <i class="bi bi-check-lg"></i> اعتماد
+                </button>
+              </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('reviews.reject', review_id=r.id) }}" class="d-inline"
+                    onsubmit="return confirm('حذف المراجعة نهائيًا؟');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted p-4">
+            {% if status_filter == 'pending' %}لا توجد مراجعات قيد الانتظار حاليًا.
+            {% elif status_filter == 'approved' %}لا توجد مراجعات معتمدة بعد.
+            {% else %}لا توجد مراجعات.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

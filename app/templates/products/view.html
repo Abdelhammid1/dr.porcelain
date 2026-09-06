@@ -84,6 +84,7 @@
           <th>اللون</th>
           <th>الباركود</th>
           <th>السعر</th>
+          <th>سعر قبل الخصم</th>
           <th>متوسط التكلفة</th>
           <th>الرصيد</th>
           <th>الحد الأدنى</th>
@@ -97,7 +98,11 @@
           <td dir="ltr" class="fw-semibold">{{ v.sku }}</td>
           <td>{{ v.color or "—" }}</td>
           <td dir="ltr" class="small text-muted">{{ v.barcode or "—" }}</td>
-          <td>{{ v.price | money }}</td>
+          <td>
+            {{ v.price | money }}
+            {% if v.is_on_sale %}<span class="badge bg-danger ms-1">-{{ v.discount_percent }}%</span>{% endif %}
+          </td>
+          <td>{% if v.compare_at_price %}{{ v.compare_at_price | money }}{% else %}—{% endif %}</td>
           <td>{{ v.avg_cost | money }}</td>
           <td>
             {{ v.stock_qty | qty }}

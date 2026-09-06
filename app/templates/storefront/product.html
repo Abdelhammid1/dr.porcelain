@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert, wishlist_button %}
 {% block title %}{{ product.name_ar }}{% endblock %}
 
 {% block content %}
@@ -15,23 +16,34 @@
 </div>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:60px;">
-  <!-- Gallery -->
+  <!-- Gallery (Epic 1 — صور حقيقية) -->
   <div>
-    <div style="aspect-ratio:1; background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
-                border-radius:20px; display:grid; place-items:center;
-                font-size:8rem; color:var(--dp-brand);">
-      <i class="bi bi-box"></i>
-    </div>
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px;">
-      {% for _ in range(4) %}
-      <div style="aspect-ratio:1; background:#f8fafc; border-radius:10px;
-                  display:grid; place-items:center; font-size:1.8rem;
-                  color:var(--dp-brand-mid); cursor:pointer;
-                  border:1px solid var(--dp-line);">
+    {% set default_variant = product.default_variant %}
+    <div style="position:relative; aspect-ratio:1; background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
+                border-radius:20px; display:grid; place-items:center; overflow:hidden;
+                font-size:8rem; color:var(--dp-brand);" id="mainImage">
+      {{ sale_badge(default_variant) }}
+      {% if product.images %}
+        <img src="{{ url_for('static', filename=product.primary_image.file_path) }}"
+             alt="{{ product.name_ar }}"
+             style="width:100%; height:100%; object-fit:cover;" id="mainImageImg">
+      {% else %}
         <i class="bi bi-box"></i>
+      {% endif %}
+    </div>
+    {% if product.images and product.images|length > 1 %}
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px;">
+      {% for img in product.images %}
+      <div class="thumb" data-full="{{ url_for('static', filename=img.file_path) }}"
+           style="aspect-ratio:1; background:#f8fafc; border-radius:10px;
+                  overflow:hidden; cursor:pointer;
+                  border:2px solid {% if img.is_primary %}var(--dp-brand){% else %}var(--dp-line){% endif %};">
+        <img src="{{ url_for('static', filename=img.file_path) }}"
+             alt="" style="width:100%; height:100%; object-fit:cover;">
       </div>
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 
   <!-- Info + form -->
@@ -41,21 +53,56 @@
       {{ product.category.full_path_ar }}
     </div>
     {% endif %}
-    <h1 style="font-size:1.8rem; font-weight:800; margin:0 0 12px;">{{ product.name_ar }}</h1>
-
-    <!-- Rating placeholder -->
-    <div style="color:#f59e0b; margin-bottom:14px; font-size:0.95rem;">
-      <i class="bi bi-star-fill"></i>
-      <i class="bi bi-star-fill"></i>
-      <i class="bi bi-star-fill"></i>
-      <i class="bi bi-star-fill"></i>
-      <i class="bi bi-star-half"></i>
-      <span style="color:var(--dp-ink-3); margin-inline-start:6px; font-size:0.85rem;">(4.5)</span>
+    <div style="display:flex; justify-content:space-between; align-items:start; gap:12px;">
+      <h1 style="font-size:1.8rem; font-weight:800; margin:0 0 12px;">{{ product.name_ar }}</h1>
+      <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=product.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm" title="أضف للمفضلة">
+          <i class="bi bi-heart"></i>
+        </button>
+      </form>
     </div>
 
-    <div style="font-size:2rem; font-weight:800; color:var(--dp-brand); margin-bottom:20px;">
-      {{ product.default_price | money }}
+    <!-- Epic 6 — Rating من مراجعات معتمدة (لا placeholder) -->
+    <div style="margin-bottom:14px; font-size:0.95rem;">
+      {{ stars(product.avg_rating, product.review_count) }}
     </div>
+
+    <!-- السعر + شارة الخصم (Epic 2) -->
+    {% set dv = product.default_variant %}
+    <div style="margin-bottom:20px;">
+      {% if dv and dv.is_on_sale %}
+        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
+          <span style="font-size:2rem; font-weight:800; color:#dc2626;">
+            {{ dv.price | money }}
+          </span>
+          <span style="text-decoration:line-through; color:var(--dp-ink-3); font-size:1.1rem;">
+            {{ dv.compare_at_price | money }}
+          </span>
+          <span style="background:#dc2626; color:white; font-weight:800; font-size:0.8rem;
+                       padding:4px 10px; border-radius:999px;">
+            وفّر {{ dv.savings_amount | money }} (-{{ dv.discount_percent }}%)
+          </span>
+        </div>
+      {% else %}
+        <span style="font-size:2rem; font-weight:800; color:var(--dp-brand);">
+          {{ (dv.price if dv else product.default_price) | money }}
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- عداد تنازلي للعرض (Epic 2) -->
+    {% if product.offer_is_live %}
+    <div style="background:linear-gradient(135deg,#fef3c7,#fde68a); border:1px solid #f59e0b;
+                border-radius:12px; padding:14px; margin-bottom:20px;"
+         data-countdown-target="{{ product.offer_ends_at.isoformat() }}">
+      <div style="font-size:0.85rem; color:#92400e; margin-bottom:6px;">
+        <i class="bi bi-lightning-fill"></i> ينتهي العرض خلال:
+      </div>
+      <div id="offerCountdown" style="font-family:'Cairo',sans-serif; font-weight:800;
+                                       font-size:1.5rem; color:#dc2626; direction:ltr;">--:--:--</div>
+    </div>
+    {% endif %}
 
     {% if product.description %}
     <p style="color:var(--dp-ink-2); line-height:1.8; margin-bottom:24px;">
@@ -63,7 +110,7 @@
     </p>
     {% endif %}
 
-    <!-- Variants (color) -->
+    <!-- Variants (color) + Ticket 2 Epic 3: تنبيه متبقي X قطع -->
     {% if product.variants|length > 1 %}
     <div style="margin-bottom:20px;">
       <label class="form-label" style="font-weight:700;">اللون</label>
@@ -81,9 +128,20 @@
         </label>
         {% endfor %}
       </div>
+      {# تنبيه المخزون على كل variant لو منخفض #}
+      {% for v in product.variants %}
+        {% if v.stock_qty and v.stock_qty > 0 and v.reorder_level and v.reorder_level > 0
+              and v.stock_qty <= v.reorder_level %}
+        <div style="color:#dc2626; font-size:0.8rem; font-weight:700; margin-top:6px;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {{ v.color or v.variant_name or 'الافتراضي' }}: متبقي {{ v.stock_qty | qty }} قطع بس
+        </div>
+        {% endif %}
+      {% endfor %}
     </div>
     {% else %}
     <input type="hidden" name="variant_id" value="{{ product.variants[0].id if product.variants else '' }}" form="add-form">
+    {{ low_stock_alert(product.variants[0]) if product.variants else '' }}
     {% endif %}
 
     <!-- Qty + add to cart -->
@@ -120,7 +178,157 @@
   </div>
 </div>
 
-<!-- Related products -->
+<!-- Epic 3 — المواصفات (تظهر فقط لو فيه بيانات) -->
+{% if product.origin_country or product.piece_count or product.brand or product.unit %}
+<section style="margin-bottom:40px;">
+  <div class="sf-section-header"><h2>المواصفات</h2></div>
+  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;">
+    <dl class="row mb-0">
+      {% if product.brand %}
+      <dt class="col-md-3 text-muted">العلامة التجارية</dt>
+      <dd class="col-md-9">{{ product.brand }}</dd>
+      {% endif %}
+      {% if product.origin_country %}
+      <dt class="col-md-3 text-muted">بلد المنشأ</dt>
+      <dd class="col-md-9">{{ product.origin_country }}</dd>
+      {% endif %}
+      {% if product.piece_count %}
+      <dt class="col-md-3 text-muted">عدد القطع</dt>
+      <dd class="col-md-9">{{ product.piece_count }}</dd>
+      {% endif %}
+      {% if product.unit and product.unit != 'قطعة' %}
+      <dt class="col-md-3 text-muted">الوحدة</dt>
+      <dd class="col-md-9">{{ product.unit }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+</section>
+{% endif %}
+
+<!-- Epic 3 — المميزات -->
+{% if product.features %}
+<section style="margin-bottom:40px;">
+  <div class="sf-section-header"><h2>المميزات</h2></div>
+  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;">
+    <ul style="list-style:none; padding:0; margin:0;">
+      {% for feat in product.features %}
+      <li style="padding:8px 0; border-bottom:1px solid var(--dp-line);">
+        <i class="bi bi-check-circle-fill" style="color:var(--dp-brand); margin-inline-end:8px;"></i>
+        {{ feat.text }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+<!-- Epic 4 — تكوين الطقم -->
+{% if product.composition %}
+<section style="margin-bottom:40px;">
+  <div class="sf-section-header"><h2>محتويات الطقم</h2></div>
+  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th style="width:100px;">الكمية</th>
+          <th>المحتوى</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in product.composition %}
+        <tr>
+          <td><span class="badge bg-primary">{{ line.quantity }}</span></td>
+          <td>{{ line.content_name_ar }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<!-- Epic 6 — قسم المراجعات -->
+<section style="margin-bottom:40px;">
+  <div class="sf-section-header">
+    <h2>تقييمات العملاء
+      {% if product.review_count > 0 %}
+      <span style="font-size:0.9rem; color:var(--dp-ink-3); font-weight:500;">
+        ({{ product.review_count }} مراجعة)
+      </span>
+      {% endif %}
+    </h2>
+  </div>
+
+  {% if can_review and not already_reviewed %}
+  <div style="background:var(--dp-brand-tint); border:1px solid var(--dp-brand);
+              border-radius:14px; padding:20px; margin-bottom:20px;">
+    <h6 style="font-weight:800; margin-bottom:12px;">
+      <i class="bi bi-pencil-square"></i> شارك تقييمك
+    </h6>
+    <form method="post" action="{{ url_for('storefront.submit_product_review', product_id=product.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="margin-bottom:12px;">
+        <label class="form-label small">التقييم</label>
+        <div class="rating-picker" style="display:flex; gap:4px; flex-direction:row-reverse; justify-content:end;">
+          {% for i in range(5, 0, -1) %}
+          <input type="radio" name="rating" value="{{ i }}" id="rating{{ i }}"
+                 style="display:none;" {% if i == 5 %}required{% endif %}>
+          <label for="rating{{ i }}" style="cursor:pointer; font-size:1.6rem; color:#e5e7eb;"
+                 onmouseover="this.style.color='#f59e0b'"
+                 onmouseout="if(!this.previousElementSibling.checked)this.style.color='#e5e7eb'">
+            <i class="bi bi-star-fill"></i>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="form-label small">تعليقك (اختياري)</label>
+        <textarea name="comment" rows="3" class="form-control"
+                  placeholder="شاركنا رأيك في المنتج..."></textarea>
+      </div>
+      <button type="submit" class="sf-btn-primary">
+        <i class="bi bi-send"></i> إرسال التقييم
+      </button>
+    </form>
+  </div>
+  {% elif already_reviewed %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> سبق أن قيّمت هذا المنتج.
+  </div>
+  {% elif sf_current_customer %}
+  <div class="alert alert-secondary">
+    يمكنك تقييم المنتج بعد شرائه.
+  </div>
+  {% endif %}
+
+  {% if product.approved_reviews %}
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    {% for r in product.approved_reviews %}
+    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div>
+          <strong>{{ r.customer.name_ar }}</strong>
+          <span style="color:var(--dp-ink-3); font-size:0.8rem; margin-inline-start:8px;">
+            {{ r.created_at | hdate }}
+          </span>
+        </div>
+        {{ stars(r.rating, 0) }}
+      </div>
+      {% if r.comment %}
+      <div style="color:var(--dp-ink-2); line-height:1.8;">{{ r.comment }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px;
+              padding:40px; text-align:center; color:var(--dp-ink-3);">
+    لا توجد مراجعات معتمدة بعد. كن أول من يقيّم هذا المنتج!
+  </div>
+  {% endif %}
+</section>
+
+<!-- Related products (Epic 5 — علاقات يدوية مع fallback) -->
 {% if related %}
 <section>
   <div class="sf-section-header">
@@ -128,12 +336,39 @@
   </div>
   <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
     {% for v in related %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
-      <div class="sf-product-image"><i class="bi bi-box"></i></div>
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+      {{ sale_badge(v) }}
+      <div class="sf-product-image">
+        {{ product_thumb(v.product) }}
+      </div>
       <div class="sf-product-body">
         <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
         <div class="sf-product-name">{{ v.display_name }}</div>
-        <div class="sf-product-price">{{ v.price | money }}</div>
+        <div>{{ price_block(v) }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Epic 5 — عادة يُشترى معه -->
+{% if frequently %}
+<section>
+  <div class="sf-section-header">
+    <h2>عادةً يُشترى معه</h2>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
+    {% for v in frequently %}
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+      {{ sale_badge(v) }}
+      <div class="sf-product-image">
+        {{ product_thumb(v.product) }}
+      </div>
+      <div class="sf-product-body">
+        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
+        <div class="sf-product-name">{{ v.display_name }}</div>
+        <div>{{ price_block(v) }}</div>
       </div>
     </a>
     {% endfor %}
@@ -142,6 +377,7 @@
 {% endif %}
 
 <script>
+  // معالج الأنماط لاختيار المتغير
   document.querySelectorAll('.variant-radio').forEach(r => {
     r.addEventListener('change', () => {
       document.querySelectorAll('.variant-chip').forEach(c => {
@@ -155,6 +391,54 @@
       chip.style.color = 'var(--dp-brand-dark)';
     });
     if (r.checked) r.dispatchEvent(new Event('change'));
+  });
+
+  // معرض الصور - تبديل الصورة الرئيسية
+  document.querySelectorAll('.thumb').forEach(t => {
+    t.addEventListener('click', () => {
+      const full = t.dataset.full;
+      const img = document.getElementById('mainImageImg');
+      if (img && full) img.src = full;
+      document.querySelectorAll('.thumb').forEach(x => x.style.borderColor = 'var(--dp-line)');
+      t.style.borderColor = 'var(--dp-brand)';
+    });
+  });
+
+  // Epic 2 — عداد تنازلي للعرض المحدد
+  (function() {
+    const box = document.querySelector('[data-countdown-target]');
+    if (!box) return;
+    const target = new Date(box.dataset.countdownTarget).getTime();
+    const el = document.getElementById('offerCountdown');
+    function tick() {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        box.style.display = 'none';  // إخفاء تلقائي عند الانتهاء
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const parts = [];
+      if (d > 0) parts.push(d + 'ي');
+      parts.push(String(h).padStart(2, '0'));
+      parts.push(String(m).padStart(2, '0'));
+      parts.push(String(s).padStart(2, '0'));
+      el.textContent = parts.join(':');
+    }
+    setInterval(tick, 1000); tick();
+  })();
+
+  // rating stars على فورم إرسال المراجعة
+  document.querySelectorAll('.rating-picker input[type="radio"]').forEach(input => {
+    input.addEventListener('change', () => {
+      const val = parseInt(input.value);
+      document.querySelectorAll('.rating-picker label').forEach((lbl, idx) => {
+        const num = 5 - idx;  // reversed
+        lbl.style.color = num <= val ? '#f59e0b' : '#e5e7eb';
+      });
+    });
   });
 </script>
 {% endblock %}

@@ -25,7 +25,13 @@ from app.models.journal import (  # noqa: F401
 )
 from app.models.party import Party, PartyType  # noqa: F401
 from app.models.pos import POSSession, SessionStatus  # noqa: F401
+from app.models.coupon import CouponUsage, DiscountCoupon, DiscountType  # noqa: F401
+from app.models.image import ProductImage  # noqa: F401
 from app.models.product import Product, ProductVariant  # noqa: F401
+from app.models.product_extras import ProductCompositionLine, ProductFeature  # noqa: F401
+from app.models.product_relation import ProductRelation, RelationType  # noqa: F401
+from app.models.review import ProductReview  # noqa: F401
+from app.models.wishlist import WishlistItem  # noqa: F401
 from app.models.purchases import (  # noqa: F401
     PurchaseInvoice,
     PurchaseInvoiceLine,
@@ -73,6 +79,16 @@ __all__ = [
     "Category",
     "Product",
     "ProductVariant",
+    "ProductImage",
+    "ProductFeature",
+    "ProductCompositionLine",
+    "ProductRelation",
+    "RelationType",
+    "ProductReview",
+    "DiscountCoupon",
+    "DiscountType",
+    "CouponUsage",
+    "WishlistItem",
     "InventoryMovement",
     "MovementType",
     "SalesInvoice",

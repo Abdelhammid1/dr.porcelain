@@ -47,6 +47,21 @@
               {{ form.tax_rate_override.label(class="form-label") }}
               {{ form.tax_rate_override(class="form-control", step="0.001", placeholder="اتركه فارغًا لاستخدام الافتراضي") }}
             </div>
+            <!-- Epic 2 — عرض فقط -->
+            <div class="col-md-6">
+              {{ form.offer_ends_at.label(class="form-label") }}
+              {{ form.offer_ends_at(class="form-control") }}
+              <div class="form-text small text-muted">يظهر عداد تنازلي في صفحة المنتج حتى هذا الوقت.</div>
+            </div>
+            <!-- Epic 3 — مواصفات -->
+            <div class="col-md-6">
+              {{ form.origin_country.label(class="form-label") }}
+              {{ form.origin_country(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.piece_count.label(class="form-label") }}
+              {{ form.piece_count(class="form-control", min="1") }}
+            </div>
             <div class="col-12">
               {{ form.description.label(class="form-label") }}
               {{ form.description(class="form-control") }}
@@ -63,7 +78,68 @@
         </div>
       </div>
 
-      <!-- المتغيرات (اللون) — فقط عند الإنشاء -->
+      <!-- Epic 3 — المميزات (bullets) -->
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>المميزات (Bullets)</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeatureRow()">
+            <i class="bi bi-plus"></i> إضافة ميزة
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="text-muted small mb-2">
+            كل ميزة نقطة قصيرة تظهر في قسم "المميزات" على صفحة المنتج.
+          </div>
+          <div id="featuresList">
+            {% if product and product.features %}
+              {% for feat in product.features %}
+              <div class="input-group mb-2">
+                <input type="text" name="feature_text[]" class="form-control" value="{{ feat.text }}" placeholder="مثال: مقاوم للحرارة">
+                <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Epic 4 — تكوين الطقم -->
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>تكوين الطقم (اختياري — للمنتجات المُجمَّعة)</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCompositionRow()">
+            <i class="bi bi-plus"></i> إضافة عنصر
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width:120px;">الكمية</th>
+                  <th>المحتوى</th>
+                  <th style="width:60px;"></th>
+                </tr>
+              </thead>
+              <tbody id="compositionRows">
+                {% if product and product.composition %}
+                  {% for ln in product.composition %}
+                  <tr>
+                    <td><input type="number" name="composition_qty[]" class="form-control form-control-sm" value="{{ ln.quantity }}" min="1"></td>
+                    <td><input type="text" name="composition_content[]" class="form-control form-control-sm" value="{{ ln.content_name_ar }}"></td>
+                    <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+                  </tr>
+                  {% endfor %}
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- المتغيرات — عند الإنشاء فقط -->
       {% if not product %}
       <div class="card mt-3">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -74,7 +150,8 @@
         </div>
         <div class="card-body">
           <div class="text-muted small mb-2">
-            اتركها فارغة لإنشاء متغير افتراضي واحد بنفس السعر. أضف صفوفًا للألوان المختلفة.
+            اتركها فارغة لإنشاء متغير افتراضي واحد. أضف صفوفًا للألوان المختلفة.
+            <strong>compare_at_price</strong> عرض فقط (سعر مشطوب) — لا يؤثر على القيد المحاسبي.
           </div>
           <div class="table-responsive">
             <table class="table table-sm align-middle" id="variantsTable">
@@ -82,6 +159,7 @@
                 <tr>
                   <th>اللون</th>
                   <th>السعر</th>
+                  <th>سعر قبل الخصم</th>
                   <th>الحد الأدنى</th>
                   <th>الباركود (اختياري)</th>
                   <th></th>
@@ -103,8 +181,7 @@
             <li>الاسم والتصنيف إجباريان.</li>
             <li>الأسعار بـ 3 خانات عشرية.</li>
             <li>الباركود يُولَّد تلقائيًا (EAN-13) لو تُرك فارغًا.</li>
-            <li>SKU يُولَّد تلقائيًا من رقم المنتج + رقم المتغير.</li>
-            <li>تكلفة المتغير تُحسب متوسط مرجّح تلقائيًا مع كل شراء.</li>
+            <li>الصور والعلاقات تُدار بعد حفظ المنتج.</li>
           </ul>
         </div>
       </div>
@@ -117,21 +194,197 @@
   </div>
 </form>
 
-{% if not product %}
+{# ================================================================
+   Epic 1 — إدارة الصور (بعد حفظ المنتج فقط، لأنه بيتطلب product_id)
+   Epic 5 — إدارة المنتجات ذات الصلة
+================================================================ #}
+{% if product %}
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-images"></i> صور المنتج</span>
+  </div>
+  <div class="card-body">
+    <!-- Upload form (multipart) -->
+    <form method="post" action="{{ url_for('products.images_upload', product_id=product.id) }}"
+          enctype="multipart/form-data" class="d-flex gap-2 align-items-end mb-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="flex:1">
+        <label class="form-label">رفع صور (png, jpg, jpeg, webp, gif — حد أقصى 8 ميجا لكل صورة)</label>
+        <input type="file" name="images" class="form-control" multiple accept=".png,.jpg,.jpeg,.webp,.gif">
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-upload"></i> رفع
+      </button>
+    </form>
+
+    {% if product.images %}
+    <div class="row g-2">
+      {% for img in product.images %}
+      <div class="col-md-3 col-sm-4 col-6">
+        <div style="position:relative; aspect-ratio:1; border:2px solid {% if img.is_primary %}var(--dp-brand){% else %}#e5e7eb{% endif %}; border-radius:10px; overflow:hidden;">
+          <img src="{{ url_for('static', filename=img.file_path) }}" alt=""
+               style="width:100%; height:100%; object-fit:cover;">
+          {% if img.is_primary %}
+          <span style="position:absolute; top:6px; inset-inline-start:6px; background:#0ea5e9; color:white;
+                       font-size:0.7rem; padding:2px 8px; border-radius:999px; font-weight:700;">
+            الرئيسية
+          </span>
+          {% endif %}
+        </div>
+        <div class="btn-group btn-group-sm w-100 mt-2">
+          {% if not img.is_primary %}
+          <form method="post" action="{{ url_for('products.images_set_primary', image_id=img.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-primary btn-sm" title="اجعلها الرئيسية">
+              <i class="bi bi-star"></i>
+            </button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('products.images_delete', image_id=img.id) }}" class="d-inline"
+                onsubmit="return confirm('حذف الصورة نهائيًا؟');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-muted small">لا توجد صور بعد. ارفع صورة واحدة على الأقل — الأولى ستُعلَّم رئيسية تلقائيًا.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Epic 5 — منتجات ذات صلة (يدوية) -->
+<div class="card mt-4">
+  <div class="card-header"><i class="bi bi-diagram-3"></i> المنتجات ذات الصلة (Epic 5)</div>
+  <div class="card-body">
+    <div class="text-muted small mb-2">
+      اربط منتجات مشابهة يدويًا. لو لم تضف أي علاقة، الموقع يعرض تلقائيًا منتجات من نفس التصنيف.
+    </div>
+    <form method="post" action="{{ url_for('products.relations_add', product_id=product.id) }}"
+          class="d-flex gap-2 mb-3 align-items-end">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="flex:1">
+        <label class="form-label">ابحث عن منتج</label>
+        <input type="text" id="relationSearch" class="form-control" placeholder="ابحث بالاسم...">
+        <input type="hidden" name="related_product_id" id="relatedProductId">
+        <div id="relationResults" style="border:1px solid #e5e7eb; border-radius:6px; margin-top:4px; max-height:200px; overflow-y:auto; display:none;"></div>
+      </div>
+      <div>
+        <label class="form-label">النوع</label>
+        <select name="relation_type" class="form-select">
+          <option value="related">منتج ذو صلة</option>
+          <option value="frequently_bought">يُشترى عادةً معه</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> ربط</button>
+    </form>
+
+    {% if product.relations %}
+    <div class="list-group">
+      {% for rel in product.relations %}
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ rel.related_product.name_ar if rel.related_product else '(محذوف)' }}</strong>
+          <span class="badge bg-secondary ms-2">
+            {% if rel.relation_type.value == 'related' %}ذو صلة{% else %}يُشترى معه{% endif %}
+          </span>
+        </div>
+        <form method="post" action="{{ url_for('products.relations_delete', relation_id=rel.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-danger" title="فك الربط"><i class="bi bi-x"></i></button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-muted small">لا توجد علاقات مضافة. المتجر يعرض منتجات نفس التصنيف كـ fallback.</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 <script>
+  {% if not product %}
   function addVariantRow() {
     const tbody = document.querySelector('#variantsTable tbody');
-    const idx = tbody.children.length;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input class="form-control form-control-sm" name="variant_color[]" placeholder="مثال: أحمر"></td>
       <td><input class="form-control form-control-sm" name="variant_price[]" type="number" step="0.001" placeholder="السعر"></td>
+      <td><input class="form-control form-control-sm" name="variant_compare_at_price[]" type="number" step="0.001" placeholder="اختياري"></td>
       <td><input class="form-control form-control-sm" name="variant_reorder[]" type="number" step="0.001" placeholder="0"></td>
       <td><input class="form-control form-control-sm" name="variant_barcode[]" placeholder="تلقائي" dir="ltr"></td>
       <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
     `;
     tbody.appendChild(tr);
   }
+  {% endif %}
+
+  function addFeatureRow() {
+    const list = document.getElementById('featuresList');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+      <input type="text" name="feature_text[]" class="form-control" placeholder="مثال: مقاوم للحرارة">
+      <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()"><i class="bi bi-x"></i></button>
+    `;
+    list.appendChild(div);
+  }
+
+  function addCompositionRow() {
+    const tbody = document.getElementById('compositionRows');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="number" name="composition_qty[]" class="form-control form-control-sm" value="1" min="1"></td>
+      <td><input type="text" name="composition_content[]" class="form-control form-control-sm" placeholder="مثال: طبق تقديم كبير"></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  {% if product %}
+  // Epic 5 — بحث منتجات ذات صلة
+  (function() {
+    const search = document.getElementById('relationSearch');
+    const results = document.getElementById('relationResults');
+    const hiddenId = document.getElementById('relatedProductId');
+    if (!search) return;
+    let timer;
+    search.addEventListener('input', () => {
+      clearTimeout(timer);
+      const q = search.value.trim();
+      if (q.length < 2) { results.style.display = 'none'; return; }
+      timer = setTimeout(async () => {
+        try {
+          const url = '{{ url_for('products.api_search_products') }}?q=' + encodeURIComponent(q) + '&exclude={{ product.id }}';
+          const resp = await fetch(url);
+          const data = await resp.json();
+          results.innerHTML = '';
+          if (data.length === 0) {
+            results.innerHTML = '<div class="p-2 text-muted small">لا توجد نتائج</div>';
+          } else {
+            data.forEach(p => {
+              const item = document.createElement('div');
+              item.className = 'p-2 border-bottom';
+              item.style.cursor = 'pointer';
+              item.textContent = p.name + (p.brand ? ' — ' + p.brand : '');
+              item.addEventListener('click', () => {
+                hiddenId.value = p.id;
+                search.value = p.name;
+                results.style.display = 'none';
+              });
+              results.appendChild(item);
+            });
+          }
+          results.style.display = 'block';
+        } catch (e) { /* ignore */ }
+      }, 250);
+    });
+  })();
+  {% endif %}
 </script>
-{% endif %}
 {% endblock %}

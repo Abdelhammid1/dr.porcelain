@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (
     BooleanField,
+    DateTimeLocalField,
     DecimalField,
     FieldList,
     FormField,
@@ -44,6 +45,20 @@ class ProductForm(FlaskForm):
     )
     description = TextAreaField("الوصف", validators=[Optional()], render_kw={"rows": 3})
     is_active = BooleanField("نشط", default=True)
+
+    # Epic 2 — عرض فقط: وقت انتهاء العرض للعداد التنازلي
+    offer_ends_at = DateTimeLocalField(
+        "ينتهي العرض في (اختياري)",
+        format="%Y-%m-%dT%H:%M",
+        validators=[Optional()],
+    )
+
+    # Epic 3 — مواصفات
+    origin_country = StringField("بلد المنشأ (اختياري)",
+                                 validators=[Optional(), Length(max=80)])
+    piece_count = IntegerField("عدد القطع (اختياري)",
+                               validators=[Optional(), NumberRange(min=1)])
+
     submit = SubmitField("حفظ")
 
 
@@ -55,5 +70,10 @@ class VariantForm(FlaskForm):
     color = StringField("اللون", validators=[Optional(), Length(max=60)])
     barcode = StringField("الباركود (يُولَّد تلقائيًا لو ترك فارغ)", validators=[Optional(), Length(max=40)], render_kw={"dir": "ltr"})
     price = DecimalField("السعر", places=3, rounding=None, validators=[Optional(), NumberRange(min=0)])
+    compare_at_price = DecimalField(
+        "السعر قبل الخصم (اختياري — يظهر مشطوبًا)",
+        places=3, rounding=None,
+        validators=[Optional(), NumberRange(min=0)],
+    )
     reorder_level = DecimalField("الحد الأدنى للتنبيه", places=3, rounding=None, validators=[Optional(), NumberRange(min=0)])
     is_active = BooleanField("نشط", default=True)

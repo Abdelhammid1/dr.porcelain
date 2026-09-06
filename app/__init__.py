@@ -47,6 +47,7 @@ def _register_extensions(app: Flask) -> None:
 
 def _register_blueprints(app: Flask) -> None:
     from app.blueprints.auth import auth_bp
+    from app.blueprints.coupons import coupons_bp
     from app.blueprints.main import main_bp
     from app.blueprints.parties import parties_bp
     from app.blueprints.products import products_bp
@@ -55,6 +56,7 @@ def _register_blueprints(app: Flask) -> None:
     from app.blueprints.pos import pos_bp
     from app.blueprints.purchases import purchases_bp
     from app.blueprints.reports import reports_bp
+    from app.blueprints.reviews import reviews_bp
     from app.blueprints.sales import sales_bp
     from app.blueprints.storefront import storefront_bp
     from app.blueprints.vendor_payments import vendor_payments_bp
@@ -70,6 +72,8 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(installments_bp)
     app.register_blueprint(vendor_payments_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(reviews_bp)
+    app.register_blueprint(coupons_bp)
     app.register_blueprint(storefront_bp)
 
 

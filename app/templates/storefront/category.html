@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert %}
 {% block title %}{{ category.name_ar }}{% endblock %}
 
 {% block content %}
@@ -32,6 +33,41 @@
                    class="form-control form-control-sm" placeholder="إلى">
           </div>
         </div>
+
+        <!-- Epic 7 — فلتر البراند -->
+        {% if available_brands %}
+        <div style="margin-bottom:16px;">
+          <label class="form-label small">العلامة التجارية</label>
+          <div style="max-height:180px; overflow-y:auto; padding:6px; border:1px solid var(--dp-line); border-radius:8px;">
+            {% for b in available_brands %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="brand" value="{{ b }}"
+                     id="brand{{ loop.index }}"
+                     {% if b in selected_brands %}checked{% endif %}>
+              <label class="form-check-label small" for="brand{{ loop.index }}">{{ b }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Epic 7 — فلتر اللون -->
+        {% if available_colors %}
+        <div style="margin-bottom:16px;">
+          <label class="form-label small">اللون</label>
+          <div style="max-height:180px; overflow-y:auto; padding:6px; border:1px solid var(--dp-line); border-radius:8px;">
+            {% for c in available_colors %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="color" value="{{ c }}"
+                     id="color{{ loop.index }}"
+                     {% if c in selected_colors %}checked{% endif %}>
+              <label class="form-check-label small" for="color{{ loop.index }}">{{ c }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         <div style="margin-bottom:16px;">
           <label class="form-label small">الترتيب</label>
           <select name="sort" class="form-select form-select-sm">
@@ -44,6 +80,12 @@
         <button type="submit" class="sf-btn-primary" style="width:100%;">
           <i class="bi bi-funnel"></i> تطبيق
         </button>
+        {% if selected_brands or selected_colors or q or price_min or price_max %}
+        <a href="{{ url_for('storefront.category', category_id=category.id) }}"
+           class="btn btn-sm btn-outline-secondary mt-2" style="width:100%;">
+          <i class="bi bi-x-circle"></i> مسح الفلاتر
+        </a>
+        {% endif %}
       </form>
     </div>
 
@@ -64,14 +106,21 @@
   <!-- Products grid -->
   <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px; align-content:start;">
     {% for v in variants %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+      {{ sale_badge(v) }}
       <div class="sf-product-image">
-        <i class="bi bi-box"></i>
+        {{ product_thumb(v.product) }}
       </div>
       <div class="sf-product-body">
         <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
         <div class="sf-product-name">{{ v.display_name }}</div>
-        <div class="sf-product-price">{{ v.price | money }}</div>
+        {% if v.product.review_count > 0 %}
+        <div style="margin-bottom:4px; font-size:0.75rem;">
+          {{ stars(v.product.avg_rating, v.product.review_count) }}
+        </div>
+        {% endif %}
+        <div>{{ price_block(v) }}</div>
+        {{ low_stock_alert(v) }}
         <form method="post" action="{{ url_for('storefront.cart_add') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="variant_id" value="{{ v.id }}">

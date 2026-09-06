@@ -77,6 +77,14 @@ PERMISSIONS: list[dict] = [
     {"code": "orders.view", "label_ar": "عرض الطلبات الأونلاين", "group_ar": "الطلبات"},
     {"code": "orders.manage", "label_ar": "إدارة حالات الطلبات", "group_ar": "الطلبات"},
 
+    # --- مراجعات المنتجات (Epic 6 من تذكرة تحسينات المنتج) ---
+    {"code": "reviews.view", "label_ar": "عرض مراجعات المنتجات", "group_ar": "المراجعات"},
+    {"code": "reviews.moderate", "label_ar": "الموافقة على المراجعات أو رفضها", "group_ar": "المراجعات"},
+
+    # --- أكواد الخصم (Ticket 2 Epic 2) ---
+    {"code": "coupons.view", "label_ar": "عرض أكواد الخصم", "group_ar": "الخصومات"},
+    {"code": "coupons.manage", "label_ar": "إنشاء وتعديل أكواد الخصم", "group_ar": "الخصومات"},
+
     # --- التقارير ---
     {"code": "reports.trial_balance", "label_ar": "ميزان مراجعة", "group_ar": "التقارير"},
     {"code": "reports.statements", "label_ar": "كشوف الحسابات", "group_ar": "التقارير"},

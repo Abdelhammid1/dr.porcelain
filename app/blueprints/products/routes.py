@@ -11,15 +11,28 @@ from app.blueprints.products import products_bp
 from app.blueprints.products.forms import CategoryForm, ProductForm
 from app.extensions import db
 from app.models.category import Category
+from app.models.image import ProductImage
 from app.models.inventory import InventoryMovement
 from app.models.product import Product, ProductVariant
+from app.models.product_relation import ProductRelation, RelationType
 from app.services.inventory import low_stock_variants
+from app.services.product_images import (
+    ImageError,
+    delete_product_image,
+    reorder_images,
+    save_product_image,
+    set_primary,
+)
 from app.services.products import (
     ProductError,
+    add_related_product,
     add_variant,
     create_category,
     create_product,
     delete_category,
+    remove_related_product,
+    set_product_composition,
+    set_product_features,
     update_category,
     update_product,
     update_variant,
@@ -131,7 +144,6 @@ def index():
             Product.name_ar.ilike(like),
             Product.brand.ilike(like),
         ))
-        # ابحث أيضًا في SKU/barcode للـ variants
         variant_match = (
             db.session.query(ProductVariant.product_id)
             .filter(or_(ProductVariant.sku.ilike(like), ProductVariant.barcode.ilike(like)))
@@ -166,8 +178,9 @@ def create():
     form.category_id.choices = _flat_category_choices()
 
     if form.validate_on_submit():
-        # المتغيرات — نستقبلها من الحقول الديناميكية variant_color[], variant_price[], إلخ
         variants = _parse_variants_from_request()
+        features = _parse_features_from_request()
+        composition = _parse_composition_from_request()
         try:
             p = create_product(
                 name_ar=form.name_ar.data,
@@ -178,10 +191,18 @@ def create():
                 default_price=form.default_price.data or Decimal("0"),
                 tax_rate_override=form.tax_rate_override.data,
                 variants=variants,
+                offer_ends_at=form.offer_ends_at.data,
+                origin_country=form.origin_country.data,
+                piece_count=form.piece_count.data,
             )
+            # Epic 3 + Epic 4 — features + composition بعد إنشاء المنتج
+            if features:
+                set_product_features(p.id, features)
+            if composition:
+                set_product_composition(p.id, composition)
             db.session.commit()
             flash(f"تم إنشاء المنتج بعدد {len(p.variants)} متغير.", "success")
-            return redirect(url_for("products.view", product_id=p.id))
+            return redirect(url_for("products.edit", product_id=p.id))
         except ProductError as e:
             db.session.rollback()
             flash(str(e), "danger")
@@ -217,10 +238,18 @@ def edit(product_id):
                 default_price=form.default_price.data,
                 tax_rate_override=form.tax_rate_override.data or "",
                 is_active=form.is_active.data,
+                offer_ends_at=form.offer_ends_at.data if form.offer_ends_at.data else "",
+                origin_country=form.origin_country.data or "",
+                piece_count=form.piece_count.data if form.piece_count.data is not None else "",
             )
+            # Epic 3 + Epic 4 — احفظ المميزات وتكوين الطقم لو أُرسلت
+            features = _parse_features_from_request()
+            composition = _parse_composition_from_request()
+            set_product_features(p.id, features)
+            set_product_composition(p.id, composition)
             db.session.commit()
             flash("تم حفظ التعديلات.", "success")
-            return redirect(url_for("products.view", product_id=p.id))
+            return redirect(url_for("products.edit", product_id=p.id))
         except ProductError as e:
             db.session.rollback()
             flash(str(e), "danger")
@@ -240,6 +269,7 @@ def variants_add(product_id):
             p.id,
             color=request.form.get("color"),
             price=request.form.get("price") or None,
+            compare_at_price=request.form.get("compare_at_price") or None,
             reorder_level=request.form.get("reorder_level") or None,
         )
         db.session.commit()
@@ -262,6 +292,7 @@ def variants_edit(variant_id):
             color=request.form.get("color"),
             barcode=request.form.get("barcode"),
             price=request.form.get("price"),
+            compare_at_price=request.form.get("compare_at_price") if "compare_at_price" in request.form else None,
             reorder_level=request.form.get("reorder_level"),
             is_active=("is_active" in request.form),
         )
@@ -271,6 +302,120 @@ def variants_edit(variant_id):
         db.session.rollback()
         flash(str(e), "danger")
     return redirect(url_for("products.view", product_id=v.product_id))
+
+
+# ============================================================
+# Epic 1 — صور المنتجات
+# ============================================================
+
+@products_bp.route("/<int:product_id>/images/upload", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def images_upload(product_id):
+    p = db.session.get(Product, product_id) or abort(404)
+    files = request.files.getlist("images")
+    if not files or all(not f or not f.filename for f in files):
+        flash("اختر صورة واحدة على الأقل.", "warning")
+        return redirect(url_for("products.edit", product_id=p.id))
+
+    saved = 0
+    errors: list[str] = []
+    for f in files:
+        if not f or not f.filename:
+            continue
+        try:
+            save_product_image(p.id, f)
+            saved += 1
+        except ImageError as e:
+            errors.append(f"{f.filename}: {e}")
+
+    if saved:
+        db.session.commit()
+        flash(f"تم رفع {saved} صورة.", "success")
+    else:
+        db.session.rollback()
+    for msg in errors:
+        flash(msg, "danger")
+
+    return redirect(url_for("products.edit", product_id=p.id))
+
+
+@products_bp.route("/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def images_delete(image_id):
+    img = db.session.get(ProductImage, image_id) or abort(404)
+    pid = img.product_id
+    delete_product_image(image_id)
+    db.session.commit()
+    flash("تم حذف الصورة.", "success")
+    return redirect(url_for("products.edit", product_id=pid))
+
+
+@products_bp.route("/images/<int:image_id>/set-primary", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def images_set_primary(image_id):
+    img = db.session.get(ProductImage, image_id) or abort(404)
+    try:
+        set_primary(image_id)
+        db.session.commit()
+        flash("تم تعيين الصورة الرئيسية.", "success")
+    except ImageError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("products.edit", product_id=img.product_id))
+
+
+@products_bp.route("/<int:product_id>/images/reorder", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def images_reorder(product_id):
+    p = db.session.get(Product, product_id) or abort(404)
+    try:
+        ordered_ids = [int(x) for x in request.form.getlist("ordered_ids[]")]
+        reorder_images(p.id, ordered_ids)
+        db.session.commit()
+        return jsonify({"ok": True})
+    except (ValueError, TypeError):
+        db.session.rollback()
+        return jsonify({"ok": False, "error": "Bad payload"}), 400
+
+
+# ============================================================
+# Epic 5 — علاقات بين المنتجات
+# ============================================================
+
+@products_bp.route("/<int:product_id>/relations/add", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def relations_add(product_id):
+    p = db.session.get(Product, product_id) or abort(404)
+    related_id = request.form.get("related_product_id", type=int)
+    rtype = request.form.get("relation_type") or "related"
+    if not related_id:
+        flash("اختر منتجًا للربط.", "warning")
+        return redirect(url_for("products.edit", product_id=p.id))
+    try:
+        add_related_product(p.id, related_id, rtype)
+        db.session.commit()
+        flash("تم ربط المنتج.", "success")
+    except ProductError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("products.edit", product_id=p.id))
+
+
+@products_bp.route("/relations/<int:relation_id>/delete", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def relations_delete(relation_id):
+    rel = db.session.get(ProductRelation, relation_id) or abort(404)
+    pid = rel.product_id
+    remove_related_product(relation_id)
+    db.session.commit()
+    flash("تم فك الربط.", "success")
+    return redirect(url_for("products.edit", product_id=pid))
 
 
 # ============================================================
@@ -331,6 +476,30 @@ def api_search():
     ])
 
 
+@products_bp.route("/api/search-products")
+@login_required
+@require_permission("products.view")
+def api_search_products():
+    """بحث يرجع منتجات (Product) بدل variants — يُستخدم في picker المنتجات ذات الصلة."""
+    q = (request.args.get("q") or "").strip()
+    exclude_id = request.args.get("exclude", type=int)
+    if not q:
+        return jsonify([])
+    like = f"%{q}%"
+    query = (
+        db.session.query(Product)
+        .filter(Product.is_active == True)  # noqa: E712
+        .filter(or_(Product.name_ar.ilike(like), Product.brand.ilike(like)))
+    )
+    if exclude_id:
+        query = query.filter(Product.id != exclude_id)
+    products = query.limit(20).all()
+    return jsonify([
+        {"id": p.id, "name": p.name_ar, "brand": p.brand or "", "category": p.category.name_ar if p.category else ""}
+        for p in products
+    ])
+
+
 @products_bp.route("/api/by-barcode/<code>")
 @login_required
 @require_permission("products.view")
@@ -366,31 +535,52 @@ def _populate_category_parent_choices(form, exclude_id: int | None, current_pare
     for c in cats:
         if exclude_id and c.id == exclude_id:
             continue
-        # فقط التصنيفات اللي عمقها < MAX_DEPTH يمكن أن تكون آباء
         if c.depth < Category.MAX_DEPTH:
             choices.append((c.id, c.full_path_ar))
     form.parent_id.choices = choices
 
 
-def _parse_variants_from_request() -> list[dict]:
+def _parse_variants_from_request() -> list[dict] | None:
     """يستقرئ حقول variant_* من الفورم لإنشاء قائمة variants."""
     colors = request.form.getlist("variant_color[]")
     prices = request.form.getlist("variant_price[]")
+    compare_prices = request.form.getlist("variant_compare_at_price[]")
     reorders = request.form.getlist("variant_reorder[]")
     barcodes = request.form.getlist("variant_barcode[]")
 
     variants = []
     for i in range(len(colors)):
         color = (colors[i] or "").strip()
-        # سطر فارغ تمامًا نتجاهله
-        if not color and not (prices[i] if i < len(prices) else "") \
-                     and not (barcodes[i] if i < len(barcodes) else ""):
-            continue
+        price = (prices[i] if i < len(prices) else "") or ""
+        barcode = (barcodes[i] if i < len(barcodes) else "") or ""
+        if not color and not price and not barcode:
+            continue  # سطر فارغ تمامًا
         variants.append({
             "color": color or None,
             "variant_name": color or None,
-            "price": (prices[i] if i < len(prices) else None) or None,
+            "price": price or None,
+            "compare_at_price": (compare_prices[i] if i < len(compare_prices) else None) or None,
             "reorder_level": (reorders[i] if i < len(reorders) else None) or None,
-            "barcode": (barcodes[i] if i < len(barcodes) else None) or None,
+            "barcode": barcode or None,
         })
     return variants or None
+
+
+def _parse_features_from_request() -> list[str]:
+    """Epic 3 — يستقرئ feature_text[]."""
+    texts = request.form.getlist("feature_text[]")
+    return [t for t in (x.strip() for x in texts) if t]
+
+
+def _parse_composition_from_request() -> list[dict]:
+    """Epic 4 — يستقرئ composition_qty[] + composition_content[]."""
+    qtys = request.form.getlist("composition_qty[]")
+    contents = request.form.getlist("composition_content[]")
+    result = []
+    for i in range(len(contents)):
+        name = (contents[i] or "").strip()
+        raw_qty = (qtys[i] if i < len(qtys) else "").strip()
+        if not name:
+            continue
+        result.append({"quantity": raw_qty or "1", "content_name_ar": name})
+    return result

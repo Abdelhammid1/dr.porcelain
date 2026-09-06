@@ -43,6 +43,7 @@ def create_order(
     customer_id: int | None = None,
     payment_method: OrderPaymentMethod = OrderPaymentMethod.COD,
     notes: str | None = None,
+    coupon_code: str | None = None,  # Ticket 2 Epic 2
 ) -> Order:
     """يُنشِئ طلبًا أونلاين ذريًا (فاتورة + خصم مخزون، بدون قيد محاسبي).
 
@@ -111,7 +112,28 @@ def create_order(
     else:
         shipping_fee = Decimal(str(get_setting("storefront.shipping_fee", "0")))
 
-    total = (subtotal + tax_amount + shipping_fee).quantize(Decimal("0.001"))
+    # Ticket 2 Epic 2 — تطبيق الكوبون (يمس المبلغ الفعلي المستحق)
+    # القاعدة الذهبية: الخصم يقلل net_before_tax → subtotal في القيد لا يتغير
+    # ولكن discount_amount المُخزَّن يُقلّل AR debit في نهاية القيد المحاسبي.
+    coupon_id = None
+    coupon_discount = ZERO
+    if coupon_code:
+        from app.services.coupons import CouponError, validate_and_compute
+        try:
+            info = validate_and_compute(
+                code=coupon_code, subtotal=subtotal,
+                customer_id=(linked_customer.id if linked_customer else None),
+            )
+            coupon_discount = info["discount_amount"]
+            coupon_id = info["coupon"].id
+        except CouponError as e:
+            raise OrderError(str(e))
+
+    net_before_tax = subtotal - coupon_discount
+    # إعادة حساب الضريبة على المبلغ بعد الخصم
+    if tax_enabled:
+        tax_amount = (net_before_tax * tax_rate / Decimal("100")).quantize(Decimal("0.001"))
+    total = (net_before_tax + tax_amount + shipping_fee).quantize(Decimal("0.001"))
 
     # إنشاء الطلب
     order = Order(
@@ -126,7 +148,7 @@ def create_order(
         shipping_city=(shipping_city or None),
         shipping_notes=(shipping_notes or None),
         subtotal=subtotal,
-        discount_amount=ZERO,
+        discount_amount=coupon_discount,
         tax_rate=tax_rate,
         tax_amount=tax_amount,
         shipping_fee=shipping_fee,
@@ -136,6 +158,16 @@ def create_order(
     )
     db.session.add(order)
     db.session.flush()
+
+    # Ticket 2 Epic 2 — تسجيل استخدام الكوبون (بعد إنشاء الطلب لأنه FK)
+    if coupon_id is not None and coupon_discount > 0:
+        from app.services.coupons import record_usage
+        record_usage(
+            coupon_id=coupon_id,
+            order_id=order.id,
+            customer_id=(linked_customer.id if linked_customer else None),
+            discount_amount=coupon_discount,
+        )
 
     # إنشاء الأسطر + خصم المخزون (بدون قيود — Phase 8 تُنشئها لاحقًا)
     for variant, qty, price in resolved:

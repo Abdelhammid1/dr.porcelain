@@ -1,0 +1,64 @@
+{% extends "storefront/_base.html" %}
+{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert %}
+{% block title %}بحث: {{ q }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px;">
+  <h1 style="font-size:1.6rem; font-weight:800; margin:0 0 6px;">
+    <i class="bi bi-search"></i>
+    نتائج البحث عن: <span style="color:var(--dp-brand);">{{ q }}</span>
+  </h1>
+  <div style="color:var(--dp-ink-3);">{{ variants|length }} نتيجة</div>
+</div>
+
+{% if variants %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
+  {% for v in variants %}
+  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+    {{ sale_badge(v) }}
+    <div class="sf-product-image">
+      {{ product_thumb(v.product) }}
+    </div>
+    <div class="sf-product-body">
+      <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
+      <div class="sf-product-name">{{ v.display_name }}</div>
+      {% if v.product.review_count > 0 %}
+      <div style="margin-bottom:4px; font-size:0.75rem;">
+        {{ stars(v.product.avg_rating, v.product.review_count) }}
+      </div>
+      {% endif %}
+      <div>{{ price_block(v) }}</div>
+      {{ low_stock_alert(v) }}
+      <form method="post" action="{{ url_for('storefront.cart_add') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="variant_id" value="{{ v.id }}">
+        <input type="hidden" name="qty" value="1">
+        <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}>
+          <i class="bi bi-basket-fill"></i>
+          {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
+        </button>
+      </form>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:50px 20px; text-align:center;">
+  <div style="font-size:4rem; opacity:.4;">🔍</div>
+  <h3 style="margin:14px 0 8px;">مفيش نتائج لـ "{{ q }}"</h3>
+  <p style="color:var(--dp-ink-3); margin-bottom:24px;">
+    جرّب كلمات أخرى أو تصفّح تصنيفاتنا الشهيرة أدناه.
+  </p>
+  {% if popular_categories %}
+  <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    {% for cat in popular_categories %}
+    <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
+       class="btn btn-outline-primary btn-sm">
+      {{ cat.name_ar }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb %}
 {% block title %}الرئيسية{% endblock %}
 
 {% block content %}
@@ -62,15 +63,20 @@
   </div>
   <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:20px;">
     {% for v in best_sellers %}
-    {{ macros_product_card(v) if False }}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+      {{ sale_badge(v) }}
       <div class="sf-product-image">
-        <i class="bi bi-{% if 'كوب' in v.product.name_ar %}cup{% elif 'طبق' in v.product.name_ar %}circle{% else %}box{% endif %}"></i>
+        {{ product_thumb(v.product, icon='bi-box') }}
       </div>
       <div class="sf-product-body">
         <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
         <div class="sf-product-name">{{ v.display_name }}</div>
-        <div class="sf-product-price">{{ v.price | money }}</div>
+        {% if v.product.review_count > 0 %}
+        <div style="margin-bottom:4px; font-size:0.75rem;">
+          {{ stars(v.product.avg_rating, v.product.review_count) }}
+        </div>
+        {% endif %}
+        <div>{{ price_block(v) }}</div>
         <form method="post" action="{{ url_for('storefront.cart_add') }}" onclick="event.stopPropagation();">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="variant_id" value="{{ v.id }}">
@@ -117,14 +123,20 @@
   </div>
   <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:20px;">
     {% for v in new_arrivals %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card">
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
+      {{ sale_badge(v) }}
       <div class="sf-product-image">
-        <i class="bi bi-star-fill" style="color:#f59e0b"></i>
+        {{ product_thumb(v.product, icon='bi-star-fill') }}
       </div>
       <div class="sf-product-body">
         <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
         <div class="sf-product-name">{{ v.display_name }}</div>
-        <div class="sf-product-price">{{ v.price | money }}</div>
+        {% if v.product.review_count > 0 %}
+        <div style="margin-bottom:4px; font-size:0.75rem;">
+          {{ stars(v.product.avg_rating, v.product.review_count) }}
+        </div>
+        {% endif %}
+        <div>{{ price_block(v) }}</div>
         <form method="post" action="{{ url_for('storefront.cart_add') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="variant_id" value="{{ v.id }}">

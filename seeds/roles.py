@@ -34,6 +34,8 @@ ROLE_DEFAULTS: list[dict] = [
             "reports.income_statement", "reports.balance_sheet", "reports.cash_flow",
             "reports.vat", "reports.profitability",
             "orders.view", "orders.manage",
+            "reviews.view", "reviews.moderate",
+            "coupons.view", "coupons.manage",
             "installments.view", "installments.create", "installments.collect",
             "pos.use", "pos.close_own", "pos.close_any", "pos.view_all",
             "reports.trial_balance", "reports.statements", "reports.financial",

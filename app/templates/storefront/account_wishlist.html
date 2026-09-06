@@ -1,0 +1,63 @@
+{% extends "storefront/_portal_layout.html" %}
+{% from "storefront/_macros.html" import product_thumb, price_block %}
+{% block title %}المفضلة{% endblock %}
+
+{% block portal_content %}
+<div style="margin-bottom:20px;">
+  <h1 style="font-size:1.5rem; font-weight:800; margin:0;">
+    <i class="bi bi-heart-fill" style="color:#dc2626"></i>
+    قائمة المفضلة
+  </h1>
+  <div style="color:var(--dp-ink-3); margin-top:4px;">{{ items|length }} منتج</div>
+</div>
+
+{% if items %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
+  {% for item in items %}
+  {% set product = item.product %}
+  {% set variant = product.default_variant %}
+  <div class="sf-product-card" style="position:relative;">
+    <a href="{{ url_for('storefront.product', product_id=product.id) }}"
+       style="text-decoration:none; color:inherit;">
+      <div class="sf-product-image">
+        {{ product_thumb(product) }}
+      </div>
+      <div class="sf-product-body">
+        <div class="sf-product-cat">{{ product.category.name_ar if product.category else '' }}</div>
+        <div class="sf-product-name">{{ product.name_ar }}</div>
+        {% if variant %}<div>{{ price_block(variant) }}</div>{% endif %}
+      </div>
+    </a>
+    <div style="padding:8px 12px 12px; display:flex; gap:6px;">
+      <form method="post" action="{{ url_for('storefront.wishlist_move_to_cart', product_id=product.id) }}"
+            style="flex:1;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="sf-add-btn" style="width:100%;"
+                {% if not variant or variant.stock_qty <= 0 %}disabled{% endif %}>
+          <i class="bi bi-basket-fill"></i>
+          {% if variant and variant.stock_qty > 0 %}نقل للسلة{% else %}غير متاح{% endif %}
+        </button>
+      </form>
+      <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=product.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm" title="حذف من المفضلة">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:50px 20px; text-align:center;">
+  <div style="font-size:4rem; opacity:.4;">💝</div>
+  <h3 style="margin:14px 0 8px;">قائمة المفضلة فارغة</h3>
+  <p style="color:var(--dp-ink-3); margin-bottom:20px;">
+    اضغط على أيقونة القلب على أي منتج لإضافته هنا.
+  </p>
+  <a href="{{ url_for('storefront.home') }}" class="sf-btn-primary">
+    <i class="bi bi-arrow-left-circle"></i> استكشف المتجر
+  </a>
+</div>
+{% endif %}
+{% endblock %}
