@@ -1,68 +1,73 @@
 {% extends "layouts/app.html" %}
 {% block title %}الأقساط المتأخرة{% endblock %}
-{% block page_title %}الأقساط المتأخرة{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>الأقساط المتأخرة</h1>
-    <div class="subtitle">{{ lines|length }} قسط تجاوز تاريخ استحقاقه</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-error font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">warning</span>
+        <span>أقساط متأخرة</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأقساط المتأخرة</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ lines|length }} قسط تجاوز تاريخ استحقاقه</p>
+    </div>
+    <a href="{{ url_for('installments.index') }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>كل الخطط</span>
+    </a>
   </div>
-  <a href="{{ url_for('installments.index') }}" class="btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع لكل الخطط
-  </a>
-</div>
 
-<div class="card">
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>رقم الخطة</th>
-          <th>العميل</th>
-          <th>القسط</th>
-          <th>تاريخ الاستحقاق</th>
-          <th>المتبقي</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for line in lines %}
-        <tr>
-          <td dir="ltr" class="fw-bold">
-            <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}">
-              {{ line.plan.doc_number }}
-            </a>
-          </td>
-          <td>
-            {{ line.plan.customer.name_ar }}
-            <div class="small text-muted" dir="ltr">{{ line.plan.customer.phone or '—' }}</div>
-          </td>
-          <td>#{{ line.number }} / {{ line.plan.installments_count }}</td>
-          <td>
-            {{ line.due_date.strftime('%Y/%m/%d') }}
-            <span class="badge badge-danger">متأخر</span>
-          </td>
-          <td class="fw-bold">{{ line.remaining | money }}</td>
-          <td class="text-end">
-            <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}"
-               class="btn-primary btn-sm">
-              <i class="bi bi-cash"></i> تحصيل
-            </a>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="6">
-            <div class="empty-state">
-              <div class="empty-state-icon">✅</div>
-              <div class="empty-state-title">لا توجد أقساط متأخرة — كل شيء تحت السيطرة!</div>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md">
+            <th class="py-space-xs px-space-md">رقم الخطة</th>
+            <th class="py-space-xs px-space-md">العميل</th>
+            <th class="py-space-xs px-space-md">القسط</th>
+            <th class="py-space-xs px-space-md">تاريخ الاستحقاق</th>
+            <th class="py-space-xs px-space-md">المتبقي</th>
+            <th class="py-space-xs px-space-md text-left"></th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+          {% for line in lines %}
+          <tr class="hover:bg-error-container/30 transition-colors">
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold" dir="ltr">
+              <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}" class="text-secondary hover:underline">{{ line.plan.doc_number }}</a>
+            </td>
+            <td class="py-space-xs px-space-md">
+              <div class="text-on-surface font-medium">{{ line.plan.customer.name_ar }}</div>
+              <div class="text-on-surface-variant text-[11px]" dir="ltr">{{ line.plan.customer.phone or '—' }}</div>
+            </td>
+            <td class="py-space-xs px-space-md">#{{ line.number }} / {{ line.plan.installments_count }}</td>
+            <td class="py-space-xs px-space-md">
+              <span class="text-on-surface-variant">{{ line.due_date.strftime('%Y/%m/%d') }}</span>
+              <span class="inline-flex items-center px-space-2xs py-0.5 rounded-md bg-error text-on-error font-label-sm text-label-sm font-bold ms-1">متأخر</span>
+            </td>
+            <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold text-error">{{ line.remaining | money }}</td>
+            <td class="py-space-xs px-space-md text-left">
+              <a href="{{ url_for('installments.view', plan_id=line.plan.id) }}"
+                 class="h-8 px-space-sm bg-secondary text-on-secondary hover:bg-secondary/90 rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">payments</span>
+                تحصيل
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="py-space-3xl text-center">
+              <div class="w-16 h-16 mx-auto rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed mb-space-md">
+                <span class="material-symbols-outlined text-[32px]">check_circle</span>
+              </div>
+              <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد أقساط متأخرة — كل شيء تحت السيطرة!</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -1,137 +1,152 @@
 {% extends "layouts/app.html" %}
 {% block title %}طلب {{ order.doc_number }}{% endblock %}
-{% block page_title %}طلب {{ order.doc_number }}{% endblock %}
 
-{% set status_labels = {
-  'pending':    ('قيد المعالجة', 'muted'),
-  'processing': ('قيد التجهيز',  'info'),
-  'shipped':    ('تم الشحن',     'brand'),
-  'delivered':  ('تم التسليم',   'success'),
-  'cancelled':  ('ملغى',        'danger'),
-  'returned':   ('مرتجع',       'warning'),
+{% set status_meta = {
+  'pending':    ('قيد المعالجة', 'bg-surface-container-high text-on-surface-variant'),
+  'processing': ('قيد التجهيز',  'bg-secondary-fixed text-on-secondary-fixed'),
+  'shipped':    ('تم الشحن',     'bg-primary-container text-on-primary'),
+  'delivered':  ('تم التسليم',   'bg-secondary-fixed text-on-secondary-fixed'),
+  'cancelled':  ('ملغى',        'bg-error-container text-on-error-container'),
+  'returned':   ('مرتجع',       'bg-tertiary-fixed text-on-tertiary-fixed-variant'),
 } %}
-{% set st = status_labels.get(order.status.value, (order.status.value, 'muted')) %}
+{% set st = status_meta.get(order.status.value, (order.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      طلب <span dir="ltr">{{ order.doc_number }}</span>
-      <span class="badge badge-{{ st[1] }} ms-2">{{ st[0] }}</span>
-    </h1>
-    <div class="subtitle">{{ order.order_date | hdate }} · {{ order.customer_display_name }}</div>
-  </div>
-  <a href="{{ url_for('orders.index') }}" class="btn-light">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-8">
-    <!-- Line items -->
-    <div class="card">
-      <div class="card-header">بنود الطلب</div>
-      <div class="table-scroll">
-        <table class="table mb-0">
-          <thead>
-            <tr>
-              <th>المنتج</th>
-              <th>SKU</th>
-              <th>الكمية</th>
-              <th>السعر</th>
-              <th class="text-end">الإجمالي</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for line in order.lines %}
-            <tr>
-              <td>{{ line.product_name }}</td>
-              <td dir="ltr" class="small text-muted">{{ line.sku }}</td>
-              <td>{{ line.qty | qty }}</td>
-              <td>{{ line.unit_price | money }}</td>
-              <td class="text-end fw-bold">{{ line.line_total | money }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold" dir="ltr">طلب {{ order.doc_number }}</h1>
+        <span class="inline-flex items-center px-space-xs py-0.5 rounded-full {{ st[1] }} font-label-md text-label-md font-semibold">{{ st[0] }}</span>
       </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ order.order_date | hdate }} · {{ order.customer_display_name }}</p>
     </div>
+    <div class="flex items-center gap-space-xs">
+      {% if current_user.can("orders.view") %}
+      <a href="{{ url_for('orders.invoice_pdf', order_id=order.id) }}"
+         class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">download</span><span>تحميل PDF</span>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('orders.index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع</span>
+      </a>
+    </div>
+  </div>
 
-    <!-- Status transitions -->
-    {% if current_user.can("orders.manage") %}
-    <div class="card mt-3">
-      <div class="card-header">تحديث الحالة</div>
-      <div class="card-body">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-2 space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[20px]">list_alt</span>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">بنود الطلب</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+                <th class="py-space-xs px-space-md">المنتج</th>
+                <th class="py-space-xs px-space-md">SKU</th>
+                <th class="py-space-xs px-space-md">الكمية</th>
+                <th class="py-space-xs px-space-md">السعر</th>
+                <th class="py-space-xs px-space-md text-end">الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
+              {% for line in order.lines %}
+              <tr>
+                <td class="py-space-xs px-space-md text-on-surface font-medium">{{ line.product_name }}</td>
+                <td class="py-space-xs px-space-md text-on-surface-variant text-[11px]" dir="ltr">{{ line.sku }}</td>
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.qty | qty }}</td>
+                <td class="py-space-xs px-space-md font-fiscal-numeric-md">{{ line.unit_price | money }}</td>
+                <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold text-secondary">{{ line.line_total | money }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {% if current_user.can("orders.manage") %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">تحديث الحالة</h3>
         <form method="post" action="{{ url_for('orders.change_status', order_id=order.id) }}"
-              class="d-flex gap-3 align-items-end">
+              class="flex flex-col sm:flex-row gap-space-sm items-end">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div style="flex:1">
-            <label class="form-label">الحالة الجديدة</label>
-            <select name="status" class="form-select">
+          <div class="flex-1">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الحالة الجديدة</label>
+            <select name="status"
+                    class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
               {% for code, lbl in [('pending','قيد المعالجة'),('processing','قيد التجهيز'),('shipped','تم الشحن'),('delivered','تم التسليم'),('cancelled','ملغى')] %}
-              <option value="{{ code }}" {% if order.status.value == code %}selected disabled{% endif %}>
-                {{ lbl }}
-              </option>
+              <option value="{{ code }}" {% if order.status.value == code %}selected disabled{% endif %}>{{ lbl }}</option>
               {% endfor %}
             </select>
           </div>
-          <button type="submit" class="btn-primary"><i class="bi bi-check-lg"></i> تحديث</button>
+          <button type="submit"
+                  class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[18px]">check</span><span>تحديث</span>
+          </button>
         </form>
-        <div class="dp-callout tone-brand mt-3">
-          <div>
-            <strong class="dp-callout-title">تكامل محاسبي فعّال</strong>
-            عند تغيير الحالة لـ "تم التسليم" ستُنشأ فاتورة بيع تلقائية + 3 قيود
-            (بيع + تحصيل COD + COGS). عند "مرتجع" بعد التسليم ستُعكس القيود تلقائيًا.
+        <div class="mt-space-md p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed text-body-sm">
+          <div class="flex items-start gap-space-xs">
+            <span class="material-symbols-outlined text-[18px] mt-0.5">verified</span>
+            <div>
+              <strong>تكامل محاسبي فعّال:</strong>
+              عند "تم التسليم" ستُنشأ فاتورة بيع + 3 قيود (بيع + تحصيل COD + COGS).
+              عند "مرتجع" بعد التسليم ستُعكس القيود تلقائيًا.
+            </div>
           </div>
         </div>
         {% if order.sales_invoice_id %}
-        <div class="dp-callout tone-success mt-2">
-          <div>
-            <strong class="dp-callout-title">فاتورة مرتبطة ✓</strong>
-            تم إنشاء
-            <a href="{{ url_for('sales.view', invoice_id=order.sales_invoice_id) }}"
-               dir="ltr" class="fw-bold">{{ order.sales_invoice.doc_number }}</a>
-            بإجمالي <strong>{{ order.sales_invoice.total | money }}</strong>.
+        <div class="mt-space-sm p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed text-body-sm">
+          <div class="flex items-start gap-space-xs">
+            <span class="material-symbols-outlined text-[18px] mt-0.5">receipt_long</span>
+            <div>
+              <strong>فاتورة مرتبطة ✓</strong>
+              تم إنشاء
+              <a href="{{ url_for('sales.view', invoice_id=order.sales_invoice_id) }}" dir="ltr" class="font-bold underline">{{ order.sales_invoice.doc_number }}</a>
+              بإجمالي <strong>{{ order.sales_invoice.total | money }}</strong>.
+            </div>
           </div>
         </div>
         {% endif %}
       </div>
+      {% endif %}
     </div>
-    {% endif %}
-  </div>
 
-  <div class="col-lg-4">
-    <!-- Summary -->
-    <div class="card">
-      <div class="card-header">الملخّص</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6 text-muted small">الفرعي</dt>
-          <dd class="col-6 text-end">{{ order.subtotal | money }}</dd>
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">الملخّص</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="flex justify-between"><span class="text-on-surface-variant">الفرعي</span><span class="font-fiscal-numeric-md">{{ order.subtotal | money }}</span></div>
           {% if order.tax_amount > 0 %}
-          <dt class="col-6 text-muted small">الضريبة</dt>
-          <dd class="col-6 text-end">{{ order.tax_amount | money }}</dd>
+          <div class="flex justify-between"><span class="text-on-surface-variant">الضريبة</span><span class="font-fiscal-numeric-md">{{ order.tax_amount | money }}</span></div>
           {% endif %}
-          <dt class="col-6 text-muted small">الشحن</dt>
-          <dd class="col-6 text-end">{{ order.shipping_fee | money }}</dd>
-          <hr>
-          <dt class="col-6 fw-bold">الإجمالي</dt>
-          <dd class="col-6 text-end fw-bold" style="color:var(--dp-brand);">{{ order.total | money }}</dd>
-        </dl>
+          <div class="flex justify-between"><span class="text-on-surface-variant">الشحن</span><span class="font-fiscal-numeric-md">{{ order.shipping_fee | money }}</span></div>
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div class="flex justify-between items-center">
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الإجمالي</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ order.total | money }}</span>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="card mt-3">
-      <div class="card-header">بيانات الشحن</div>
-      <div class="card-body">
-        <div class="fw-bold mb-1">{{ order.customer_display_name }}</div>
-        <div class="small text-muted" dir="ltr">{{ order.customer_phone }}</div>
-        <hr>
-        <div><strong>{{ order.shipping_city or 'المدينة —' }}</strong></div>
-        <div style="white-space:pre-line">{{ order.shipping_address }}</div>
-        {% if order.shipping_notes %}
-        <div class="small text-muted mt-2">📝 {{ order.shipping_notes }}</div>
-        {% endif %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">
+          <span class="material-symbols-outlined text-[18px] align-middle">local_shipping</span>
+          بيانات الشحن
+        </h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="font-bold text-on-surface">{{ order.customer_display_name }}</div>
+          <div class="text-on-surface-variant text-[11px]" dir="ltr">{{ order.customer_phone }}</div>
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div><strong>{{ order.shipping_city or 'المدينة —' }}</strong></div>
+          <div class="whitespace-pre-line text-on-surface-variant">{{ order.shipping_address }}</div>
+          {% if order.shipping_notes %}
+          <div class="text-on-surface-variant text-body-sm mt-space-xs">📝 {{ order.shipping_notes }}</div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

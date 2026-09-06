@@ -1,111 +1,103 @@
 {% extends "layouts/app.html" %}
 {% block title %}قفل وردية {{ session.doc_number }}{% endblock %}
-{% block page_title %}قفل الوردية{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>قفل وردية <span dir="ltr">{{ session.doc_number }}</span></h1>
-    <div class="subtitle">الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}</div>
-  </div>
-  <a href="{{ url_for('pos.terminal', session_id=session.id) }}" class="btn btn-light">
-    <i class="bi bi-arrow-right"></i> عودة للبيع
-  </a>
-</div>
-
-<div class="row g-3 mb-4">
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
-      <div>
-        <div class="kpi-label">افتتاحي</div>
-        <div class="kpi-value">{{ session.opening_cash | money }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs text-error font-label-md text-label-md mb-space-3xs">
+        <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
+        <span>قفل وردية</span>
       </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">قفل وردية <span dir="ltr" class="text-secondary">{{ session.doc_number }}</span></h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}
+      </p>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
-      <div>
-        <div class="kpi-label">عدد الفواتير</div>
-        <div class="kpi-value">{{ summary.invoices_count }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-bar-chart"></i></div>
-      <div>
-        <div class="kpi-label">إجمالي المبيعات</div>
-        <div class="kpi-value">{{ summary.total_sales | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card" style="background: #f0f9ff; border-color: #0ea5e9;">
-      <div class="kpi-icon" style="background:#0ea5e9; color:white"><i class="bi bi-wallet2"></i></div>
-      <div>
-        <div class="kpi-label">المتوقع في العهدة</div>
-        <div class="kpi-value">{{ summary.current_custody_balance | money }}</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header">تفصيل المبيعات حسب طريقة الدفع</div>
-      <div class="card-body">
-        <table class="table mb-0">
-          <tr>
-            <td><i class="bi bi-cash-stack text-success"></i> نقدي</td>
-            <td class="text-end fw-bold">{{ summary.cash_sales | money }}</td>
-          </tr>
-          <tr>
-            <td><i class="bi bi-credit-card text-primary"></i> بطاقة</td>
-            <td class="text-end fw-bold">{{ summary.card_sales | money }}</td>
-          </tr>
-          <tr>
-            <td><i class="bi bi-wallet2 text-warning"></i> محفظة</td>
-            <td class="text-end fw-bold">{{ summary.wallet_sales | money }}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
+    <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
+       class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>عودة للبيع</span>
+    </a>
   </div>
 
-  <div class="col-lg-6">
-    <div class="card">
-      <form method="post">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="card-header">عدّ النقدية الفعلية</div>
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">الرصيد النقدي الفعلي في الدرج</label>
-            <input type="number" name="closing_cash_actual" class="form-control form-control-lg text-center"
-                   step="0.001" min="0" required autofocus
-                   style="font-size:1.8rem; font-weight:800;">
-            <div class="form-text">
-              عدّ النقدية الآن — سيقارن النظام بالمتوقع
-              (<strong>{{ summary.current_custody_balance | money }}</strong>)
-              ويسجّل أي فرق تلقائيًا.
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">ملاحظات (اختياري)</label>
-            <textarea name="notes" class="form-control" rows="2"
-                      placeholder="مثال: عجز 10 لتغطية شحن مندوب"></textarea>
-          </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    {% for label, val, icon, tint in [
+      ('افتتاحي',           session.opening_cash,             'account_balance_wallet', 'text-on-surface'),
+      ('عدد الفواتير',       summary.invoices_count,           'receipt_long',            'text-on-surface'),
+      ('إجمالي المبيعات',    summary.total_sales,              'bar_chart',               'text-on-surface'),
+      ('المتوقع في العهدة',  summary.current_custody_balance,  'account_balance_wallet',  'text-secondary'),
+    ] %}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div>
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ label }}</span>
+        <div class="mt-1">
+          {% if label == 'عدد الفواتير' %}
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val }}</span>
+          {% else %}
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ tint }} font-bold">{{ val | money }}</span>
+          {% endif %}
         </div>
-        <div class="card-footer d-flex justify-content-end gap-2">
-          <a href="{{ url_for('pos.terminal', session_id=session.id) }}" class="btn btn-light">إلغاء</a>
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-power"></i> تأكيد قفل الوردية
-          </button>
-        </div>
-      </form>
+      </div>
+      <div class="w-12 h-12 rounded-xl {% if label == 'المتوقع في العهدة' %}bg-secondary-fixed text-on-secondary-fixed{% else %}bg-surface-container-low text-secondary{% endif %} flex items-center justify-center">
+        <span class="material-symbols-outlined text-[24px]">{{ icon }}</span>
+      </div>
     </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm">
+      <div class="p-space-md border-b border-surface-container-low">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل المبيعات حسب الطريقة</h3>
+      </div>
+      <table class="w-full text-right">
+        <tbody class="divide-y divide-surface-container-low">
+          {% for icon, color, label, val in [
+            ('payments',     'text-secondary',           'نقدي',    summary.cash_sales),
+            ('credit_card',  'text-on-primary-container','بطاقة',   summary.card_sales),
+            ('account_balance_wallet','text-on-tertiary-container','محفظة', summary.wallet_sales),
+          ] %}
+          <tr>
+            <td class="py-space-sm px-space-md">
+              <span class="material-symbols-outlined {{ color }} text-[20px] align-middle">{{ icon }}</span>
+              <span class="font-body-md text-body-md text-on-surface">{{ label }}</span>
+            </td>
+            <td class="py-space-sm px-space-md text-end font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ val | money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <form method="post" class="bg-surface-container-lowest rounded-xl shadow-sm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="p-space-md border-b border-surface-container-low">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">عدّ النقدية الفعلية</h3>
+      </div>
+      <div class="p-space-md space-y-space-md">
+        <div>
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">الرصيد النقدي الفعلي في الدرج</label>
+          <input type="number" name="closing_cash_actual" step="0.001" min="0" required autofocus
+                 class="h-16 w-full px-space-md rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-lg text-center font-bold" style="font-size:1.8rem;">
+          <p class="text-[11px] text-on-surface-variant mt-1">
+            سيقارن النظام بالمتوقع (<strong>{{ summary.current_custody_balance | money }}</strong>) ويسجّل أي فرق تلقائيًا.
+          </p>
+        </div>
+        <div>
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ملاحظات (اختياري)</label>
+          <textarea name="notes" rows="2" placeholder="مثال: عجز 10 لتغطية شحن مندوب"
+                    class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></textarea>
+        </div>
+      </div>
+      <div class="p-space-md border-t border-surface-container-low flex justify-end gap-space-xs">
+        <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
+           class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center">إلغاء</a>
+        <button type="submit"
+                class="h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">power_settings_new</span><span>تأكيد قفل الوردية</span>
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

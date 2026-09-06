@@ -1,161 +1,150 @@
 {% extends "layouts/app.html" %}
 {% block title %}وردية {{ session.doc_number }}{% endblock %}
-{% block page_title %}وردية {{ session.doc_number }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>
-      وردية <span dir="ltr">{{ session.doc_number }}</span>
-      {% if session.status.value == 'open' %}
-        <span class="badge-status info ms-2">مفتوحة</span>
-      {% else %}
-        <span class="badge-status muted ms-2">مقفلة</span>
-      {% endif %}
-    </h1>
-    <div class="subtitle">
-      الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}
-      {% if session.closed_at %} · قُفلت {{ session.closed_at.strftime('%Y/%m/%d %H:%M') }}{% endif %}
-    </div>
-  </div>
-  <div class="d-flex gap-2">
-    {% if session.status.value == 'open' and session.cashier_id == current_user.id %}
-    <a href="{{ url_for('pos.terminal', session_id=session.id) }}" class="btn btn-primary">
-      <i class="bi bi-cash"></i> استمرار البيع
-    </a>
-    <a href="{{ url_for('pos.close', session_id=session.id) }}" class="btn btn-danger">
-      <i class="bi bi-power"></i> قفل الوردية
-    </a>
-    {% endif %}
-    <a href="{{ url_for('pos.sessions_index') }}" class="btn btn-light">
-      <i class="bi bi-arrow-right"></i> رجوع
-    </a>
-  </div>
-</div>
-
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
-      <div>
-        <div class="kpi-label">افتتاحي</div>
-        <div class="kpi-value">{{ session.opening_cash | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
-      <div>
-        <div class="kpi-label">عدد الفواتير</div>
-        <div class="kpi-value">{{ summary.invoices_count }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="kpi-card">
-      <div class="kpi-icon"><i class="bi bi-bar-chart"></i></div>
-      <div>
-        <div class="kpi-label">إجمالي المبيعات</div>
-        <div class="kpi-value">{{ summary.total_sales | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    {% if session.status.value == 'closed' and session.difference is not none %}
-      <div class="kpi-card"
-           style="background:{% if session.difference == 0 %}#f0fdf4{% elif session.difference < 0 %}#fef2f2{% else %}#fefce8{% endif %}">
-        <div class="kpi-icon"
-             style="background:{% if session.difference == 0 %}#10b981{% elif session.difference < 0 %}#ef4444{% else %}#f59e0b{% endif %}; color:white">
-          <i class="bi bi-{% if session.difference == 0 %}check2{% elif session.difference < 0 %}dash-circle{% else %}plus-circle{% endif %}"></i>
-        </div>
-        <div>
-          <div class="kpi-label">الفرق</div>
-          <div class="kpi-value">{{ session.difference | money }}</div>
-        </div>
-      </div>
-    {% else %}
-      <div class="kpi-card">
-        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
-        <div>
-          <div class="kpi-label">رصيد العهدة الحالي</div>
-          <div class="kpi-value">{{ summary.current_custody_balance | money }}</div>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header">تفصيل المبيعات</div>
-      <div class="card-body">
-        <table class="table mb-0">
-          <tr><td>نقدي</td><td class="text-end fw-bold">{{ summary.cash_sales | money }}</td></tr>
-          <tr><td>بطاقة</td><td class="text-end fw-bold">{{ summary.card_sales | money }}</td></tr>
-          <tr><td>محفظة</td><td class="text-end fw-bold">{{ summary.wallet_sales | money }}</td></tr>
-        </table>
-      </div>
-    </div>
-    {% if session.status.value == 'closed' %}
-    <div class="card mt-3">
-      <div class="card-header">ملخّص القفل</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6 text-muted">المتوقع</dt>
-          <dd class="col-6 text-end">{{ session.closing_cash_expected | money }}</dd>
-          <dt class="col-6 text-muted">الفعلي</dt>
-          <dd class="col-6 text-end">{{ session.closing_cash_actual | money }}</dd>
-          <dt class="col-6 text-muted">الفرق</dt>
-          <dd class="col-6 text-end fw-bold">{{ session.difference | money }}</dd>
-        </dl>
-        {% if session.notes_close %}
-        <hr>
-        <div class="small text-muted" style="white-space:pre-line">{{ session.notes_close }}</div>
+<div class="flex flex-col gap-space-lg">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-space-xs">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold" dir="ltr">وردية {{ session.doc_number }}</h1>
+        {% if session.status.value == 'open' %}
+        <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-semibold">
+          <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>مفتوحة
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md font-semibold">مقفلة</span>
         {% endif %}
       </div>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        الكاشير: {{ session.cashier.full_name }} · فُتحت {{ session.opened_at.strftime('%Y/%m/%d %H:%M') }}
+        {% if session.closed_at %} · قُفلت {{ session.closed_at.strftime('%Y/%m/%d %H:%M') }}{% endif %}
+      </p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      {% if session.status.value == 'open' and session.cashier_id == current_user.id %}
+      <a href="{{ url_for('pos.terminal', session_id=session.id) }}"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">payments</span><span>استمرار البيع</span>
+      </a>
+      <a href="{{ url_for('pos.close', session_id=session.id) }}"
+         class="h-10 px-space-md bg-error text-on-error hover:bg-error/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">power_settings_new</span><span>قفل الوردية</span>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('pos.sessions_index') }}"
+         class="h-10 px-space-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span><span>رجوع</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div><span class="font-label-md text-label-md text-on-surface-variant font-medium">افتتاحي</span><div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ session.opening_cash | money }}</span></div></div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span></div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div><span class="font-label-md text-label-md text-on-surface-variant font-medium">عدد الفواتير</span><div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold">{{ summary.invoices_count }}</span></div></div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-[24px]">receipt_long</span></div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div><span class="font-label-md text-label-md text-on-surface-variant font-medium">إجمالي المبيعات</span><div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ summary.total_sales | money }}</span></div></div>
+      <div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed"><span class="material-symbols-outlined text-[24px]">bar_chart</span></div>
+    </div>
+    {% if session.status.value == 'closed' and session.difference is not none %}
+    {% set diff_bg = 'bg-secondary-fixed' if session.difference == 0 else ('bg-error-container' if session.difference < 0 else 'bg-tertiary-fixed') %}
+    {% set diff_fg = 'text-secondary' if session.difference == 0 else ('text-error' if session.difference < 0 else 'text-on-tertiary-container') %}
+    {% set diff_icon = 'check_circle' if session.difference == 0 else ('remove_circle' if session.difference < 0 else 'add_circle') %}
+    <div class="p-space-md rounded-xl {{ diff_bg }} shadow-sm flex items-center justify-between">
+      <div><span class="font-label-md text-label-md text-on-surface-variant font-medium">الفرق</span><div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {{ diff_fg }} font-bold">{{ session.difference | money }}</span></div></div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center {{ diff_fg }}"><span class="material-symbols-outlined text-[24px]">{{ diff_icon }}</span></div>
+    </div>
+    {% else %}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+      <div><span class="font-label-md text-label-md text-on-surface-variant font-medium">رصيد العهدة الحالي</span><div class="mt-1"><span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ summary.current_custody_balance | money }}</span></div></div>
+      <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span></div>
     </div>
     {% endif %}
   </div>
 
-  <div class="col-lg-8">
-    <div class="card">
-      <div class="card-header">فواتير الوردية</div>
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="space-y-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <div class="p-space-md border-b border-surface-container-low">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تفصيل المبيعات</h3>
+        </div>
+        <table class="w-full text-right">
+          <tbody class="divide-y divide-surface-container-low font-body-sm text-body-sm">
+            <tr><td class="py-space-sm px-space-md">نقدي</td><td class="py-space-sm px-space-md text-end font-fiscal-numeric-md font-bold">{{ summary.cash_sales | money }}</td></tr>
+            <tr><td class="py-space-sm px-space-md">بطاقة</td><td class="py-space-sm px-space-md text-end font-fiscal-numeric-md font-bold">{{ summary.card_sales | money }}</td></tr>
+            <tr><td class="py-space-sm px-space-md">محفظة</td><td class="py-space-sm px-space-md text-end font-fiscal-numeric-md font-bold">{{ summary.wallet_sales | money }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      {% if session.status.value == 'closed' %}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-md">ملخّص القفل</h3>
+        <div class="space-y-space-xs font-body-md text-body-md">
+          <div class="flex justify-between"><span class="text-on-surface-variant">المتوقع</span><span class="font-fiscal-numeric-md">{{ session.closing_cash_expected | money }}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">الفعلي</span><span class="font-fiscal-numeric-md">{{ session.closing_cash_actual | money }}</span></div>
+          <hr class="border-outline-variant/40 my-space-xs">
+          <div class="flex justify-between"><span class="font-bold">الفرق</span><span class="font-fiscal-numeric-md font-bold">{{ session.difference | money }}</span></div>
+        </div>
+        {% if session.notes_close %}
+        <hr class="border-outline-variant/40 my-space-sm">
+        <p class="whitespace-pre-line text-body-sm text-on-surface-variant">{{ session.notes_close }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+      <div class="p-space-md border-b border-surface-container-low">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">فواتير الوردية</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-right">
           <thead>
-            <tr>
-              <th>رقم الفاتورة</th><th>العميل</th><th>طريقة الدفع</th>
-              <th class="text-end">الإجمالي</th><th></th>
+            <tr class="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm">
+              <th class="py-space-xs px-space-md">رقم الفاتورة</th>
+              <th class="py-space-xs px-space-md">العميل</th>
+              <th class="py-space-xs px-space-md">الطريقة</th>
+              <th class="py-space-xs px-space-md text-end">الإجمالي</th>
+              <th class="py-space-xs px-space-md text-left"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="font-body-sm text-body-sm divide-y divide-surface-container-low">
             {% for inv in summary.session.sales %}
-            <tr>
-              <td dir="ltr" class="fw-bold">{{ inv.doc_number }}</td>
-              <td>{{ inv.customer.name_ar }}</td>
-              <td>
+            <tr class="hover:bg-surface-container-low/40 transition-colors">
+              <td class="py-space-xs px-space-md font-fiscal-numeric-md font-bold" dir="ltr">{{ inv.doc_number }}</td>
+              <td class="py-space-xs px-space-md">{{ inv.customer.name_ar }}</td>
+              <td class="py-space-xs px-space-md text-on-surface-variant">
                 {% if inv.payment_method.value == 'cash' %}نقدي
                 {% elif inv.payment_method.value == 'card' %}بطاقة
                 {% elif inv.payment_method.value == 'wallet' %}محفظة
                 {% else %}{{ inv.payment_method.value }}{% endif %}
               </td>
-              <td class="text-end fw-bold">{{ inv.total | money }}</td>
-              <td class="text-end">
-                <a href="{{ url_for('sales.view', invoice_id=inv.id) }}"
-                   class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
-                <a href="{{ url_for('pos.receipt', invoice_id=inv.id) }}" target="_blank"
-                   class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i></a>
+              <td class="py-space-xs px-space-md text-end font-fiscal-numeric-md font-bold text-secondary">{{ inv.total | money }}</td>
+              <td class="py-space-xs px-space-md text-left">
+                <div class="flex items-center gap-1 justify-end">
+                  <a href="{{ url_for('sales.view', invoice_id=inv.id) }}"
+                     class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="عرض">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  </a>
+                  <a href="{{ url_for('pos.receipt', invoice_id=inv.id) }}" target="_blank"
+                     class="h-8 w-8 rounded-md bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center" title="طباعة">
+                    <span class="material-symbols-outlined text-[16px]">print</span>
+                  </a>
+                </div>
               </td>
             </tr>
             {% else %}
             <tr>
-              <td colspan="5">
-                <div class="empty-state">
-                  <div class="icon"><i class="bi bi-inbox"></i></div>
-                  <p>لا توجد فواتير في هذه الوردية بعد</p>
+              <td colspan="5" class="py-space-3xl text-center">
+                <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-md">
+                  <span class="material-symbols-outlined text-[32px]">inbox</span>
                 </div>
+                <p class="font-headline-sm text-headline-sm text-on-surface font-semibold">لا توجد فواتير في هذه الوردية بعد</p>
               </td>
             </tr>
             {% endfor %}
