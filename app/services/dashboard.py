@@ -33,6 +33,39 @@ class TopProduct:
 
 
 @dataclass
+class DailyPoint:
+    """نقطة على مخطط الأسبوع — يوم واحد."""
+    day: date
+    label_ar: str
+    sales: Decimal = ZERO
+    profit: Decimal = ZERO  # تقريبي = المبيعات × هامش الشهر
+
+
+@dataclass
+class RecentActivity:
+    """سطر في سجل العمليات الفورية."""
+    kind: str              # 'invoice' | 'installment' | 'stock' | 'pos_close'
+    icon: str              # اسم Material Symbols
+    title: str             # عنوان قصير
+    subtitle: str          # سطر ثانوي
+    amount: Decimal | None = None
+    amount_note: str | None = None
+    when: datetime | None = None
+    tone: str = 'secondary'  # 'secondary' | 'tertiary' | 'error'
+
+
+@dataclass
+class RecentTransaction:
+    """سطر في جدول أحدث المعاملات."""
+    invoice: SalesInvoice
+    channel_icon: str
+    channel_label: str
+    payment_icon: str
+    payment_label: str
+    payment_tone: str = 'secondary'
+
+
+@dataclass
 class DashboardData:
     today: SalesBucket = field(default_factory=SalesBucket)
     week: SalesBucket = field(default_factory=SalesBucket)
@@ -45,6 +78,11 @@ class DashboardData:
     top_products_month: list[TopProduct] = field(default_factory=list)
     due_today_installments: int = 0
     overdue_installments: int = 0
+    weekly_chart: list[DailyPoint] = field(default_factory=list)
+    recent_activity: list[RecentActivity] = field(default_factory=list)
+    recent_transactions: list[RecentTransaction] = field(default_factory=list)
+    cash_on_hand: Decimal = ZERO
+    yesterday_total: Decimal = ZERO
     generated_at: datetime = field(default_factory=datetime.now)
 
 
@@ -139,5 +177,122 @@ def get_dashboard_data(*, today: date | None = None) -> DashboardData:
         .filter(InstallmentScheduleLine.status == InstallmentLineStatus.OVERDUE)
         .scalar() or 0
     )
+
+    # مبيعات أمس (للمقارنة مع اليوم في KPI الأول)
+    yesterday = today - timedelta(days=1)
+    d.yesterday_total = _sales_bucket(yesterday, yesterday).total
+
+    # مخطط الأسبوع — آخر 7 أيام (بما فيها اليوم)
+    _weekday_ar = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد']
+    _margin = (d.net_profit_month / d.month.total) if d.month.total > ZERO else Decimal('0.28')
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_bucket = _sales_bucket(day, day)
+        d.weekly_chart.append(DailyPoint(
+            day=day,
+            label_ar=_weekday_ar[day.weekday()] + (' (اليوم)' if i == 0 else ''),
+            sales=day_bucket.total,
+            profit=(day_bucket.total * _margin).quantize(Decimal('0.001')),
+        ))
+
+    # سجل العمليات الفورية — آخر فواتير + تحصيلات أقساط + آخر وردية POS مقفلة
+    from app.models.installment import InstallmentCollection
+    from app.models.pos import POSSession, SessionStatus
+
+    recent_invoices = (
+        db.session.query(SalesInvoice)
+        .order_by(SalesInvoice.created_at.desc())
+        .limit(2).all()
+    )
+    for inv in recent_invoices:
+        cust_name = inv.customer.name_ar if inv.customer else 'عميل نقدي'
+        d.recent_activity.append(RecentActivity(
+            kind='invoice', icon='receipt', tone='secondary',
+            title=f"فاتورة #{inv.doc_number}",
+            subtitle=f"العميل: {cust_name}",
+            amount=Decimal(str(inv.total)),
+            when=inv.created_at,
+        ))
+
+    recent_pmts = (
+        db.session.query(InstallmentCollection)
+        .order_by(InstallmentCollection.created_at.desc())
+        .limit(1).all()
+    )
+    for p in recent_pmts:
+        plan_num = p.plan.doc_number if p.plan else '—'
+        d.recent_activity.append(RecentActivity(
+            kind='installment', icon='account_balance_wallet', tone='tertiary',
+            title=f"سداد قسط — خطة #{plan_num}",
+            subtitle=f"طريقة: {'نقدي' if p.method == 'cash' else 'بنكي'}",
+            amount=Decimal(str(p.amount)),
+            when=p.created_at,
+        ))
+
+    recent_closed_shift = (
+        db.session.query(POSSession)
+        .filter(POSSession.status == SessionStatus.CLOSED)
+        .order_by(POSSession.closed_at.desc().nullslast())
+        .limit(1).first()
+    )
+    if recent_closed_shift and recent_closed_shift.closed_at:
+        d.recent_activity.append(RecentActivity(
+            kind='pos_close', icon='point_of_sale', tone='secondary',
+            title=f"إغلاق وردية POS #{recent_closed_shift.id}",
+            subtitle="تم ترحيل النقدية ومطابقة العهدة",
+            amount=Decimal(str(recent_closed_shift.closing_cash_expected or 0)),
+            when=recent_closed_shift.closed_at,
+        ))
+
+    # أحدث المعاملات — آخر 5 فواتير بيع
+    latest_5 = (
+        db.session.query(SalesInvoice)
+        .order_by(SalesInvoice.created_at.desc())
+        .limit(5).all()
+    )
+    for inv in latest_5:
+        if inv.pos_session_id:
+            ch_icon, ch_label = 'storefront', 'نقطة البيع'
+        else:
+            ch_icon, ch_label = 'store', 'المعرض الرئيسي'
+        pm = getattr(inv.payment_method, 'value', inv.payment_method) or 'cash'
+        pm = str(pm).lower()
+        if pm == 'cash':
+            pay_icon, pay_label, pay_tone = 'payments', 'نقداً', 'secondary'
+        elif pm in ('bank', 'transfer', 'card'):
+            pay_icon, pay_label, pay_tone = 'credit_card', 'تحويل بنكي', 'secondary'
+        elif pm in ('credit', 'on_credit'):
+            pay_icon, pay_label, pay_tone = 'schedule', 'آجل', 'tertiary'
+        else:
+            pay_icon, pay_label, pay_tone = 'payments', pm, 'secondary'
+        d.recent_transactions.append(RecentTransaction(
+            invoice=inv,
+            channel_icon=ch_icon, channel_label=ch_label,
+            payment_icon=pay_icon, payment_label=pay_label, payment_tone=pay_tone,
+        ))
+
+    # النقدية والبنوك — مجموع أرصدة الخزينة والبنوك والعهد (1010, 1020, 1030)
+    from app.models.account import Account
+    from app.models.journal import JournalLine, JournalEntry, JournalEntryStatus
+    _cash_codes = ('1010', '1020', '1030')
+    cash_accounts = db.session.query(Account).filter(Account.code.in_(_cash_codes)).all()
+    total_cash = ZERO
+    for acc in cash_accounts:
+        dr = (
+            db.session.query(func.coalesce(func.sum(JournalLine.debit), 0))
+            .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
+            .filter(JournalLine.account_id == acc.id)
+            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .scalar() or 0
+        )
+        cr = (
+            db.session.query(func.coalesce(func.sum(JournalLine.credit), 0))
+            .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
+            .filter(JournalLine.account_id == acc.id)
+            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .scalar() or 0
+        )
+        total_cash += Decimal(str(dr)) - Decimal(str(cr))
+    d.cash_on_hand = total_cash
 
     return d
