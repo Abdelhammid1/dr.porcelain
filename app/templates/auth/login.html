@@ -2,41 +2,63 @@
 {% block title %}تسجيل الدخول{% endblock %}
 
 {% block body %}
-<div class="login-page">
-  <div class="login-card">
-    <div class="login-card__logo">د.ب</div>
-    <h1>دكتور بورسلين</h1>
-    <p class="subtitle">النظام المحاسبي — لوحة الإدارة</p>
+<div class="min-h-screen bg-background flex items-center justify-center p-space-lg relative overflow-hidden">
+  {# Ambient background accents #}
+  <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-secondary/10 blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+
+  <div class="relative bg-surface-container-lowest w-full max-w-md rounded-xl p-space-2xl shadow-[0_25px_50px_-12px_rgba(11,28,48,0.15)]">
+    <div class="text-center mb-space-lg">
+      <div class="w-16 h-16 mx-auto rounded-xl bg-primary-container text-on-primary flex items-center justify-center font-bold text-headline-lg shadow-md mb-space-sm">
+        د.ب
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">دكتور بورسلين</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">لوحة التحكم المحاسبية</p>
+    </div>
+
+    {% include "partials/flash.html" %}
 
     <form method="post" novalidate>
       {{ form.hidden_tag() }}
 
-      <div class="mb-3">
-        {{ form.username.label(class="form-label") }}
-        {{ form.username(class="form-control form-control-lg", placeholder="admin") }}
-        {% for e in form.username.errors %}
-          <div class="form-text text-danger">{{ e }}</div>
-        {% endfor %}
-      </div>
+      <div class="space-y-space-md">
+        <div>
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">اسم المستخدم</label>
+          {{ form.username(
+              class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md outline outline-1 outline-outline-variant/60 focus:outline-secondary transition-all",
+              placeholder="admin", dir="ltr"
+          ) }}
+          {% for e in form.username.errors %}
+            <div class="text-error text-body-sm mt-1">{{ e }}</div>
+          {% endfor %}
+        </div>
 
-      <div class="mb-3">
-        {{ form.password.label(class="form-label") }}
-        {{ form.password(class="form-control form-control-lg", placeholder="••••••••") }}
-        {% for e in form.password.errors %}
-          <div class="form-text text-danger">{{ e }}</div>
-        {% endfor %}
-      </div>
+        <div>
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">كلمة المرور</label>
+          {{ form.password(
+              class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md outline outline-1 outline-outline-variant/60 focus:outline-secondary transition-all",
+              placeholder="••••••••"
+          ) }}
+          {% for e in form.password.errors %}
+            <div class="text-error text-body-sm mt-1">{{ e }}</div>
+          {% endfor %}
+        </div>
 
-      <div class="form-check mb-4">
-        {{ form.remember(class="form-check-input") }}
-        {{ form.remember.label(class="form-check-label") }}
-      </div>
+        <label class="flex items-center gap-space-2xs cursor-pointer">
+          {{ form.remember(class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary") }}
+          <span class="font-label-md text-label-md text-on-surface-variant">{{ form.remember.label.text }}</span>
+        </label>
 
-      {{ form.submit(class="btn btn-primary btn-lg w-100") }}
-      <div class="text-center mt-3">
-        <a href="{{ url_for('auth.forgot_password') }}" class="small text-muted">
-          نسيت كلمة المرور؟
-        </a>
+        <button type="submit"
+                class="h-11 w-full rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-lg text-label-lg font-semibold flex items-center justify-center gap-space-xs shadow-sm transition-colors">
+          <span class="material-symbols-outlined text-[20px]">login</span>
+          <span>دخول</span>
+        </button>
+
+        <div class="text-center pt-space-xs">
+          <a href="{{ url_for('auth.forgot_password') }}"
+             class="font-label-sm text-label-sm text-secondary hover:underline">نسيت كلمة المرور؟</a>
+        </div>
       </div>
     </form>
   </div>

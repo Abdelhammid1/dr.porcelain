@@ -1,143 +1,167 @@
-{# Sidebar with collapsible sections. Each section auto-expands if any
-   of its links matches the current endpoint. Permission-gated per link. #}
+{# Doctor Porcelain sidebar — Material Design 3 dark navy shell.
+   Fixed 280px, top-right, permission-gated per link.
 
-{% macro section(title, icon, items) %}
-  {# `items` is a list of tuples: (endpoint, label, emoji_icon, permission_code_or_None) #}
-  {% set ns = namespace(visible=[], active=false) %}
-  {% for endpoint, label, emoji, perm in items %}
-    {% if perm is none or current_user.can(perm) %}
-      {% set _ = ns.visible.append((endpoint, label, emoji)) %}
-      {% if request.endpoint and (request.endpoint == endpoint or request.endpoint.split('.')[0] == endpoint.split('.')[0]) %}
-        {% set ns.active = true %}
+   Macro `nav_link` renders one link with active state + optional badge.
+#}
+
+{% macro nav_link(endpoint, label, icon, perm=None, badge_text=None, badge_class=None) -%}
+  {% if perm is none or current_user.can(perm) %}
+    {% set is_active = request.endpoint and (request.endpoint == endpoint or request.endpoint.startswith(endpoint.split('.')[0] + '.')) %}
+    <a href="{{ url_for(endpoint) }}"
+       class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if is_active %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}"
+       {% if is_active %}aria-current="page"{% endif %}>
+      <div class="flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[19px]">{{ icon }}</span>
+        <span class="font-label-md text-label-md">{{ label }}</span>
+      </div>
+      {% if badge_text %}
+      <span class="px-space-2xs py-0.5 rounded-full font-label-sm text-label-sm {{ badge_class or 'bg-surface-container-high text-on-surface-variant font-semibold' }}">
+        {{ badge_text }}
+      </span>
       {% endif %}
+    </a>
+  {% endif %}
+{%- endmacro %}
+
+{% macro nav_group(title, items) -%}
+  {# items: list of dicts, only rendered if any child is visible #}
+  {% set ns = namespace(visible=[]) %}
+  {% for it in items %}
+    {% if it.perm is none or current_user.can(it.perm) %}
+      {% set _ = ns.visible.append(it) %}
     {% endif %}
   {% endfor %}
   {% if ns.visible %}
-  <div class="sidebar-section" data-section="{{ title }}">
-    <button type="button" class="section-toggle" onclick="toggleSection(this)">
-      <span class="flex items-center gap-2">
-        <span aria-hidden="true">{{ icon }}</span>
-        <span>{{ title }}</span>
-      </span>
-      <span class="section-chevron text-xs text-slate-500">▼</span>
-    </button>
-    <div class="section-body {% if not ns.active %}section-collapsed{% endif %}">
-      {% for endpoint, label, emoji in ns.visible %}
-        {% set is_active = request.endpoint and (request.endpoint == endpoint or request.endpoint.split('.')[0] == endpoint.split('.')[0]) %}
-        <a href="{{ url_for(endpoint) }}" class="nav-link {% if is_active %}active{% endif %}">
-          <span aria-hidden="true">{{ emoji }}</span>
-          <span>{{ label }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  </div>
+  <nav class="space-y-space-3xs">
+    <div class="px-space-xs py-space-3xs text-[10px] uppercase font-bold tracking-wider text-on-primary-container/70">{{ title }}</div>
+    {% for it in ns.visible %}
+      {{ nav_link(it.endpoint, it.label, it.icon, it.perm, it.get('badge'), it.get('badge_class')) }}
+    {% endfor %}
+  </nav>
   {% endif %}
-{% endmacro %}
+{%- endmacro %}
 
-<aside class="app-sidebar">
-  <div class="app-sidebar-brand">
-    <div class="brand-logo">د.ب</div>
-    <div class="min-w-0">
-      <div class="brand-name">دكتور بورسلين</div>
-      <div class="brand-sub">النظام المحاسبي</div>
+<aside class="fixed top-0 right-0 h-full w-[280px] bg-primary-container text-on-primary-fixed z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.08)]">
+  <div class="flex flex-col h-full overflow-hidden">
+    {# Brand header #}
+    <div class="h-[70px] px-space-md flex items-center gap-space-sm border-b border-on-primary-container/20 bg-primary-container">
+      <div class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center font-bold text-[13px] ring-1 ring-secondary-container/40">
+        د.ب
+      </div>
+      <div class="flex flex-col">
+        <span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-tight">دكتور بورسلين</span>
+        <span class="font-label-sm text-label-sm text-secondary-container">لوحة التحكم المحاسبية</span>
+      </div>
     </div>
-  </div>
 
-  <nav class="app-sidebar-nav">
-    {{ section('الرئيسية', '🏠', [
-      ('main.dashboard', 'لوحة المعلومات', '📊', None),
-      ('orders.index',   'الطلبات الأونلاين', '🛒', 'orders.view'),
-      ('storefront.home','عرض المتجر',      '🌐', None),
-    ]) }}
+    {# Scrollable nav sections #}
+    <div class="flex-1 overflow-y-auto px-space-xs py-space-sm space-y-space-md">
 
-    {{ section('المبيعات', '💰', [
-      ('sales.index',   'فواتير البيع',    '🧾', 'sales.view'),
-      ('sales.create',  'فاتورة جديدة',    '➕', 'sales.create'),
-      ('installments.index', 'خطط التقسيط', '📅', 'installments.view'),
-      ('installments.create','بيع بالتقسيط', '💳', 'installments.create'),
-      ('installments.overdue','أقساط متأخرة','⚠️', 'installments.view'),
-      ('pos.index',     'نقطة البيع',      '🛒', 'pos.use'),
-      ('pos.sessions_index', 'الورديات',   '🕐', 'pos.use'),
-    ]) }}
+      {{ nav_group('الرئيسية', [
+        {'endpoint': 'main.dashboard',       'label': 'لوحة القيادة العامة', 'icon': 'dashboard',     'perm': None},
+        {'endpoint': 'notifications.index',  'label': 'مركز الإشعارات',      'icon': 'notifications', 'perm': None},
+        {'endpoint': 'storefront.home',      'label': 'عرض المتجر',          'icon': 'public',        'perm': None},
+      ]) }}
 
-    {{ section('المشتريات', '🛍️', [
-      ('purchases.index',  'فواتير الشراء',  '📥', 'purchases.view'),
-      ('purchases.create', 'فاتورة شراء جديدة', '➕', 'purchases.create'),
-      ('vendor_payments.index', 'جداول سداد الموردين', '📅', 'vendor_payments.view'),
-    ]) }}
+      {{ nav_group('المبيعات والطلبات', [
+        {'endpoint': 'sales.index',           'label': 'فواتير المبيعات',    'icon': 'receipt_long',       'perm': 'sales.view'},
+        {'endpoint': 'sales.unpaid',          'label': 'فواتير غير محصلة',   'icon': 'pending_actions',    'perm': 'sales.view'},
+        {'endpoint': 'sales.create',          'label': 'فاتورة جديدة',        'icon': 'add_circle',         'perm': 'sales.create'},
+        {'endpoint': 'orders.index',          'label': 'طلبات المتجر',        'icon': 'shopping_bag',       'perm': 'orders.view'},
+        {'endpoint': 'installments.index',    'label': 'الأقساط والتحصيل',    'icon': 'payments',           'perm': 'installments.view'},
+        {'endpoint': 'installments.create',   'label': 'بيع بالتقسيط',        'icon': 'schedule',           'perm': 'installments.create'},
+        {'endpoint': 'installments.overdue',  'label': 'أقساط متأخرة',       'icon': 'warning',            'perm': 'installments.view'},
+        {'endpoint': 'pos.index',             'label': 'نقطة البيع (POS)',    'icon': 'point_of_sale',      'perm': 'pos.use'},
+        {'endpoint': 'pos.sessions_index',    'label': 'ورديات الكاشير',      'icon': 'schedule',           'perm': 'pos.use'},
+      ]) }}
 
-    {{ section('المخزون', '📦', [
-      ('products.index',            'المنتجات',   '📦', 'products.view'),
-      ('products.categories_index', 'التصنيفات',   '🏷️', 'products.view'),
-    ]) }}
+      {{ nav_group('المنتجات والمخزون', [
+        {'endpoint': 'products.categories_index', 'label': 'شجرة التصنيفات',       'icon': 'account_tree', 'perm': 'products.view'},
+        {'endpoint': 'products.index',            'label': 'قائمة المنتجات',      'icon': 'inventory_2',  'perm': 'products.view'},
+        {'endpoint': 'reviews.index',             'label': 'تقييمات العملاء',     'icon': 'star',         'perm': 'reviews.view'},
+      ]) }}
 
-    {{ section('المراجعات', '⭐', [
-      ('reviews.index', 'إدارة المراجعات', '📝', 'reviews.view'),
-    ]) }}
-
-    {{ section('الخصومات', '🎟️', [
-      ('coupons.index', 'أكواد الخصم', '🏷️', 'coupons.view'),
-    ]) }}
-
-    {{ section('المحاسبة', '📓', [
-      ('accounts.index', 'دليل الحسابات', '🧮', 'accounts.view'),
-      ('journal.index', 'سجل القيود', '📖', 'journal.view'),
-      ('journal.create', 'قيد يدوي جديد', '➕', 'journal.create'),
-      ('sales.unpaid', 'فواتير غير محصّلة', '⏳', 'sales.view'),
-    ]) }}
-
-    {{ section('النظام', '⚙️', [
-      ('users.index', 'المستخدمون', '👥', 'users.manage'),
-      ('users.roles_index', 'الأدوار والصلاحيات', '🔐', 'roles.manage'),
-      ('settings.index', 'الإعدادات', '⚙️', 'settings.manage'),
-      ('notifications.index', 'الإشعارات', '🔔', None),
-    ]) }}
-
-    {# العملاء والموردون — endpoints need type_str kwarg, so rendered manually #}
-    {% if current_user.can('parties.view') %}
-    {% set _parties_active = request.endpoint and request.endpoint.startswith('parties.') %}
-    <div class="sidebar-section" data-section="العملاء والموردون">
-      <button type="button" class="section-toggle" onclick="toggleSection(this)">
-        <span class="flex items-center gap-2">
-          <span aria-hidden="true">👥</span>
-          <span>العملاء والموردون</span>
-        </span>
-        <span class="section-chevron text-xs text-slate-500">▼</span>
-      </button>
-      <div class="section-body {% if not _parties_active %}section-collapsed{% endif %}">
-        {% set _cust_active = _parties_active and request.view_args and request.view_args.get('type_str') == 'customer' %}
-        {% set _vendor_active = _parties_active and request.view_args and request.view_args.get('type_str') == 'vendor' %}
+      {# Customers & vendors — inline because URLs need `type_str` kwarg #}
+      {% if current_user.can('parties.view') %}
+      {% set _parties_active = request.endpoint and request.endpoint.startswith('parties.') %}
+      <nav class="space-y-space-3xs">
+        <div class="px-space-xs py-space-3xs text-[10px] uppercase font-bold tracking-wider text-on-primary-container/70">العملاء والموردون</div>
         <a href="{{ url_for('parties.index', type_str='customer') }}"
-           class="nav-link {% if _cust_active %}active{% endif %}">
-          <span aria-hidden="true">🧑</span><span>العملاء</span>
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'customer' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[19px]">group</span>
+            <span class="font-label-md text-label-md">العملاء</span>
+          </div>
         </a>
         <a href="{{ url_for('parties.index', type_str='vendor') }}"
-           class="nav-link {% if _vendor_active %}active{% endif %}">
-          <span aria-hidden="true">🚚</span><span>الموردون</span>
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if _parties_active and request.view_args and request.view_args.get('type_str') == 'vendor' %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[19px]">local_shipping</span>
+            <span class="font-label-md text-label-md">الموردون</span>
+          </div>
+        </a>
+        <a href="{{ url_for('vendor_payments.index') }}"
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg transition-colors {% if request.endpoint and request.endpoint.startswith('vendor_payments.') %}bg-surface-container-highest text-on-surface font-semibold shadow-sm{% else %}text-on-primary-fixed hover:bg-surface-container-high/20 hover:text-on-primary{% endif %}">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[19px]">request_quote</span>
+            <span class="font-label-md text-label-md">مدفوعات الموردين</span>
+          </div>
+        </a>
+      </nav>
+      {% endif %}
+
+      {{ nav_group('المشتريات', [
+        {'endpoint': 'purchases.index',  'label': 'فواتير الشراء',     'icon': 'receipt', 'perm': 'purchases.view'},
+        {'endpoint': 'purchases.create', 'label': 'فاتورة شراء جديدة', 'icon': 'add_shopping_cart', 'perm': 'purchases.create'},
+      ]) }}
+
+      {{ nav_group('المحاسبة العامة', [
+        {'endpoint': 'accounts.index',   'label': 'الدليل المحاسبي',   'icon': 'account_balance', 'perm': 'accounts.view'},
+        {'endpoint': 'journal.index',    'label': 'دفتر القيود اليومية', 'icon': 'menu_book',      'perm': 'journal.view'},
+        {'endpoint': 'journal.create',   'label': 'قيد يدوي جديد',     'icon': 'post_add',       'perm': 'journal.create'},
+      ]) }}
+
+      {{ nav_group('التقارير المالية', [
+        {'endpoint': 'reports.income_statement_view', 'label': 'قائمة الدخل',         'icon': 'query_stats', 'perm': 'reports.income_statement'},
+        {'endpoint': 'reports.balance_sheet_view',    'label': 'الميزانية العمومية',  'icon': 'balance',     'perm': 'reports.balance_sheet'},
+        {'endpoint': 'reports.cash_flow_view',        'label': 'التدفق النقدي',       'icon': 'water_drop',  'perm': 'reports.cash_flow'},
+        {'endpoint': 'reports.trial_balance_view',    'label': 'ميزان المراجعة',       'icon': 'list_alt',    'perm': 'reports.trial_balance'},
+        {'endpoint': 'reports.vat_view',              'label': 'ضريبة القيمة المضافة', 'icon': 'percent',     'perm': 'reports.vat'},
+        {'endpoint': 'reports.profitability_view',    'label': 'ربحية المنتجات',       'icon': 'insights',    'perm': 'reports.profitability'},
+        {'endpoint': 'reports.ap_aging_view',         'label': 'أعمار ديون الموردين', 'icon': 'schedule',    'perm': 'reports.ap_aging'},
+        {'endpoint': 'reports.ar_aging_view',         'label': 'أعمار ديون العملاء',  'icon': 'schedule',    'perm': 'reports.ar_aging'},
+      ]) }}
+
+      {{ nav_group('التسويق والولاء', [
+        {'endpoint': 'coupons.index', 'label': 'أكواد الخصم والكوبونات', 'icon': 'sell',     'perm': 'coupons.view'},
+      ]) }}
+
+      {{ nav_group('النظام والإعدادات', [
+        {'endpoint': 'settings.index',      'label': 'الإعدادات العامة',       'icon': 'settings',          'perm': 'settings.manage'},
+        {'endpoint': 'users.index',         'label': 'إدارة المستخدمين',       'icon': 'manage_accounts',   'perm': 'users.manage'},
+        {'endpoint': 'users.roles_index',   'label': 'الأدوار والصلاحيات',     'icon': 'admin_panel_settings','perm': 'roles.manage'},
+      ]) }}
+
+    </div>
+
+    {# Footer status pill #}
+    {% if current_user.is_authenticated %}
+    <div class="p-space-xs bg-primary-container border-t border-on-primary-container/20">
+      <div class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-high/10">
+        <div class="flex items-center gap-space-xs min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary-container animate-pulse shrink-0"></span>
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-sm text-label-sm text-on-primary font-medium truncate">{{ current_user.full_name }}</span>
+            <span class="text-[10px] text-on-primary-container">
+              {{ current_user.role.name_ar if current_user.role else '' }}
+            </span>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="p-1 text-on-primary-container hover:text-error hover:bg-surface-container-high/20 rounded-md transition-colors shrink-0" title="تسجيل الخروج">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
         </a>
       </div>
     </div>
     {% endif %}
-
-    {{ section('التقارير', '📈', [
-      ('reports.income_statement_view', 'قائمة الدخل',        '💵', 'reports.income_statement'),
-      ('reports.balance_sheet_view',    'الميزانية العمومية', '⚖️', 'reports.balance_sheet'),
-      ('reports.cash_flow_view',        'التدفق النقدي',      '💧', 'reports.cash_flow'),
-      ('reports.trial_balance_view',    'ميزان المراجعة',      '📋', 'reports.trial_balance'),
-      ('reports.vat_view',              'ضريبة القيمة المضافة', '🧾', 'reports.vat'),
-      ('reports.profitability_view',    'ربحية المنتجات',      '📊', 'reports.profitability'),
-      ('reports.ap_aging_view',         'أعمار ديون الموردين', '📉', 'reports.ap_aging'),
-      ('reports.ar_aging_view',         'أعمار ديون العملاء',  '📈', 'reports.ar_aging'),
-    ]) }}
-  </nav>
-
-  {% if current_user.is_authenticated %}
-  <div class="app-sidebar-user">
-    <div class="avatar">{{ current_user.full_name[:1] }}</div>
-    <div class="flex-1 min-w-0">
-      <div class="user-name truncate">{{ current_user.full_name }}</div>
-      <div class="user-role">{{ current_user.role.name_ar if current_user.role else "" }}</div>
-    </div>
   </div>
-  {% endif %}
 </aside>

@@ -1,207 +1,286 @@
 {% extends "layouts/app.html" %}
-{% block title %}لوحة المعلومات{% endblock %}
-{% block page_title %}لوحة المعلومات{% endblock %}
+{% block title %}لوحة القيادة{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>مرحبًا، {{ current_user.full_name }}</h1>
-    <div class="subtitle">
-      نظرة شاملة على أداء المتجر · محدَّث الآن {{ data.generated_at.strftime('%H:%M') }}
-    </div>
-  </div>
-</div>
+<div class="flex flex-col w-full space-y-space-md">
 
-<!-- KPI اليوم / الأسبوع / الشهر -->
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-sun"></i></div>
-      <div>
-        <div class="stat-tile-label">مبيعات اليوم</div>
-        <div class="stat-tile-value">{{ data.today.total | money }}</div>
-        <div class="stat-tile-hint">{{ data.today.invoices_count }} فاتورة</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-calendar-week"></i></div>
-      <div>
-        <div class="stat-tile-label">مبيعات الأسبوع</div>
-        <div class="stat-tile-value">{{ data.week.total | money }}</div>
-        <div class="stat-tile-hint">{{ data.week.invoices_count }} فاتورة</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-tile stat-tile-with-icon">
-      <div class="stat-tile-icon"><i class="bi bi-calendar-month"></i></div>
-      <div>
-        <div class="stat-tile-label">مبيعات الشهر</div>
-        <div class="stat-tile-value">{{ data.month.total | money }}</div>
-        <div class="stat-tile-hint">
-          POS: {{ data.month.pos_total | money }} · أونلاين: {{ data.month.online_total | money }}
+  {# ============ Welcome banner ============ #}
+  <section class="w-full bg-primary-container text-on-primary rounded-xl p-space-md shadow-md relative overflow-hidden">
+    <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-secondary/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-0 right-1/4 w-32 h-32 bg-secondary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md">
+      <div class="space-y-space-2xs">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <span class="px-space-xs py-0.5 rounded bg-surface-container-high/20 text-secondary-container font-label-sm text-label-sm">المركز المالي الموحد</span>
+          <span class="text-on-primary-container text-body-sm">•</span>
+          <span class="text-on-primary-container font-body-sm text-body-sm">{{ data.generated_at.strftime('%Y/%m/%d %H:%M') }}</span>
+        </div>
+        <h1 class="font-headline-xl text-headline-xl text-on-primary font-bold tracking-tight">
+          مرحبًا، {{ current_user.full_name }}
+        </h1>
+        <div class="flex items-center gap-space-xs text-on-primary-container font-body-md text-body-md pt-1">
+          <span class="material-symbols-outlined text-secondary-container text-[18px]">verified</span>
+          <span>نظرة سريعة على أداء متجرك الآن</span>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ربح الشهر + تنبيهات -->
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon tone-success">
-      <div class="stat-tile-icon"><i class="bi bi-graph-up"></i></div>
-      <div>
-        <div class="stat-tile-label">صافي ربح الشهر (تقريبي)</div>
-        <div class="stat-tile-value">{{ data.net_profit_month | money }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <a href="{{ url_for('installments.overdue') }}" class="text-decoration-none">
-      <div class="stat-tile stat-tile-with-icon {% if data.overdue_installments > 0 %}tone-danger{% endif %}">
-        <div class="stat-tile-icon"><i class="bi bi-exclamation-triangle"></i></div>
-        <div>
-          <div class="stat-tile-label">أقساط متأخرة</div>
-          <div class="stat-tile-value">{{ data.overdue_installments }}</div>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-tile stat-tile-with-icon {% if data.due_today_installments > 0 %}tone-warning{% endif %}">
-      <div class="stat-tile-icon"><i class="bi bi-clock"></i></div>
-      <div>
-        <div class="stat-tile-label">أقساط مستحقة اليوم</div>
-        <div class="stat-tile-value">{{ data.due_today_installments }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <a href="{{ url_for('products.index', low_stock=1) }}" class="text-decoration-none">
-      <div class="stat-tile stat-tile-with-icon {% if data.low_stock_variants|length > 0 %}tone-warning{% endif %}">
-        <div class="stat-tile-icon"><i class="bi bi-box-seam"></i></div>
-        <div>
-          <div class="stat-tile-label">منتجات بمخزون منخفض</div>
-          <div class="stat-tile-value">{{ data.low_stock_variants|length }}</div>
-        </div>
-      </div>
-    </a>
-  </div>
-</div>
-
-<div class="row g-3">
-  <!-- أعلى المنتجات مبيعًا -->
-  <div class="col-lg-7">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span>أعلى المنتجات مبيعًا هذا الشهر</span>
-        <a href="{{ url_for('reports.profitability_view') }}" class="btn-sm btn-secondary">
-          <i class="bi bi-graph-up"></i> تقرير الربحية
+      <div class="flex items-center gap-space-xs flex-wrap">
+        {% if current_user.can("sales.create") %}
+        <a href="{{ url_for('sales.create') }}"
+           class="h-10 px-space-md rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-colors">
+          <span class="material-symbols-outlined text-[19px]">receipt_long</span>
+          <span>إصدار فاتورة بيع</span>
         </a>
+        {% endif %}
+        {% if current_user.can("journal.create") %}
+        <a href="{{ url_for('journal.create') }}"
+           class="h-10 px-space-md rounded-lg bg-surface-container-high/20 hover:bg-surface-container-high/30 text-on-primary font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+          <span class="material-symbols-outlined text-[19px]">edit_note</span>
+          <span>قيد يومي جديد</span>
+        </a>
+        {% endif %}
       </div>
-      <div class="table-scroll">
-        <table class="table mb-0">
+    </div>
+  </section>
+
+  {# ============ Urgent alerts ============ #}
+  {% if data.overdue_installments or data.low_stock_variants %}
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+    {% if data.overdue_installments %}
+    <div class="p-space-sm rounded-xl bg-error-container text-on-error-container shadow-sm flex items-center justify-between gap-space-sm">
+      <div class="flex items-center gap-space-xs min-w-0">
+        <div class="w-10 h-10 rounded-lg bg-error text-on-error flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">warning</span>
+        </div>
+        <div class="min-w-0">
+          <p class="font-headline-sm text-headline-sm font-semibold truncate">{{ data.overdue_installments }} قسط متأخر عن السداد</p>
+          <p class="font-body-sm text-body-sm text-on-error-container/80">راجع الجدول قبل حساب فوائد التأخير</p>
+        </div>
+      </div>
+      {% if current_user.can("installments.view") %}
+      <a href="{{ url_for('installments.overdue') }}"
+         class="px-space-sm py-1.5 rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md shrink-0 flex items-center gap-space-3xs shadow-sm">
+        <span>متابعة</span>
+        <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if data.low_stock_variants %}
+    <div class="p-space-sm rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant shadow-sm flex items-center justify-between gap-space-sm">
+      <div class="flex items-center gap-space-xs min-w-0">
+        <div class="w-10 h-10 rounded-lg bg-tertiary-fixed-dim text-on-tertiary-fixed flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">production_quantity_limits</span>
+        </div>
+        <div class="min-w-0">
+          <p class="font-headline-sm text-headline-sm font-semibold truncate">{{ data.low_stock_variants | length }} صنف تحت حد الطلب</p>
+          <p class="font-body-sm text-body-sm text-on-tertiary-fixed-variant/80">راجع القائمة وأصدر أمر شراء</p>
+        </div>
+      </div>
+      {% if current_user.can("products.view") %}
+      <a href="{{ url_for('products.index', low_stock=1) }}"
+         class="px-space-sm py-1.5 rounded-lg bg-on-tertiary-fixed text-tertiary-fixed hover:bg-on-tertiary-fixed/90 font-label-md text-label-md shrink-0 flex items-center gap-space-3xs shadow-sm">
+        <span>عرض الأصناف</span>
+        <span class="material-symbols-outlined text-[15px]">inventory</span>
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# ============ KPI grid ============ #}
+  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-sm">
+    {# Today #}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مبيعات اليوم</span>
+        <span class="w-8 h-8 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">payments</span>
+        </span>
+      </div>
+      <div class="my-space-xs">
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.today.total | money }}</span>
+        </div>
+        <div class="flex items-center gap-space-xs mt-1">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">{{ data.today.invoices_count }} فاتورة اليوم</span>
+        </div>
+      </div>
+    </div>
+
+    {# Week #}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مبيعات الأسبوع</span>
+        <span class="w-8 h-8 rounded-lg bg-surface-container-highest text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">trending_up</span>
+        </span>
+      </div>
+      <div class="my-space-xs">
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.week.total | money }}</span>
+        </div>
+        <div class="flex items-center gap-space-xs mt-1">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">{{ data.week.invoices_count }} فاتورة الأسبوع</span>
+        </div>
+      </div>
+    </div>
+
+    {# Month + net profit #}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مبيعات الشهر</span>
+        <span class="w-8 h-8 rounded-lg bg-secondary-container/40 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+        </span>
+      </div>
+      <div class="my-space-xs">
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ data.month.total | money }}</span>
+        </div>
+        <div class="flex items-center gap-space-xs mt-1">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">
+            صافي: <span class="text-secondary font-bold">{{ data.net_profit_month | money }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {# Low stock KPI #}
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-on-surface-variant font-medium">مؤشر أمان المخزون</span>
+        <span class="w-8 h-8 rounded-lg {% if data.low_stock_variants %}bg-error-container text-on-error-container{% else %}bg-secondary-fixed text-on-secondary-fixed{% endif %} flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">shelves</span>
+        </span>
+      </div>
+      <div class="my-space-xs">
+        <div class="flex items-baseline gap-space-2xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg {% if data.low_stock_variants %}text-error{% else %}text-secondary{% endif %} font-bold">
+            {{ data.low_stock_variants | length }}
+          </span>
+          <span class="font-label-md text-label-md text-on-surface-variant">أصناف حرجة</span>
+        </div>
+        <div class="flex items-center gap-space-xs mt-1">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">
+            {{ data.total_active_variants }} متغير نشط · {{ data.total_products }} منتج
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ============ Split: Top products + Feed ============ #}
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
+    {# Top products (8 cols) #}
+    <div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-md">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">الأكثر مبيعًا هذا الشهر</h2>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">أعلى المنتجات إيرادًا في المتجر خلال الشهر الحالي</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-right border-collapse">
           <thead>
-            <tr>
-              <th>#</th>
-              <th>المنتج</th>
-              <th>الكمية</th>
-              <th class="text-end">الإيراد</th>
+            <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">
+              <th class="py-space-xs px-space-sm rounded-r-lg">المنتج</th>
+              <th class="py-space-xs px-space-sm">الكمية</th>
+              <th class="py-space-xs px-space-sm rounded-l-lg">الإيراد</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="text-on-surface font-body-md text-body-md">
             {% for tp in data.top_products_month %}
-            <tr>
-              <td class="fw-bold">{{ loop.index }}</td>
-              <td>
-                <a href="{{ url_for('products.view', product_id=tp.product.id) }}"
-                   class="text-decoration-none fw-semibold">{{ tp.product.name_ar }}</a>
-              </td>
-              <td>{{ tp.qty_sold | qty }}</td>
-              <td class="text-end fw-bold">{{ tp.revenue | money }}</td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="4">
-                <div class="empty-state">
-                  <div class="empty-state-icon">📦</div>
-                  <div class="empty-state-title">لا توجد مبيعات هذا الشهر بعد</div>
+            <tr class="hover:bg-surface-container-low/50 transition-colors border-b border-surface-container-low">
+              <td class="py-space-xs px-space-sm">
+                <div class="flex items-center gap-space-xs">
+                  <div class="w-10 h-10 rounded-lg bg-surface-container-high text-secondary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+                  </div>
+                  <div>
+                    <p class="font-label-lg text-label-lg font-semibold text-on-surface leading-tight">{{ tp.product.name_ar }}</p>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant">{{ tp.product.brand or '—' }}</p>
+                  </div>
                 </div>
               </td>
+              <td class="py-space-xs px-space-sm font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ tp.qty_sold | qty }}</td>
+              <td class="py-space-xs px-space-sm font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ tp.revenue | money }}</td>
             </tr>
+            {% else %}
+            <tr><td colspan="3" class="py-space-lg text-center text-on-surface-variant">لا توجد مبيعات هذا الشهر بعد.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <!-- تنبيهات المخزون -->
-  <div class="col-lg-5">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span>مخزون منخفض</span>
-        <a href="{{ url_for('products.index', low_stock=1) }}" class="btn-sm btn-secondary">
-          عرض الكل
-        </a>
+    {# Side stats (4 cols) #}
+    <div class="lg:col-span-4 space-y-space-sm">
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+        <div class="flex items-center gap-space-xs mb-space-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary-container animate-pulse"></span>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">إحصائيات سريعة</h3>
+        </div>
+        <div class="space-y-space-sm">
+          <div class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[18px]">group</span>
+              <span class="font-label-md text-label-md text-on-surface">إجمالي العملاء</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ data.total_customers }}</span>
+          </div>
+          <div class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[18px]">inventory_2</span>
+              <span class="font-label-md text-label-md text-on-surface">إجمالي المنتجات</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ data.total_products }}</span>
+          </div>
+          <div class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-on-tertiary-container text-[18px]">event</span>
+              <span class="font-label-md text-label-md text-on-surface">أقساط مستحقة اليوم</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold">{{ data.due_today_installments }}</span>
+          </div>
+          <div class="flex items-center justify-between p-space-xs rounded-lg {% if data.overdue_installments %}bg-error-container/50 text-on-error-container{% else %}bg-surface-container-low{% endif %}">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined {% if data.overdue_installments %}text-error{% else %}text-on-surface-variant{% endif %} text-[18px]">warning</span>
+              <span class="font-label-md text-label-md">أقساط متأخرة</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold {% if data.overdue_installments %}text-error{% endif %}">{{ data.overdue_installments }}</span>
+          </div>
+        </div>
       </div>
-      <div class="table-scroll" style="max-height:400px">
-        <table class="table table-sm mb-0">
-          <thead>
-            <tr>
-              <th>المنتج</th>
-              <th>الرصيد</th>
-              <th>الحد الأدنى</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for v in data.low_stock_variants %}
-            <tr>
-              <td>
-                <a href="{{ url_for('products.view', product_id=v.product_id) }}"
-                   class="text-decoration-none">{{ v.display_name }}</a>
-              </td>
-              <td class="fw-bold text-danger">{{ v.stock_qty | qty }}</td>
-              <td class="text-muted small">{{ v.reorder_level | qty }}</td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="3">
-                <div class="empty-state">
-                  <div class="empty-state-icon">✅</div>
-                  <div class="empty-state-title">كل المنتجات فوق الحد الأدنى</div>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- روابط سريعة -->
-<div class="card mt-3">
-  <div class="card-header">إحصائيات المتجر</div>
-  <div class="card-body">
-    <div class="row g-3 text-center">
-      <div class="col-md-4">
-        <div class="text-muted small">إجمالي العملاء النشطين</div>
-        <div class="fs-3 fw-bold">{{ data.total_customers }}</div>
+      {# Low stock list #}
+      {% if data.low_stock_variants %}
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+        <div class="flex items-center justify-between mb-space-sm">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تنبيهات المخزون</h3>
+          {% if current_user.can('products.view') %}
+          <a href="{{ url_for('products.index', low_stock=1) }}" class="font-label-sm text-label-sm text-secondary hover:underline">الكل</a>
+          {% endif %}
+        </div>
+        <div class="space-y-space-2xs">
+          {% for v in data.low_stock_variants[:5] %}
+          <div class="flex items-center justify-between p-space-2xs rounded-lg hover:bg-surface-container-low transition-colors">
+            <div class="flex items-center gap-space-xs min-w-0">
+              <span class="w-2 h-2 rounded-full {% if v.stock_qty <= 0 %}bg-error{% else %}bg-tertiary-fixed-dim{% endif %}"></span>
+              <span class="font-body-sm text-body-sm text-on-surface truncate">{{ v.display_name }}</span>
+            </div>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md {% if v.stock_qty <= 0 %}text-error{% else %}text-on-tertiary-container{% endif %} font-bold whitespace-nowrap">
+              {{ v.stock_qty | qty }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
       </div>
-      <div class="col-md-4">
-        <div class="text-muted small">إجمالي المنتجات</div>
-        <div class="fs-3 fw-bold">{{ data.total_products }}</div>
-      </div>
-      <div class="col-md-4">
-        <div class="text-muted small">إجمالي المتغيرات النشطة (SKU)</div>
-        <div class="fs-3 fw-bold">{{ data.total_active_variants }}</div>
-      </div>
+      {% endif %}
     </div>
-  </div>
+  </section>
+
 </div>
 {% endblock %}

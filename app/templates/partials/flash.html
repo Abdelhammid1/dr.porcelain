@@ -1,16 +1,18 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="flash-stack">
+    <div class="mb-space-md space-y-space-2xs">
       {% for category, message in messages %}
-        {% set cls = 'info' if category not in ['success','warning','danger','info'] else category %}
-        <div class="flash-item {{ cls }}" role="alert">
-          <i class="bi
-             {{ 'bi-check-circle' if cls == 'success' else
-                'bi-exclamation-triangle' if cls == 'warning' else
-                'bi-x-circle' if cls == 'danger' else
-                'bi-info-circle' }}"
-             style="color: var(--dp-{{ cls }}); font-size: 1.05rem; flex-shrink:0"></i>
-          <div style="color: var(--dp-ink-2); line-height: 1.5">{{ message }}</div>
+        {% set cls = category if category in ('success','warning','danger','info') else 'info' %}
+        {% set styles = {
+          'success': ('bg-secondary-fixed', 'text-on-secondary-fixed', 'check_circle',   'text-secondary'),
+          'warning': ('bg-tertiary-fixed',  'text-on-tertiary-fixed-variant', 'warning', 'text-on-tertiary-container'),
+          'danger':  ('bg-error-container', 'text-on-error-container', 'error',           'text-error'),
+          'info':    ('bg-surface-container-high', 'text-on-surface', 'info',              'text-secondary'),
+        } %}
+        {% set s = styles[cls] %}
+        <div class="flex items-center gap-space-sm p-space-sm rounded-xl {{ s[0] }} {{ s[1] }} shadow-sm" role="alert">
+          <span class="material-symbols-outlined {{ s[3] }} text-[22px] shrink-0">{{ s[2] }}</span>
+          <div class="font-body-md text-body-md flex-1">{{ message }}</div>
         </div>
       {% endfor %}
     </div>

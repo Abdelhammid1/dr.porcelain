@@ -1,76 +1,91 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="flex min-h-screen">
   {% include "partials/sidebar.html" %}
 
-  <!-- Backdrop for mobile drawer -->
-  <div id="sidebar-backdrop"
-       class="hidden fixed inset-0 bg-black/40 z-30"
-       style="display:none"
-       onclick="toggleSidebar(false)"></div>
-
-  <main class="app-main flex-1">
-    <header class="app-topbar">
-      <div class="flex items-center gap-3">
-        <button type="button" onclick="toggleSidebar()"
-                class="btn-icon" title="القائمة الجانبية" aria-label="القائمة الجانبية">
-          <i class="bi bi-list" style="font-size:1.15rem"></i>
-        </button>
-        <div>
-          <h1>{% block page_title %}{% endblock %}</h1>
-          {% block page_subtitle %}{% endblock %}
+  <div class="pr-[280px]">
+    <header class="fixed top-0 right-[280px] left-0 h-[70px] bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md flex-1 max-w-xl">
+        <div class="relative w-full">
+          <span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+          <input class="w-full h-10 pr-10 pl-space-md rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm outline outline-1 outline-outline-variant/60 focus:outline-secondary placeholder:text-on-surface-variant/60 transition-all"
+                 placeholder="البحث السريع: رقم فاتورة، عميل، منتج، أو قيد..." type="text">
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        {# Ticket 4 Epic 2 — جرس الإشعارات #}
-        <a href="{{ url_for('notifications.index') }}" class="btn-icon" title="الإشعارات"
-           id="notifBell" style="position:relative;">
-          <i class="bi bi-bell" style="font-size:1.15rem"></i>
+
+      <div class="flex items-center gap-space-md">
+        {# Notification bell — polls /notifications/api/summary every 30s #}
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('notifications.index') }}"
+           class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+           id="notifBell" title="الإشعارات">
+          <span class="material-symbols-outlined text-[22px]">notifications</span>
           <span id="notifBadge"
-                style="position:absolute; top:-4px; inset-inline-end:-4px; background:#dc2626;
-                       color:white; font-size:0.65rem; font-weight:700; min-width:18px; height:18px;
-                       border-radius:999px; padding:0 4px; display:none; place-items:center;
-                       border:2px solid white;"></span>
+                class="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-error text-on-error text-[10px] font-bold hidden items-center justify-center"></span>
         </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn-icon" title="تسجيل الخروج">
-          <i class="bi bi-box-arrow-right"></i>
-        </a>
+
+        <div class="h-8 w-px bg-outline-variant/50"></div>
+
+        <div class="flex items-center gap-space-xs">
+          <div class="text-left hidden sm:flex flex-col">
+            <span class="font-label-md text-label-md font-semibold text-on-surface leading-tight">{{ current_user.full_name }}</span>
+            <span class="text-[11px] text-on-surface-variant leading-tight">
+              {{ current_user.role.name_ar if current_user.role else '' }}
+            </span>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold ring-2 ring-secondary/30">
+            {{ current_user.full_name[:1] if current_user.full_name else '?' }}
+          </div>
+          <a href="{{ url_for('auth.logout') }}" class="p-2 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container transition-colors" title="تسجيل الخروج">
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+          </a>
+        </div>
+        {% endif %}
       </div>
     </header>
 
-    <script>
-      // Ticket 4 Epic 2 — polling كل 30 ثانية لتحديث عداد الإشعارات
-      (function() {
-        const badge = document.getElementById('notifBadge');
-        if (!badge) return;
-        async function refresh() {
-          try {
-            const r = await fetch('{{ url_for("notifications.api_summary") }}');
-            if (!r.ok) return;
-            const data = await r.json();
-            const n = data.unread_count || 0;
-            if (n > 0) {
-              badge.textContent = n > 99 ? '99+' : n;
-              badge.style.display = 'grid';
-            } else {
-              badge.style.display = 'none';
-            }
-          } catch (e) { /* silent */ }
-        }
-        refresh();
-        setInterval(refresh, 30000);
-      })();
-    </script>
+    <main class="relative pt-[70px] bg-background min-h-screen w-full px-space-lg py-space-md">
+      {# Page-title area (kept for compatibility with legacy templates) #}
+      {% if self.page_title() %}
+      <div class="mb-space-md">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">{% block page_title %}{% endblock %}</h1>
+        {% block page_subtitle %}{% endblock %}
+      </div>
+      {% endif %}
 
-    <div class="app-content">
-      {% block content %}{% endblock %}
-    </div>
-  </main>
-</div>
+      {% include "partials/flash.html" ignore missing %}
 
-<style>
-  /* Backdrop mobile toggle */
-  body.sidebar-open-mobile #sidebar-backdrop { display: block !important; }
-</style>
+      <div class="flex flex-col w-full">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  {# Notification polling — every 30 seconds (Ticket 4 Epic 2) #}
+  {% if current_user.is_authenticated %}
+  <script>
+    (function() {
+      const badge = document.getElementById('notifBadge');
+      if (!badge) return;
+      async function refresh() {
+        try {
+          const r = await fetch('{{ url_for("notifications.api_summary") }}');
+          if (!r.ok) return;
+          const data = await r.json();
+          const n = data.unread_count || 0;
+          if (n > 0) {
+            badge.textContent = n > 99 ? '99+' : n;
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+          } else {
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
+          }
+        } catch (e) { /* silent */ }
+      }
+      refresh();
+      setInterval(refresh, 30000);
+    })();
+  </script>
+  {% endif %}
 {% endblock %}
