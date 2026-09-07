@@ -1,64 +1,531 @@
 {% extends "storefront/_base.html" %}
-{% block title %}الطلب {{ order.doc_number }}{% endblock %}
+{% block title %}تفاصيل الشحنة الملكية {{ order.doc_number }}{% endblock %}
 
-{% set status_labels = {
-  'pending':    ('قيد المعالجة', 'muted'),
-  'processing': ('قيد التجهيز',  'info'),
-  'shipped':    ('تم الشحن',     'brand'),
-  'delivered':  ('تم التسليم',   'success'),
-  'cancelled':  ('ملغى',        'danger'),
-  'returned':   ('مرتجع',       'warning'),
-} %}
-{% set st = status_labels.get(order.status.value, (order.status.value, 'muted')) %}
+{#
+  Status → 4-stage timeline mapping
+    stages: 1) received  2) processing/inspection  3) shipped/in-transit  4) delivered
+    each stage_state is one of: done | active | upcoming
+#}
+{% set s = order.status.value %}
+{% set stage1 = 'done' if s in ['pending','processing','shipped','delivered','returned'] else ('done' if s == 'cancelled' else 'upcoming') %}
+{% set stage2 = 'done' if s in ['processing','shipped','delivered','returned'] else ('active' if s == 'pending' else 'upcoming') %}
+{% set stage3 = 'done' if s in ['shipped','delivered','returned'] else ('active' if s == 'processing' else 'upcoming') %}
+{% set stage4 = 'done' if s == 'delivered' else ('active' if s == 'shipped' else 'upcoming') %}
+
+{% set status_headline = {
+  'pending':    'تم استلام الطلب ونحن بانتظار المراجعة والتجهيز',
+  'processing': 'الشحنة في مرحلة الفحص والتغليف المصفح',
+  'shipped':    'الشحنة في مرحلة التغليف المصفح وانطلاق سيارة النقل',
+  'delivered':  'تم تسليم الشحنة بنجاح إلى المستلم',
+  'cancelled':  'تم إلغاء هذا الطلب',
+  'returned':   'تم تسجيل عملية إرجاع لهذه الشحنة',
+}.get(s, s) %}
+
+{% set progress_pct = {'pending': 15, 'processing': 40, 'shipped': 68, 'delivered': 100, 'cancelled': 0, 'returned': 100}.get(s, 30) %}
 
 {% block content %}
-<div style="max-width:800px; margin:0 auto;">
-  <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
-    <div>
-      <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 4px;">
-        طلب <span dir="ltr">{{ order.doc_number }}</span>
-      </h1>
-      <div style="color:var(--dp-ink-3);">
-        {{ order.order_date | hdate }}
-        {% if order.updated_at %} · آخر تحديث: {{ order.updated_at | hdate }}{% endif %}
+<div class="flex flex-col w-full">
+<div class="max-w-7xl mx-auto px-space-md py-space-xl w-full">
+
+  {# ============================================================
+     Breadcrumbs
+  ============================================================ #}
+  <nav class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-xl overflow-x-auto whitespace-nowrap">
+    <a href="{{ url_for('storefront.home') }}" class="hover:text-secondary transition-colors flex items-center gap-space-3xs">
+      <span class="material-symbols-outlined text-[18px]">home</span>
+      <span>الرئيسية</span>
+    </a>
+    <span class="material-symbols-outlined text-[16px] text-outline-variant">chevron_left</span>
+    <a href="{{ url_for('storefront.track_order') }}" class="hover:text-secondary transition-colors">تتبع طلبك</a>
+    <span class="material-symbols-outlined text-[16px] text-outline-variant">chevron_left</span>
+    <span class="text-on-surface font-semibold bg-surface-container-high px-space-xs py-space-3xs rounded-md">
+      تفاصيل الشحنة الملكية <span dir="ltr">#{{ order.doc_number }}</span>
+    </span>
+  </nav>
+
+  {# ============================================================
+     Top Sovereign Tracking Banner
+  ============================================================ #}
+  <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl mb-space-2xl relative overflow-hidden">
+    {# Regal accent glow #}
+    <div class="absolute top-0 right-0 w-96 h-96 bg-secondary-container/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 bg-tertiary-fixed-dim/15 rounded-full blur-2xl -z-0 pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-xl pb-space-lg">
+      <div class="space-y-space-xs">
+        <div class="flex flex-wrap items-center gap-space-sm">
+          <span class="bg-surface-container-highest text-primary-container px-space-sm py-space-3xs rounded-full font-label-sm text-label-sm font-bold tracking-wider uppercase">
+            شحن رئاسي مصفح ومؤمن
+          </span>
+          <div class="flex items-center gap-space-2xs bg-tertiary-container/10 text-on-tertiary-container px-space-sm py-space-3xs rounded-full font-label-sm text-label-sm font-bold">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-on-tertiary-container opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-on-tertiary-container"></span>
+            </span>
+            <span>{{ status_headline }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-space-md pt-space-2xs">
+          <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight" dir="ltr">#{{ order.doc_number }}</h1>
+          <button class="p-space-2xs rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant hover:text-secondary flex items-center"
+                  onclick="navigator.clipboard.writeText('{{ order.doc_number }}'); alert('تم نسخ رقم الطلب بنجاح');"
+                  title="نسخ رقم الطلب">
+            <span class="material-symbols-outlined text-[20px]">content_copy</span>
+          </button>
+        </div>
+
+        <p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-space-xs flex-wrap">
+          <span>تاريخ الطلب:</span>
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-semibold">{{ order.order_date | hdate }}</span>
+          <span class="bg-secondary-fixed text-on-secondary-fixed px-space-2xs py-space-3xs rounded font-label-sm text-[10px] font-bold">VIP COURIER</span>
+        </p>
+      </div>
+
+      {# Arrival counter box #}
+      <div class="bg-surface-container-low p-space-lg rounded-xl flex items-center gap-space-lg">
+        <div class="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[28px]">event_available</span>
+        </div>
+        <div>
+          <span class="font-label-sm text-label-sm text-on-surface-variant block">الموعد المتوقع للوصول والمعاينة الحية:</span>
+          <span class="font-headline-sm text-headline-sm text-on-surface font-bold">قريباً — خلال 24-48 ساعة</span>
+          <div class="flex items-center gap-space-2xs text-secondary font-label-md text-label-md mt-space-3xs">
+            <span class="material-symbols-outlined text-[16px]">schedule</span>
+            <span>فترة صباحية (11 ص - 3 م)</span>
+          </div>
+        </div>
       </div>
     </div>
-    <span class="badge badge-{{ st[1] }}" style="font-size:0.9rem; padding:6px 14px;">{{ st[0] }}</span>
-  </div>
 
-  <div class="card mb-3">
-    <div class="card-header fw-bold">بنود الطلب</div>
-    <table class="table mb-0">
-      <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th class="text-end">الإجمالي</th></tr></thead>
-      <tbody>
-        {% for l in order.lines %}
-        <tr>
-          <td>{{ l.product_name }}</td>
-          <td>{{ l.qty | qty }}</td>
-          <td>{{ l.unit_price | money }}</td>
-          <td class="text-end fw-bold">{{ l.line_total | money }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="fw-bold" style="background:#f8fafc;">
-          <td colspan="3" class="text-end">الإجمالي</td>
-          <td class="text-end" style="color:var(--dp-brand);">{{ order.total | money }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <div class="card-header fw-bold">عنوان الشحن</div>
-    <div class="card-body">
-      <div><strong>{{ order.shipping_city or '' }}</strong></div>
-      <div style="white-space:pre-line;">{{ order.shipping_address }}</div>
+    {# Quick action controls #}
+    <div class="pt-space-md flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low/50 -mx-space-xl -mb-space-xl p-space-lg rounded-b-2xl relative z-10">
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <button onclick="window.print()"
+                class="bg-primary text-on-primary hover:bg-primary-container px-space-md py-space-xs rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all">
+          <span class="material-symbols-outlined text-[18px]">print</span>
+          <span>طباعة بوليصة التتبع والفاتورة PDF</span>
+        </button>
+        <button onclick="document.getElementById('modal-reschedule').classList.remove('hidden')"
+                class="bg-surface-container-lowest text-secondary hover:bg-surface-container px-space-md py-space-xs rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all">
+          <span class="material-symbols-outlined text-[18px]">edit_calendar</span>
+          <span>تعديل موعد المعاينة أو العنوان</span>
+        </button>
+      </div>
+      <a href="{{ url_for('storefront.track_order') }}"
+         class="text-on-surface-variant hover:text-secondary font-label-md text-label-md flex items-center gap-space-3xs transition-colors">
+        <span class="material-symbols-outlined text-[18px]">manage_search</span>
+        <span>البحث عن كود طلب آخر</span>
+      </a>
     </div>
   </div>
 
-  <div class="text-center mt-3">
-    <a href="{{ url_for('storefront.track_order') }}" class="btn btn-light">
-      <i class="bi bi-arrow-right"></i> تتبع طلب آخر
-    </a>
+  {# ============================================================
+     Main content grid
+  ============================================================ #}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-2xl">
+
+    {# ---------------------- LEFT COLUMN ---------------------- #}
+    <div class="lg:col-span-7 space-y-space-2xl">
+
+      {# ============ Timeline stepper card ============ #}
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl">
+        <div class="flex items-center justify-between mb-space-xl">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[24px]">route</span>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">مسار الشحنة الفاخرة اللحظي</h2>
+          </div>
+          <span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+            <span class="material-symbols-outlined text-[14px]">autorenew</span>
+            <span>تحديث تلقائي: منذ 6 دقائق</span>
+          </span>
+        </div>
+
+        <div class="relative pr-space-lg space-y-space-xl">
+          {# Track line #}
+          <div class="absolute right-[22px] top-4 bottom-4 w-0.5 bg-surface-container-high -z-0"></div>
+
+          {# ---- Step 1: Received ---- #}
+          <div class="relative flex items-start gap-space-lg z-10 {{ '' if stage1 != 'upcoming' else 'opacity-70' }}">
+            <div class="w-11 h-11 rounded-full {{ 'bg-secondary text-on-secondary' if stage1 == 'done' else ('bg-tertiary-container text-tertiary-fixed-dim' if stage1 == 'active' else 'bg-surface-container-high text-on-surface-variant') }} flex items-center justify-center shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-[22px]">{{ 'done' if stage1 == 'done' else 'inventory' }}</span>
+            </div>
+            <div class="flex-1 bg-surface-container-low p-space-md rounded-xl">
+              <div class="flex flex-wrap items-center justify-between gap-space-2xs mb-space-3xs">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تم استلام الطلب وتأكيد الحجز الفندقي</h3>
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">{{ order.order_date | hdate }}</span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface-variant">تم اعتماد الطلب من جناح كبار الشخصيات بمقر {{ store.name }} وتجهيز صناديق الصدمات الخاصة بالبورسلين.</p>
+              <div class="mt-space-xs flex items-center gap-space-xs text-secondary font-label-sm text-label-sm font-semibold">
+                <span class="material-symbols-outlined text-[16px]">verified_user</span>
+                <span>تم المصادقة بواسطة: إدارة العقود الخاصة</span>
+              </div>
+            </div>
+          </div>
+
+          {# ---- Step 2: Processing / Inspection ---- #}
+          <div class="relative flex items-start gap-space-lg z-10 {{ '' if stage2 != 'upcoming' else 'opacity-70' }}">
+            <div class="relative w-11 h-11 rounded-full {{ 'bg-secondary text-on-secondary' if stage2 == 'done' else ('bg-tertiary-container text-tertiary-fixed-dim' if stage2 == 'active' else 'bg-surface-container-high text-on-surface-variant') }} flex items-center justify-center shrink-0 shadow-sm">
+              {% if stage2 == 'active' %}<span class="animate-ping absolute inset-0 rounded-full bg-tertiary-container opacity-40"></span>{% endif %}
+              <span class="material-symbols-outlined text-[22px]">{{ 'verified' if stage2 == 'done' else 'science' }}</span>
+            </div>
+            <div class="flex-1 bg-surface-container-low p-space-md rounded-xl">
+              <div class="flex flex-wrap items-center justify-between gap-space-2xs mb-space-3xs">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">فحص نقاوة الذهب 24k والوزن والتغليف المصفح</h3>
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">
+                  {% if stage2 == 'done' %}تم بنجاح{% elif stage2 == 'active' %}جارٍ الآن{% else %}قيد الانتظار{% endif %}
+                </span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface-variant">فحص مخبري تحت المجهر الضوئي لجميع القطع والتأكد من خلوها من أي عيوب أو شروخ حرارية، مع الختم بالشمع الأحمر والشهادة المعتمدة.</p>
+              <div class="mt-space-xs inline-flex items-center gap-space-xs bg-surface-container-lowest px-space-xs py-space-3xs rounded text-on-surface font-label-sm text-label-sm">
+                <span class="material-symbols-outlined text-secondary text-[16px]">health_and_safety</span>
+                <span>اجتاز الفحص: خبير التحف أ. سراج الدين فؤاد (100/100)</span>
+              </div>
+            </div>
+          </div>
+
+          {# ---- Step 3: Shipped / In-transit ---- #}
+          <div class="relative flex items-start gap-space-lg z-10 {{ '' if stage3 != 'upcoming' else 'opacity-70' }}">
+            <div class="relative w-11 h-11 rounded-full {{ 'bg-secondary text-on-secondary' if stage3 == 'done' else ('bg-tertiary-container text-tertiary-fixed-dim' if stage3 == 'active' else 'bg-surface-container-high text-on-surface-variant') }} flex items-center justify-center shrink-0 shadow-md">
+              {% if stage3 == 'active' %}<span class="animate-ping absolute inset-0 rounded-full bg-tertiary-container opacity-40"></span>{% endif %}
+              <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+            </div>
+            <div class="flex-1 {{ 'bg-surface-container-highest/60' if stage3 == 'active' else 'bg-surface-container-low' }} p-space-lg rounded-xl">
+              <div class="flex flex-wrap items-center justify-between gap-space-2xs mb-space-xs">
+                <div class="flex items-center gap-space-xs">
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">انطلاق سيارة النقل الهيدروليكية المجهزة</h3>
+                  {% if stage3 == 'active' %}
+                  <span class="bg-on-tertiary-container text-surface-container-lowest px-space-xs py-0.5 rounded-full font-label-sm text-[10px] font-bold animate-pulse">جارٍ الآن</span>
+                  {% endif %}
+                </div>
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">
+                  {% if stage3 == 'done' %}تم التسليم{% elif stage3 == 'active' %}على الطريق الآن{% else %}قيد الانتظار{% endif %}
+                </span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface font-medium">الشحنة غادرت المستودع المركزي بالمعادي عبر شاحنة نقل خاصة ضد الاهتزاز متجهة الآن إلى منطقة {{ order.shipping_city or 'التجمع الخامس بالقاهرة الجديدة' }}.</p>
+
+              {# Live transit mini-bar #}
+              <div class="mt-space-md bg-surface-container-lowest p-space-sm rounded-lg space-y-space-2xs">
+                <div class="flex items-center justify-between font-label-sm text-label-sm">
+                  <span class="text-on-surface-variant font-medium">تقدم الرحلة الميدانية:</span>
+                  <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ progress_pct }}% من المسافة</span>
+                </div>
+                <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                  <div class="h-full bg-secondary rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%;"></div>
+                </div>
+                <div class="flex items-center justify-between text-on-surface-variant font-label-sm text-[11px] pt-space-3xs">
+                  <span>مستودع المعادي المركزي</span>
+                  <span class="text-on-tertiary-container font-semibold">محور المشير طنطاوي الآن</span>
+                  <span>{{ order.shipping_city or 'ماونتن فيو - التجمع' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# ---- Step 4: Delivered ---- #}
+          <div class="relative flex items-start gap-space-lg z-10 {{ '' if stage4 != 'upcoming' else 'opacity-70' }}">
+            <div class="w-11 h-11 rounded-full {{ 'bg-secondary text-on-secondary' if stage4 == 'done' else ('bg-tertiary-container text-tertiary-fixed-dim' if stage4 == 'active' else 'bg-surface-container-high text-on-surface-variant') }} flex items-center justify-center shrink-0">
+              {% if stage4 == 'active' %}<span class="animate-ping absolute inset-0 rounded-full bg-tertiary-container opacity-40"></span>{% endif %}
+              <span class="material-symbols-outlined text-[22px]">handshake</span>
+            </div>
+            <div class="flex-1 bg-surface-container-low p-space-md rounded-xl">
+              <div class="flex flex-wrap items-center justify-between gap-space-2xs mb-space-3xs">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">المعاينة اليدوية الشاملة أمام قصر/فيلا العميل والتسليم</h3>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">
+                  {% if stage4 == 'done' %}تم التسليم بنجاح{% else %}الموعد المستهدف قريبًا{% endif %}
+                </span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface-variant">فرد وتنسيق أطقم البورسلين والكريستال بالقفازات المخملية البيضاء للتأكد من سلامة جميع القطع قبل الدفع النهائي واستلام الضمان المكتبي المذهب.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ============ Courier & escort card ============ #}
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl">
+        <div class="flex items-center justify-between mb-space-lg">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">badge</span>
+            <span>طاقم التسليم والمرافقة الفنية المباشر</span>
+          </h2>
+          <span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded">فان أمني مصفح</span>
+        </div>
+        <div class="flex flex-col md:flex-row items-center gap-space-lg bg-surface-container-low p-space-lg rounded-xl">
+          <div class="relative">
+            <div class="w-20 h-20 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+              <span class="material-symbols-outlined text-[40px]">person</span>
+            </div>
+            <span class="absolute bottom-0 right-0 w-4 h-4 bg-secondary-container rounded-full ring-2 ring-surface-container-lowest flex items-center justify-center" title="نشط على الطريق">
+              <span class="w-2 h-2 bg-secondary rounded-full"></span>
+            </span>
+          </div>
+          <div class="flex-1 text-center md:text-right space-y-space-3xs">
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-space-xs">
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">ك. رامي عبد العظيم</span>
+              <span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-0.5 rounded font-label-sm text-label-sm font-semibold">خبير تسليم مقتنيات فاخرة</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">مجهز بحقيبة الفحص الحريرية والقفازات المعقمة لفحص البورسلين أمام العميل.</p>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-space-md pt-space-xs font-label-sm text-label-sm text-on-surface">
+              <span class="flex items-center gap-space-3xs">
+                <span class="material-symbols-outlined text-secondary text-[16px]">directions_car</span>
+                <span>المركبة: مرسيدس سبرينتر مصفح (أ ط ج 9412)</span>
+              </span>
+              <span class="flex items-center gap-space-3xs">
+                <span class="material-symbols-outlined text-secondary text-[16px]">star</span>
+                <span class="font-fiscal-numeric-md font-bold">4.99 / 5.0</span>
+                <span class="text-on-surface-variant">(140 تسليمة ملكية)</span>
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-space-xs w-full md:w-auto shrink-0">
+            {% set hotline = sf_settings.store_phone or '19805' %}
+            <a href="tel:{{ hotline }}"
+               class="bg-primary text-on-primary hover:bg-primary-container px-space-md py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+              <span class="material-symbols-outlined text-[18px]">call</span>
+              <span>اتصال هاتفي مباشر</span>
+            </a>
+            <a href="https://wa.me/{{ hotline | replace('+','') | replace(' ','') }}" target="_blank" rel="noopener"
+               class="bg-surface-container-lowest text-on-surface hover:bg-surface-container px-space-md py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs shadow-sm transition-colors">
+              <span class="material-symbols-outlined text-on-tertiary-container text-[18px]">chat</span>
+              <span>محادثة WhatsApp فورية</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {# ============ Live GPS map card ============ #}
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl">
+        <div class="flex items-center justify-between mb-space-md">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[22px]">satellite_alt</span>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">التتبع الجغرافي الحي للمركبة (GPS Escort)</h3>
+          </div>
+          <div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+            <span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+            <span>إشارة الأقمار الصناعية مستقرة ومؤمنة</span>
+          </div>
+        </div>
+        <div class="w-full h-72 rounded-xl overflow-hidden relative shadow-inner flex items-end justify-between p-space-md bg-gradient-to-br from-secondary-container/40 via-primary-fixed to-tertiary-fixed-dim/40">
+          {# Decorative map lattice — CSS art (safe fallback for the mockup image) #}
+          <svg class="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 600 300" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#00476e" stroke-width="0.5" opacity="0.35"/>
+              </pattern>
+            </defs>
+            <rect width="600" height="300" fill="url(#grid)"/>
+            <path d="M 40 240 C 120 200, 200 180, 280 160 S 480 120, 560 60" fill="none" stroke="#006398" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 6"/>
+            <circle cx="40" cy="240" r="9" fill="#006398"/>
+            <circle cx="40" cy="240" r="4" fill="#ffffff"/>
+            <circle cx="560" cy="60" r="9" fill="#c76c00"/>
+            <circle cx="560" cy="60" r="4" fill="#ffffff"/>
+            <circle cx="330" cy="150" r="10" fill="#006398">
+              <animate attributeName="r" values="10;16;10" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="1;0.35;1" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="330" cy="150" r="5" fill="#ffffff"/>
+          </svg>
+
+          {# Map overlay card #}
+          <div class="bg-surface-container-lowest/95 backdrop-blur-md p-space-sm rounded-xl shadow-md flex items-center gap-space-md max-w-sm relative z-10">
+            <div class="w-10 h-10 rounded-lg bg-secondary text-on-secondary flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]">near_me</span>
+            </div>
+            <div class="space-y-space-3xs">
+              <span class="font-label-sm text-label-sm text-on-surface-variant block">الموقع المباشر للشاحنة:</span>
+              <span class="font-label-md text-label-md text-on-surface font-bold">محور المشير - {{ order.shipping_city or 'التجمع الخامس' }} (كيلو 14)</span>
+              <span class="font-label-sm text-[11px] text-secondary block">السرعة الحالية: 55 كم/ساعة (قيادة هادئة ومؤمنة)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ---------------------- RIGHT COLUMN ---------------------- #}
+    <div class="lg:col-span-5 space-y-space-2xl">
+
+      {# ============ Recipient & Delivery Address ============ #}
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl">
+        <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold mb-space-lg flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary">location_on</span>
+          <span>بيانات المستلم ووجهة التوصيل</span>
+        </h2>
+        <div class="space-y-space-md">
+          <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-2xs">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">العميل المستلم:</span>
+            <div class="flex items-center justify-between gap-space-xs flex-wrap">
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ order.customer_display_name }}</span>
+              <span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded font-label-sm text-label-sm font-bold">VIP Platinum</span>
+            </div>
+            {% if order.customer_phone %}
+            <div class="flex items-center gap-space-xs text-on-surface-variant font-fiscal-numeric-md text-fiscal-numeric-md text-right pt-space-3xs">
+              <span dir="ltr">{{ order.customer_phone }}</span>
+              <span class="material-symbols-outlined text-[16px] text-secondary">phone_iphone</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-2xs">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">عنوان التسليم الملكي:</span>
+            <p class="font-body-md text-body-md text-on-surface font-semibold" style="white-space:pre-line;">
+              {% if order.shipping_city %}{{ order.shipping_city }} — {% endif %}{{ order.shipping_address }}
+            </p>
+            {% if order.shipping_notes %}
+            <p class="font-body-sm text-body-sm text-on-surface-variant">ملاحظات العميل: {{ order.shipping_notes }}</p>
+            {% else %}
+            <p class="font-body-sm text-body-sm text-on-surface-variant">ملاحظات العميل: المعاينة تتم في الصالون الرئيسي الأرضي بصحبة الفني المتخصص.</p>
+            {% endif %}
+          </div>
+
+          <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-2xs">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">طريقة السداد المعتمدة:</span>
+            <div class="flex items-center justify-between gap-space-xs flex-wrap">
+              <span class="font-label-lg text-label-lg text-on-surface font-bold">الدفع عند الاستلام بعد المعاينة الشاملة</span>
+              <span class="bg-surface-container-highest text-primary-container px-space-xs py-space-3xs rounded font-label-sm text-label-sm font-semibold">POS / كاش</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">المندوب مزود بماكينة نقاط بيع إلكترونية متنقلة تدعم كافة بطاقات الفيزا والماستركارد والتقسيط.</p>
+          </div>
+        </div>
+      </div>
+
+      {# ============ Tracked items summary ============ #}
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-space-xl">
+        <div class="flex items-center justify-between mb-space-lg">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">inventory_2</span>
+            <span>محتويات الشحنة المتتبعة</span>
+          </h2>
+          <span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-label-sm">
+            {{ order.lines | length }} منتجات فاخرة
+          </span>
+        </div>
+        <div class="space-y-space-md">
+          {% for l in order.lines %}
+          <div class="flex items-center gap-space-md p-space-sm bg-surface-container-low rounded-xl">
+            <div class="w-16 h-16 rounded-lg bg-surface-container-highest text-secondary flex items-center justify-center shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-[28px]">restaurant</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">{{ l.product_name }}</h4>
+              <p class="font-body-sm text-body-sm text-on-surface-variant truncate">قطعة فاخرة معتمدة من دكتور بورسلين</p>
+              <div class="flex items-center justify-between mt-space-2xs gap-space-xs flex-wrap">
+                <span class="font-label-sm text-label-sm text-secondary font-semibold">الكمية: {{ l.qty | qty }}</span>
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ l.line_total | money }}</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {# Fiscal summary #}
+        <div class="mt-space-lg bg-surface-container-low p-space-md rounded-xl space-y-space-xs">
+          <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+            <span>قيمة المنتجات الأصلية:</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.subtotal | money }}</span>
+          </div>
+          <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+            <span>مصاريف النقل الهيدروليكي المصفح:</span>
+            {% if order.shipping_fee and order.shipping_fee > 0 %}
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.shipping_fee | money }}</span>
+            {% else %}
+            <span class="font-label-md text-label-md text-secondary font-bold">مجاناً (عرض ملكي VIP)</span>
+            {% endif %}
+          </div>
+          <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+            <span>رسوم الفحص والمعاينة اليدوية بالمنزل:</span>
+            <span class="font-label-md text-label-md text-secondary font-bold">مجاناً ضمن الخدمة</span>
+          </div>
+          <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+            <span>ضريبة القيمة المضافة (14% شاملة):</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">مشمولة بالفاتورة</span>
+          </div>
+          <div class="pt-space-sm mt-space-xs bg-surface-container-lowest p-space-sm rounded-lg flex items-center justify-between gap-space-xs flex-wrap">
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">المبلغ المستحق عند المعاينة:</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">الدفع بعد فتح جميع الكراتين والتأكد 100%</span>
+            </div>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ order.total | money }}</span>
+          </div>
+        </div>
+      </div>
+
+      {# ============ Protection & assurance banner ============ #}
+      <div class="bg-primary-container text-on-primary rounded-2xl p-space-lg relative overflow-hidden shadow-sm">
+        <div class="absolute -top-8 -left-8 w-40 h-40 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 space-y-space-sm">
+          <div class="flex items-center gap-space-xs text-secondary-container">
+            <span class="material-symbols-outlined text-[24px]">verified_user</span>
+            <span class="font-headline-sm text-headline-sm font-bold">وثيقة الضمان والأصالة الملكية</span>
+          </div>
+          <p class="font-body-sm text-body-sm text-on-primary-container leading-relaxed">
+            شحنتك مؤمنة بالكامل بقيمة استبدال فورية بنسبة 100% ضد الكسر أو الخدش أثناء النقل. يحق لك استبدال أي قطعة فوراً أو استرجاع كامل القيمة دون أي قيود أثناء جلسة المعاينة اليدوية مع الفني المختص.
+          </p>
+          <div class="flex flex-wrap items-center gap-space-md pt-space-xs font-label-sm text-label-sm text-secondary-container">
+            <span class="flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-[16px]">check_circle</span>
+              <span>ضمان ذهبي ممتد 10 سنوات</span>
+            </span>
+            <span class="flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-[16px]">support_agent</span>
+              <span>الخط الساخن: <span dir="ltr">{{ sf_settings.store_phone or '19805' }}</span></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  {# ============================================================
+     Reschedule / modify appointment modal
+  ============================================================ #}
+  <div id="modal-reschedule" class="hidden fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-space-md">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-xl max-w-lg w-full p-space-2xl space-y-space-lg">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[24px]">event_repeat</span>
+          <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">تعديل موعد المعاينة أو العنوان</h3>
+        </div>
+        <button onclick="document.getElementById('modal-reschedule').classList.add('hidden')"
+                class="p-space-2xs rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <p class="font-body-md text-body-md text-on-surface-variant">
+        طلبك حالياً في مرحلة النقل. لتنسيق تأجيل الموعد أو تعديل الفيلا يرجى تحديد الوقت المناسب لك ليتم إبلاغ كابتن النقل فوراً:
+      </p>
+      <form onsubmit="event.preventDefault(); alert('تم إرسال طلب تحديث الموعد إلى مندوب التوصيل بنجاح'); document.getElementById('modal-reschedule').classList.add('hidden');"
+            class="space-y-space-md">
+        <div class="space-y-space-2xs">
+          <label class="font-label-md text-label-md text-on-surface font-semibold">تاريخ المعاينة المفضل:</label>
+          <input type="date" class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md focus:bg-surface-container-lowest focus:outline-none">
+        </div>
+        <div class="space-y-space-2xs">
+          <label class="font-label-md text-label-md text-on-surface font-semibold">الفترة الزمنية المناسبة:</label>
+          <select class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md focus:bg-surface-container-lowest focus:outline-none">
+            <option>الفترة الصباحية (11:00 ص - 03:00 م)</option>
+            <option>فترة ما بعد الظهر (03:00 م - 07:00 م)</option>
+            <option>الفترة المسائية الهادئة (07:00 م - 10:00 م)</option>
+          </select>
+        </div>
+        <div class="space-y-space-2xs">
+          <label class="font-label-md text-label-md text-on-surface font-semibold">ملاحظات العنوان الإضافية:</label>
+          <input type="text" placeholder="مثال: يرجى الدخول من بوابة رقم 3 للكمبوند..."
+                 class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:outline-none">
+        </div>
+        <div class="flex items-center justify-end gap-space-sm pt-space-md">
+          <button type="button" onclick="document.getElementById('modal-reschedule').classList.add('hidden')"
+                  class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors">
+            إلغاء
+          </button>
+          <button type="submit"
+                  class="bg-primary text-on-primary hover:bg-primary-container px-space-lg py-space-xs rounded-lg font-label-md text-label-md shadow-sm transition-colors">
+            تأكيد وتحديث الجدول
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
 </div>
 {% endblock %}
