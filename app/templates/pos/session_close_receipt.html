@@ -156,7 +156,7 @@
           <span style="transform: rotate(-45deg); font-size: 9px; font-weight: 900; line-height: 1; text-align: center;">DR.<br>PORC</span>
         </div>
       </div>
-      <h2 class="sans" style="font-size: 18px; font-weight: 900; letter-spacing: 1px; margin: 0;">{{ store_name or 'دكتور بورسلين' }}</h2>
+      <h2 class="sans" style="font-size: 18px; font-weight: 900; letter-spacing: 1px; margin: 0;">{{ store_name or store.name }}</h2>
       <p class="sans" style="font-size: 11px; font-weight: 700; color: #334155; margin: 2px 0;">لتجهيزات المنزل والأطقم الفاخرة</p>
       {% if store_addr %}<p class="sans" style="font-size: 10px; color: #475569; margin: 1px 0;">{{ store_addr }}</p>{% endif %}
       {% if store_phone %}<p class="sans" style="font-size: 10px; color: #475569; margin: 1px 0;">هاتف: <span dir="ltr">{{ store_phone }}</span></p>{% endif %}
@@ -282,7 +282,7 @@
 
     <div class="footer sans">
       <p class="brand">شكراً على انضباط العهدة والمطابقة اليومية</p>
-      <p style="margin: 1px 0;">نظام دكتور بورسلين الموحد — إصدار 4.2</p>
+      <p style="margin: 1px 0;">نظام {{ store_name or store.name }} الموحد — إصدار 4.2</p>
       <p style="margin: 1px 0; font-size: 8px;" class="mono">*** نهاية تقرير Z الإقفالي ***</p>
     </div>
 

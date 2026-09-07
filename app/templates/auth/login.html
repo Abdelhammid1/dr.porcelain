@@ -9,10 +9,15 @@
 
   <div class="relative bg-surface-container-lowest w-full max-w-md rounded-xl p-space-2xl shadow-[0_25px_50px_-12px_rgba(11,28,48,0.15)]">
     <div class="text-center mb-space-lg">
+      {% if store.logo_url %}
+      <img src="{{ store.logo_url }}" alt="{{ store.name }}"
+           class="w-16 h-16 mx-auto rounded-xl object-cover shadow-md mb-space-sm bg-surface-container-lowest">
+      {% else %}
       <div class="w-16 h-16 mx-auto rounded-xl bg-primary-container text-on-primary flex items-center justify-center font-bold text-headline-lg shadow-md mb-space-sm">
-        د.ب
+        {{ (store.name.split()[0][0] if store.name else 'د') ~ '.' ~ (store.name.split()[1][0] if store.name and store.name.split()|length > 1 else 'ب') }}
       </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">دكتور بورسلين</h1>
+      {% endif %}
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">{{ store.name }}</h1>
       <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">لوحة التحكم المحاسبية</p>
     </div>
 

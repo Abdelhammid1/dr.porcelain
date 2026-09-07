@@ -189,7 +189,7 @@
           <span style="transform: rotate(-45deg); font-size: 9px; font-weight: 900; line-height: 1; text-align: center;">DR.<br>PORC</span>
         </div>
       </div>
-      <h2 style="font-size: 15px; font-weight: 900; letter-spacing: 2px; margin: 0;" class="sans">{{ store_name or 'دكتور بورسلين' }}</h2>
+      <h2 style="font-size: 15px; font-weight: 900; letter-spacing: 2px; margin: 0;" class="sans">{{ store_name or store.name }}</h2>
       <p style="font-size: 10px; font-weight: 700; color: #333; margin: 2px 0;" class="sans">لتجهيزات المنزل والأطقم الفاخرة</p>
       {% if store_addr %}<p style="font-size: 9.5px; color: #555; margin: 1px 0;" class="sans">{{ store_addr }}</p>{% endif %}
       {% if store_phone %}<p style="font-size: 9.5px; color: #555; margin: 1px 0;" class="sans">هاتف: <span dir="ltr">{{ store_phone }}</span></p>{% endif %}
@@ -316,8 +316,8 @@
     </div>
 
     <div class="footer sans">
-      <p class="brand">نسعد بخدمتكم دائمًا في {{ store_name or 'دكتور بورسلين' }} — شكرًا لثقتكم</p>
-      <p style="margin: 1px 0;">نظام دكتور بورسلين الموحد — إصدار 4.2</p>
+      <p class="brand">نسعد بخدمتكم دائمًا في {{ store_name or store.name }} — شكرًا لثقتكم</p>
+      <p style="margin: 1px 0;">نظام {{ store_name or store.name }} الموحد — إصدار 4.2</p>
       <p style="margin: 1px 0; font-size: 7.5px;" class="mono">*** نهاية إشعار المرتجع والاستلام ***</p>
     </div>
   </main>

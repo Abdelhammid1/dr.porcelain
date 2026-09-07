@@ -25,10 +25,64 @@ def create_app(config_class=None) -> Flask:
     _register_blueprints(app)
     _register_shell_context(app)
     _register_template_filters(app)
+    _register_context_processors(app)
     _register_error_handlers(app)
     _register_cli(app)
 
     return app
+
+
+def _register_context_processors(app: Flask) -> None:
+    """يوفّر بيانات هوية المتجر (الاسم، اللوجو، العنوان…) لكل قالب Jinja كـ `store`.
+
+    تُقرأ الإعدادات مباشرة من DB في كل طلب — لا يوجد Cache — فأي تعديل من
+    شاشة الإعدادات يظهر فورًا في جميع الصفحات والقوالب والإيصالات.
+    """
+    from flask import url_for
+    from app.models.setting import get_setting
+
+    class _Store:
+        __slots__ = ("name", "legal_name", "address", "phone",
+                     "tax_number", "commercial_reg", "logo_path", "logo_url")
+
+        def __init__(self, name, legal_name, address, phone,
+                     tax_number, commercial_reg, logo_path, logo_url):
+            self.name = name
+            self.legal_name = legal_name
+            self.address = address
+            self.phone = phone
+            self.tax_number = tax_number
+            self.commercial_reg = commercial_reg
+            self.logo_path = logo_path
+            self.logo_url = logo_url
+
+        def __bool__(self) -> bool:
+            return True
+
+    @app.context_processor
+    def _inject_store():
+        try:
+            name = str(get_setting("store.name", "دكتور بورسلين") or "دكتور بورسلين")
+            legal_name = str(get_setting("store.legal_name", "") or "")
+            address = str(get_setting("store.address", "") or "")
+            phone = str(get_setting("store.phone", "") or "")
+            tax_number = str(get_setting("store.tax_number", "") or "")
+            commercial_reg = str(get_setting("store.commercial_reg", "") or "")
+            logo_path = str(get_setting("store.logo_path", "") or "")
+        except Exception:
+            # الجدول لسه ما اتعمل — نرجّع القيم الافتراضية بدون ما نكسر القالب
+            name = "دكتور بورسلين"
+            legal_name = address = phone = tax_number = commercial_reg = logo_path = ""
+
+        logo_url = url_for("static", filename=logo_path) if logo_path else ""
+
+        return {
+            "store": _Store(
+                name=name, legal_name=legal_name, address=address, phone=phone,
+                tax_number=tax_number, commercial_reg=commercial_reg,
+                logo_path=logo_path, logo_url=logo_url,
+            ),
+        }
 
 
 def _register_extensions(app: Flask) -> None:

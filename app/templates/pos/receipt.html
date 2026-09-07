@@ -158,7 +158,7 @@
 
   <div class="receipt">
     <div class="brand">
-      <div class="brand-name">دكتور بورسلين</div>
+      <div class="brand-name">{{ store_name or store.name }}</div>
       <div class="brand-tag">لتجهيزات المنزل والأطقم الفاخرة</div>
       <div class="brand-meta">
         {% if store_addr %}<div>{{ store_addr }}</div>{% endif %}
@@ -242,9 +242,9 @@
     <div class="dashed"></div>
 
     <div class="footer">
-      <div class="footer-thanks">شكراً لزيارتكم واختياركم دكتور بورسلين</div>
+      <div class="footer-thanks">شكراً لزيارتكم واختياركم {{ store_name or store.name }}</div>
       <div class="footer-sub">نسعد بخدمتكم دائماً في كافة فروعنا</div>
-      <div class="footer-sys">نظام دكتور بورسلين الموحد</div>
+      <div class="footer-sys">نظام {{ store_name or store.name }} الموحد</div>
       <div class="footer-end">*** نهاية الإيصال الضريبي ***</div>
     </div>
   </div>

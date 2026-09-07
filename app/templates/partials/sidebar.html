@@ -45,11 +45,17 @@
   <div class="flex flex-col h-full overflow-hidden">
     {# Brand header #}
     <div class="h-[70px] px-space-md flex items-center gap-space-sm border-b border-on-primary-container/20 bg-primary-container">
+      {% if store.logo_url %}
+      <img src="{{ store.logo_url }}" alt="{{ store.name }}"
+           class="w-9 h-9 rounded-lg object-cover ring-1 ring-secondary-container/40 bg-surface-container-lowest">
+      {% else %}
       <div class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center font-bold text-[13px] ring-1 ring-secondary-container/40">
-        د.ب
+        {# أول حرف من كل كلمة في الاسم كشعار مبدئي #}
+        {{ (store.name.split()[0][0] if store.name else 'د') ~ '.' ~ (store.name.split()[1][0] if store.name and store.name.split()|length > 1 else 'ب') }}
       </div>
+      {% endif %}
       <div class="flex flex-col">
-        <span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-tight">دكتور بورسلين</span>
+        <span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-tight">{{ store.name }}</span>
         <span class="font-label-sm text-label-sm text-secondary-container">لوحة التحكم المحاسبية</span>
       </div>
     </div>
