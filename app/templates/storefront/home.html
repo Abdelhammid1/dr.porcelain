@@ -79,13 +79,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="sf-md3-scope w-full text-on-surface">
-  <div class="flex flex-col w-full">
+<div class="flex flex-col w-full text-on-surface">
 
     {# ============ 1. Top Sovereign Announcement Marquee ============ #}
-    {# Mockup section — always visible. Uses store announcement if set,
-       otherwise falls back to mockup demo copy so the panel is never dropped. #}
-    <div class="w-full bg-surface-container-high py-space-xs px-space-md flex items-center justify-between overflow-hidden text-on-surface rounded-xl mb-space-lg">
+    {# Full-width strip (no rounded corners, no bottom margin — matches mockup 1:1) #}
+    <div class="w-full bg-surface-container-high py-space-xs px-space-md flex items-center justify-between overflow-hidden text-on-surface">
       <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-space-md flex-wrap">
         <div class="flex items-center gap-space-sm font-label-sm text-label-sm">
           <span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm whitespace-nowrap">
@@ -102,7 +100,8 @@
       </div>
     </div>
 
-    {# ============ Main Storefront Canvas Grid ============ #}
+    {# ============ Main Storefront Canvas — max-w-7xl matches mockup ============ #}
+    <div class="max-w-7xl mx-auto w-full px-space-md py-space-lg">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
 
       {# ============ Right-hand Sidebar (RTL primary) ============ #}
@@ -593,7 +592,7 @@
 
       </div>
     </div>
-  </div>
+    </div>
 </div>
 
 <script>
