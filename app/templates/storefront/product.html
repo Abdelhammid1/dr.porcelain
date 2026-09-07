@@ -78,7 +78,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex flex-col w-full text-on-surface" style="font-family:'IBM Plex Sans Arabic', sans-serif;">
+{# 3-column layout matching the mockup:
+   [280px categories sidebar (right in RTL)] [flex-1 main content (left in RTL)] #}
+<div class="max-w-7xl mx-auto w-full px-space-md py-space-lg">
+<div class="flex gap-space-lg items-start">
+
+  {% set active_category_id = product.category_id %}
+  {% include "storefront/_categories_sidebar.html" %}
+
+<main class="flex-1 min-w-0 text-on-surface" style="font-family:'IBM Plex Sans Arabic', sans-serif;">
   <!-- 1. Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-space-lg flex items-center gap-space-2xs text-on-surface-variant font-label-md">
     <a class="hover:text-primary transition-colors flex items-center gap-space-3xs" href="{{ url_for('storefront.home') }}">
@@ -977,6 +985,8 @@
       لم تُشاهد أي منتجات بعد — تصفّح المتجر لتبدأ ببناء سجل المشاهدة.
     </div>
   </section>
+</main>
+</div>
 </div>
 
 <script>

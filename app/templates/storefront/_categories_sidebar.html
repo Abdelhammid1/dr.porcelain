@@ -1,0 +1,60 @@
+{#
+  Shared storefront categories sidebar — matches the mockup's
+  <aside class="w-[280px] shrink-0 min-h-[...] bg-surface-container-lowest
+                p-space-lg shadow-[...] hidden lg:block">.
+
+  Renders real categories from sf_root_categories with an expandable
+  child list. Active category (passed as `active_category_id`) gets the
+  aria-current + cobalt highlight.
+
+  Include with:
+    {% include "storefront/_categories_sidebar.html" %}
+#}
+<aside class="w-[280px] shrink-0 bg-surface-container-lowest p-space-lg shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] hidden lg:block rounded-xl">
+
+  <div class="pb-space-md mb-space-md border-b border-surface-container-highest">
+    <div class="flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-bold">
+      <span>تصنيفات المتجر</span>
+      <span class="material-symbols-outlined text-on-surface-variant text-[18px]">tune</span>
+    </div>
+    <p class="font-label-sm text-label-sm text-on-surface-variant mt-space-3xs">تصفح التشكيلات بحسب الاستخدام</p>
+  </div>
+
+  <nav class="flex flex-col gap-space-2xs">
+    {% for cat in sf_root_categories %}
+    {% set is_active_root = (active_category_id is defined and active_category_id == cat.id) %}
+    {% set _icons = ['dinner_dining','coffee','local_cafe','wine_bar','room_service','celebration','emoji_food_beverage','local_florist'] %}
+    {% set _ic = _icons[loop.index0 % (_icons|length)] %}
+
+    <div class="flex flex-col">
+      <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
+         class="flex items-center justify-between px-space-sm py-space-xs rounded-lg font-body-md text-body-md transition-colors
+                {% if is_active_root %}bg-surface-container-high text-on-surface font-bold{% else %}text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface{% endif %}">
+        <span class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[20px]">{{ _ic }}</span>
+          <span>{{ cat.name_ar }}</span>
+        </span>
+        {% if cat.children %}
+        <span class="material-symbols-outlined text-[16px]">expand_more</span>
+        {% elif loop.index0 == 2 %}
+        <span class="font-label-sm text-secondary bg-secondary-fixed px-space-2xs py-space-3xs rounded-full">جديد</span>
+        {% endif %}
+      </a>
+
+      {% if cat.children %}
+      <div class="pr-space-xl flex flex-col gap-space-3xs py-space-2xs">
+        {% for child in cat.children[:4] %}
+        {% set is_active_child = (active_category_id is defined and active_category_id == child.id) %}
+        <a href="{{ url_for('storefront.category', category_id=child.id) }}"
+           {% if is_active_child %}aria-current="page"{% endif %}
+           class="px-space-xs py-space-3xs font-label-md text-label-md transition-colors
+                  {% if is_active_child %}bg-surface-container-high text-on-surface font-bold rounded-lg{% else %}text-on-surface-variant hover:text-on-surface{% endif %}">
+          {{ child.name_ar }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </nav>
+</aside>
