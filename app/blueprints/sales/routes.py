@@ -5,7 +5,7 @@ import json
 from datetime import date, datetime
 from decimal import Decimal
 
-from flask import abort, flash, jsonify, redirect, render_template, request, url_for
+from flask import abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 
@@ -44,15 +44,36 @@ from app.services.security import require_permission
 @require_permission("sales.view")
 def unpaid():
     """الفواتير الآجلة (ON_CREDIT) التي لم تُحصَّل بالكامل بعد."""
-    invoices = (
-        db.session.query(SalesInvoice)
-        .filter(SalesInvoice.payment_method == PaymentMethod.ON_CREDIT)
-        .filter(SalesInvoice.status.in_([InvoiceStatus.POSTED, InvoiceStatus.PARTIAL_RETURNED]))
-        .order_by(SalesInvoice.invoice_date, SalesInvoice.id)
-        .all()
-    )
-    # نُصفّي الفواتير المدفوعة بالكامل حتى لو ON_CREDIT
-    unpaid_only = [inv for inv in invoices if inv.amount_due > 0]
+    try:
+        invoices = (
+            db.session.query(SalesInvoice)
+            .filter(SalesInvoice.payment_method == PaymentMethod.ON_CREDIT)
+            .filter(SalesInvoice.status.in_([
+                InvoiceStatus.POSTED, InvoiceStatus.PARTIAL_RETURNED,
+            ]))
+            .order_by(SalesInvoice.invoice_date, SalesInvoice.id)
+            .all()
+        )
+        # نُصفّي الفواتير المدفوعة بالكامل حتى لو ON_CREDIT — نلف كل حساب في
+        # try عشان لو amount_due على فاتورة واحدة اترفع لأي سبب (بيانات
+        # قديمة/مهجورة، Column مش موجود بعد تغيير schema، إلخ) نبقى صفّرنا
+        # الفاتورة دي فقط بدل ما تسقط الصفحة كلها بـ 500.
+        unpaid_only: list[SalesInvoice] = []
+        for inv in invoices:
+            try:
+                if inv.amount_due > 0:
+                    unpaid_only.append(inv)
+            except Exception:
+                # سطر واحد لا يُسقِط الصفحة — يظهر في السجل بس نسمح للباقي بالعرض
+                current_app.logger.exception(
+                    "sales.unpaid: failed to compute amount_due for invoice id=%s",
+                    getattr(inv, "id", "?"),
+                )
+                continue
+    except Exception:
+        current_app.logger.exception("sales.unpaid: DB query failed")
+        flash("تعذّر تحميل الفواتير غير المحصّلة — تحقق من السجل.", "danger")
+        unpaid_only = []
     return render_template("sales/unpaid.html", invoices=unpaid_only)
 
 
