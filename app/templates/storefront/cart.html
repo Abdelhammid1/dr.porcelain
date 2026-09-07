@@ -79,6 +79,7 @@
 {% block content %}
 {# Free-shipping threshold (fallback to 500 if setting missing) #}
 {% set threshold = 500 %}
+<div class="max-w-7xl mx-auto w-full px-space-md py-space-lg">
 <div class="flex flex-col w-full font-body-md text-on-surface" style="font-family:'IBM Plex Sans Arabic', sans-serif;">
 
   {% if cart.is_empty %}
@@ -578,6 +579,7 @@
     </section>
   </div>
   {% endif %}
+</div>
 </div>
 
 <script>
