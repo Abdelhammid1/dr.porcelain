@@ -48,6 +48,41 @@ class LedgerError(ValueError):
     """أي انتهاك لقواعد الدفتر يُرفَع كـ LedgerError."""
 
 
+def _ensure_no_open_custody_touch(account_ids: list[int]) -> None:
+    """يمنع القيود اليدوية على حسابات عهدة الكاشير المرتبطة بوردية POS مفتوحة.
+
+    حساب العهدة (1030-U-XXX) مُدار حصريًا عبر open_session/close_session في
+    app.services.pos — أي قيد يدوي (عادي أو reversal) عليه بيكسر معادلة
+    closing_cash_expected = رصيد 1030-XXX وقت القفل.
+
+    نمنع فقط لو الوردية status == OPEN. لو الوردية مقفولة (CLOSED) يبقى
+    ممكن للمحاسب يعمل تسوية يدوية بعد كده.
+    """
+    if not account_ids:
+        return
+    from app.models.pos import POSSession, SessionStatus
+
+    open_sessions = (
+        db.session.query(POSSession)
+        .filter(POSSession.status == SessionStatus.OPEN)
+        .filter(POSSession.custody_account_id.in_(account_ids))
+        .all()
+    )
+    if not open_sessions:
+        return
+
+    codes = sorted({
+        s.custody_account.code
+        for s in open_sessions if s.custody_account is not None
+    })
+    docs = ", ".join(s.doc_number for s in open_sessions)
+    raise LedgerError(
+        "حسابات عهدة الكاشير التالية مرتبطة بوردية POS مفتوحة "
+        f"({', '.join(codes)} — وردية: {docs}) ولا يمكن التعديل عليها يدويًا "
+        "(بما فيها العكس). أقفل الوردية من شاشتها أولًا."
+    )
+
+
 @dataclass
 class LedgerLineDraft:
     account_id: int
@@ -100,6 +135,12 @@ def post_journal_entry(
             raise LedgerError(
                 f"الحساب {acc.code} حساب أب (Control) لا يُقبل الترحيل المباشر عليه."
             )
+
+    # 1.5) منع القيود اليدوية (وعكسها) من تعديل عهدة كاشير مرتبطة بوردية POS مفتوحة.
+    #     الشرط: source_type in (MANUAL, REVERSAL). قيود POS_SESSION الأصلية
+    #     (فتح/قفل الوردية) مسموح لها لأنها هي اللي بتدير الحساب أصلًا.
+    if source_type in (JournalSourceType.MANUAL, JournalSourceType.REVERSAL):
+        _ensure_no_open_custody_touch(account_ids)
 
     # 2) كل الفحوصات نجحت — الآن نأخذ رقم المستند ونُنشِئ القيد وأسطره كاملةً.
     if doc_number is None:

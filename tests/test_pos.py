@@ -273,3 +273,101 @@ class TestSessionSummary:
         close_session(session_id=s.id, closing_cash_actual=Decimal("0"))
         _db.session.commit()
         assert current_open_session_for(env["cashier"].id) is None
+
+
+# ---------- 6) منع القيود اليدوية على عهدة كاشير مرتبطة بوردية مفتوحة ----------
+
+class TestCustodyLockedWhileOpen:
+    """
+    عهدة الكاشير (1030-U-XXX) مُدارة عبر open/close_session فقط.
+    أي قيد يدوي أو reversal عليها بيكسر تسوية الوردية عند القفل.
+    """
+
+    def _cash_account(self):
+        return _db.session.query(Account).filter_by(code="1010").one()
+
+    def test_manual_entry_on_open_custody_is_rejected(self, env):
+        from app.models.journal import JournalSourceType
+        from app.services.ledger import (
+            LedgerError, LedgerLineDraft, post_journal_entry,
+        )
+
+        s = open_session(cashier_id=env["cashier"].id, opening_cash=Decimal("100"))
+        _db.session.commit()
+        custody = s.custody_account
+        cash = self._cash_account()
+
+        # محاولة قيد يدوي (MANUAL) على العهدة → يجب أن يُرفض
+        with pytest.raises(LedgerError) as ex:
+            post_journal_entry(
+                entry_date=date.today(),
+                source_type=JournalSourceType.MANUAL,
+                source_id=None,
+                memo="تسوية يدوية غلط",
+                lines=[
+                    LedgerLineDraft(custody.id, debit=Decimal("50"), credit=Decimal("0")),
+                    LedgerLineDraft(cash.id, debit=Decimal("0"), credit=Decimal("50")),
+                ],
+                user_id=env["cashier"].id,
+            )
+        assert "عهدة الكاشير" in str(ex.value)
+        assert s.doc_number in str(ex.value)
+
+    def test_reverse_of_pos_entry_on_open_custody_is_rejected(self, env):
+        from app.models.journal import JournalEntry, JournalSourceType
+        from app.services.ledger import LedgerError, reverse_entry
+
+        s = open_session(cashier_id=env["cashier"].id, opening_cash=Decimal("200"))
+        _db.session.commit()
+
+        # لقّط قيد فتح الوردية (POS_SESSION يمس العهدة)
+        pos_entry = (
+            _db.session.query(JournalEntry)
+            .filter_by(source_type=JournalSourceType.POS_SESSION)
+            .order_by(JournalEntry.id.desc())
+            .first()
+        )
+        assert pos_entry is not None, "قيد فتح الوردية لم يُنشَأ"
+
+        # محاولة عكسه (REVERSAL) والوردية لسه مفتوحة → يُرفض
+        with pytest.raises(LedgerError) as ex:
+            reverse_entry(
+                entry_id=pos_entry.id,
+                reason="محاولة عبث",
+                user_id=env["cashier"].id,
+            )
+        assert "عهدة الكاشير" in str(ex.value)
+
+    def test_manual_entry_after_close_is_allowed(self, env):
+        """بعد قفل الوردية، تصبح تسوية يدوية على حساب العهدة السابق مسموحة."""
+        from app.models.journal import JournalSourceType
+        from app.services.ledger import LedgerLineDraft, post_journal_entry
+
+        s = open_session(cashier_id=env["cashier"].id, opening_cash=Decimal("100"))
+        _db.session.commit()
+        custody = s.custody_account
+        close_session(session_id=s.id, closing_cash_actual=Decimal("100"))
+        _db.session.commit()
+
+        cash = self._cash_account()
+        # لا تُرفع أي استثناء
+        post_journal_entry(
+            entry_date=date.today(),
+            source_type=JournalSourceType.MANUAL,
+            source_id=None,
+            memo="تسوية بعد القفل — مسموح",
+            lines=[
+                LedgerLineDraft(custody.id, debit=Decimal("10"), credit=Decimal("0")),
+                LedgerLineDraft(cash.id, debit=Decimal("0"), credit=Decimal("10")),
+            ],
+            user_id=env["cashier"].id,
+        )
+        _db.session.commit()
+
+    def test_pos_session_open_entry_itself_is_allowed(self, env):
+        """قيد POS_SESSION الأصلي (اللي بيصدر من open_session) مسموح ما بيتفلترش."""
+        # لو مش مسموح، open_session نفسها كانت هترمي — فمجرد نجاحها إثبات كافي.
+        s = open_session(cashier_id=env["cashier"].id, opening_cash=Decimal("300"))
+        _db.session.commit()
+        assert s.status == SessionStatus.OPEN
+        assert s.opening_cash == Decimal("300.000")
