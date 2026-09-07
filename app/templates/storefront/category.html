@@ -125,13 +125,9 @@
               <h1 class="font-display-sm text-display-sm lg:font-display-lg lg:text-display-lg font-bold tracking-tight text-on-primary">
                 {{ category.name_ar }}
               </h1>
-              <p class="font-body-md text-body-md text-on-primary-container leading-relaxed">
-                {% if category.description %}
-                  {{ category.description }}
-                {% else %}
-                  مجموعات السفرة المتكاملة المصنوعة من البورسلين العظمي الفاخر (<span class="text-secondary-fixed">Fine Bone China</span>) والمطعّمة يدوياً بذهب عيار 24 قيراط، مخصصة للقصور والموائد الرفيعة مع ضمان الاستبدال الفوري وشهادة المنشأ الرسمية.
-                {% endif %}
-              </p>
+              {% if category.description %}
+              <p class="font-body-md text-body-md text-on-primary-container leading-relaxed">{{ category.description }}</p>
+              {% endif %}
             </div>
 
             {# Trust badges mini-grid — decorative panel from mockup #}
@@ -153,25 +149,18 @@
             </div>
           </div>
 
-          {# Quick sub-category chips bar (real children if present, else mockup demo chips) #}
+          {# Quick sub-category chips bar — only shown when the category has real children in DB #}
+          {% if category.children %}
           <div class="relative z-10 mt-space-lg pt-space-md border-t border-on-primary/10 flex items-center gap-space-xs overflow-x-auto pb-space-2xs">
             <span class="text-on-primary-container font-label-sm text-label-sm whitespace-nowrap pl-space-xs">تصفح سريع:</span>
-            {% if category.children %}
-              {% for sub in category.children %}
-              <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
-                 class="{% if loop.first %}bg-secondary text-on-secondary shadow-sm{% else %}bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary{% endif %} px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap transition-all">
-                {{ sub.name_ar }}
-              </a>
-              {% endfor %}
-            {% else %}
-              {# Decorative fallback chips from mockup — non-navigating placeholders #}
-              <span class="bg-secondary text-on-secondary shadow-sm px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم 124 قطعة ملكية</span>
-              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم 84 قطعة كلاسيك</span>
-              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">كريستال بوهيمي تشيكي</span>
-              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">صواني ضيافة نحاسية</span>
-              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم شاي وقهوة مذهبة</span>
-            {% endif %}
+            {% for sub in category.children %}
+            <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
+               class="{% if loop.first %}bg-secondary text-on-secondary shadow-sm{% else %}bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary{% endif %} px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap transition-all">
+              {{ sub.name_ar }}
+            </a>
+            {% endfor %}
           </div>
+          {% endif %}
         </div>
       </div>
     </section>
@@ -707,17 +696,11 @@
                     {{ v.display_name }}
                   </a>
 
-                  <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
-                    {% if v.product.description %}
-                      {{ v.product.description }}
-                    {% else %}
-                      خامة فاخرة مع تشطيبات ذهبية معتمدة، مثالية لضيافة الأفراح والمناسبات الملكية.
-                    {% endif %}
-                  </p>
+                  {% if v.product.description %}
+                  <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{{ v.product.description }}</p>
+                  {% endif %}
 
                   <div class="flex items-center gap-space-xs pt-space-2xs flex-wrap">
-                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">ضمان 10 سنوات</span>
-                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">شهادة منشأ</span>
                     {% if v.product.category %}
                     <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">
                       {{ v.product.category.name_ar }}

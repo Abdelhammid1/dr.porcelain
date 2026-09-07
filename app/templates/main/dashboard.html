@@ -21,11 +21,15 @@
   {%- else -%}0{%- endif -%}
 {%- endmacro %}
 
-{# مقياس مخطط الأسبوع — نجد أعلى قيمة للمبيعات لعمل scale ديناميكي #}
-{% set max_sales = 1 %}
+{# مقياس مخطط الأسبوع — نجد أعلى قيمة للمبيعات لعمل scale ديناميكي.
+   ملاحظة: {% set %} داخل {% for %} في Jinja 2 لا يُغيّر المتغير خارج
+   الحلقة إلا عبر namespace() — بدونها كان max_sales يظل = 1 دومًا،
+   فيتحول 205 ألف إلى y = 170 - 30750 = -30580 → الخط يخرج من أعلى SVG. #}
+{% set ns = namespace(max_sales=1) %}
 {% for pt in data.weekly_chart %}
-  {% if pt.sales and pt.sales > max_sales %}{% set max_sales = pt.sales %}{% endif %}
+  {% if pt.sales and pt.sales > ns.max_sales %}{% set ns.max_sales = pt.sales %}{% endif %}
 {% endfor %}
+{% set max_sales = ns.max_sales %}
 
 {% block content %}
 <div class="flex flex-col w-full space-y-space-md">
