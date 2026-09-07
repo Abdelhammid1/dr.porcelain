@@ -31,47 +31,48 @@
     {# ============ Right sidebar (3 cols) — matches mockup exactly ============ #}
     <aside class="lg:col-span-3 space-y-space-md sticky top-32">
 
-      {# Numbered sections navigation #}
-      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-sm">
+      {# Numbered sections navigation — matches mockup: taller rows, prominent circular
+         count badges (always dark navy solid with white bold digit on inactive rows;
+         white solid with cobalt digit on the active row). #}
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-sm space-y-space-2xs">
         {% set current = request.endpoint %}
-        {% for endpoint, icon, label, count_var in [
-          ('storefront.account_home',        'dashboard',   'الرئيسية',                None),
-          ('storefront.account_orders',      'receipt_long','سجل الطلبات والشحنات',    'orders_count'),
-          ('storefront.account_wishlist',    'bookmark',    'المفتنيات المحفوظة',      'wishlist_count'),
-          ('storefront.account_installments','payments',    'خطط التقسيط النشطة',      'installments_count'),
-          ('storefront.account_loyalty',     'stars',       'نقاطي والولاء',            'loyalty_points'),
+        {% for endpoint, icon, label, count_var, badge_num in [
+          ('storefront.account_home',        'dashboard',   'الرئيسية',                None,                 None),
+          ('storefront.account_orders',      'receipt_long','سجل الطلبات والشحنات',    'orders_count',       (orders|length) if orders is defined else 0),
+          ('storefront.account_home',        'location_on','العناوين ومواقع التسليم',   None,                 1),
+          ('storefront.account_wishlist',    'bookmark',    'المفتنيات المحفوظة',      'wishlist_count',     sf_wishlist_count or 0),
+          ('storefront.account_home',        'verified',    'شهادات الضمان والأصالة',   None,                (orders|length) if orders is defined else 0),
+          ('storefront.account_installments','payments',    'خطط التقسيط النشطة',      'installments_count', (active_plans|length) if active_plans is defined else 0),
+          ('storefront.account_loyalty',     'stars',       'نقاطي والولاء',           'loyalty_points',     None),
         ] %}
           {% set is_active = current == endpoint or (endpoint == 'storefront.account_orders' and current == 'storefront.account_order_view') or (endpoint == 'storefront.account_installments' and current == 'storefront.account_installment_view') %}
           <a href="{{ url_for(endpoint) }}"
-             class="flex items-center justify-between p-space-sm rounded-lg font-label-lg text-label-lg transition-colors
-                    {% if is_active %}bg-secondary text-on-secondary font-bold shadow-sm{% else %}text-on-surface hover:bg-surface-container-low{% endif %}">
-            <div class="flex items-center gap-space-xs">
-              <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
+             class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold transition-colors
+                    {% if is_active %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface hover:bg-surface-container-low{% endif %}">
+            <div class="flex items-center gap-space-sm">
+              <span class="material-symbols-outlined text-[22px]">{{ icon }}</span>
               <span>{{ label }}</span>
             </div>
-            {% if count_var == 'orders_count' and orders is defined %}
-              <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-space-2xs rounded-full font-label-sm text-label-sm font-bold {% if is_active %}bg-on-secondary text-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">{{ orders|length }}</span>
-            {% elif count_var == 'wishlist_count' %}
-              <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-space-2xs rounded-full font-label-sm text-label-sm font-bold {% if is_active %}bg-on-secondary text-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">{{ sf_wishlist_count or 0 }}</span>
-            {% elif count_var == 'installments_count' and active_plans is defined %}
-              <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-space-2xs rounded-full font-label-sm text-label-sm font-bold {% if is_active %}bg-on-secondary text-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">{{ active_plans|length }}</span>
+            {% if badge_num is not none %}
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-fiscal-numeric-md text-fiscal-numeric-md font-bold
+                {% if is_active %}bg-on-secondary text-secondary{% else %}bg-primary-container text-on-primary{% endif %}">{{ badge_num }}</span>
             {% endif %}
           </a>
         {% endfor %}
 
-        {# Profile & Security stub — no dedicated route yet, points to home #}
+        {# Profile & Security stub — no dedicated route yet #}
         <a href="{{ url_for('storefront.account_home') }}"
-           class="flex items-center justify-between p-space-sm rounded-lg font-label-lg text-label-lg text-on-surface hover:bg-surface-container-low transition-colors">
-          <div class="flex items-center gap-space-xs">
-            <span class="material-symbols-outlined text-[20px]">verified_user</span>
+           class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold text-on-surface hover:bg-surface-container-low transition-colors">
+          <div class="flex items-center gap-space-sm">
+            <span class="material-symbols-outlined text-[22px]">verified_user</span>
             <span>الملف الشخصي والأمان</span>
           </div>
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_left</span>
+          <span class="material-symbols-outlined text-[18px] text-on-surface-variant">chevron_left</span>
         </a>
 
         <a href="{{ url_for('storefront.account_logout') }}"
-           class="flex items-center gap-space-xs p-space-sm rounded-lg font-label-lg text-label-lg text-error hover:bg-error-container/40 transition-colors border-t border-outline-variant/40 mt-space-2xs pt-space-md">
-          <span class="material-symbols-outlined text-[20px]">logout</span>
+           class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold text-error hover:bg-error-container/40 transition-colors border-t border-outline-variant/40 mt-space-2xs pt-space-md">
+          <span class="material-symbols-outlined text-[22px]">logout</span>
           <span>تسجيل الخروج الآمن</span>
         </a>
       </div>
