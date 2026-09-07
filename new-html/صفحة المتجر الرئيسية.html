@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-secondary-container": "#00476e", "on-error-container": "#93000a", "on-background": "#0b1c30", "primary-fixed-dim": "#bec6e0", "on-surface": "#0b1c30", "on-primary": "#ffffff", "surface-dim": "#cbdbf5", "error": "#ba1a1a", "primary": "#000000", "inverse-primary": "#bec6e0", "surface-container-highest": "#d3e4fe", "tertiary-fixed-dim": "#ffb77d", "secondary": "#006398", "on-secondary": "#ffffff", "surface-tint": "#565e74", "secondary-container": "#5bb8fe", "on-primary-container": "#7c839b", "on-primary-fixed": "#131b2e", "inverse-on-surface": "#eaf1ff", "on-secondary-fixed": "#001d31", "background": "#f8f9ff", "on-secondary-fixed-variant": "#004b73", "surface-variant": "#d3e4fe", "surface-container-high": "#dce9ff", "error-container": "#ffdad6", "on-error": "#ffffff", "tertiary-fixed": "#ffdcc3", "surface-container-low": "#eff4ff", "on-tertiary-container": "#c76c00", "on-tertiary-fixed-variant": "#6e3900", "surface": "#f8f9ff", "inverse-surface": "#213145", "on-primary-fixed-variant": "#3f465c", "on-tertiary": "#ffffff", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#93ccff", "on-surface-variant": "#45464d", "outline": "#76777d", "surface-bright": "#f8f9ff", "secondary-fixed": "#cce5ff", "tertiary-container": "#2f1500", "on-tertiary-fixed": "#2f1500", "tertiary": "#000000", "primary-fixed": "#dae2fd", "surface-container": "#e5eeff", "outline-variant": "#c6c6cd", "primary-container": "#131b2e" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-2xs": "0.25rem", "space-lg": "1.25rem", "sidebar-width-expanded": "280px", "space-md": "1rem", "space-xs": "0.5rem", "space-xl": "1.5rem", "gutter-table": "0.75rem", "space-sm": "0.75rem", "space-2xl": "2rem", "space-3xl": "3rem", "space-3xs": "0.125rem", "header-height": "70px", "sidebar-width-collapsed": "80px" }, fontFamily: { "label-lg": ["IBM Plex Sans"], "body-sm": ["IBM Plex Sans"], "display-sm": ["IBM Plex Sans"], "headline-xl": ["IBM Plex Sans"], "body-lg": ["IBM Plex Sans"], "headline-lg": ["IBM Plex Sans"], "headline-sm": ["IBM Plex Sans"], "display-lg": ["IBM Plex Sans"], "label-sm": ["IBM Plex Sans"], "body-md": ["IBM Plex Sans"], "label-md": ["IBM Plex Sans"], "fiscal-numeric-lg": ["IBM Plex Sans"], "fiscal-numeric-md": ["IBM Plex Sans"] }, fontSize: { "label-lg": ["14px", { lineHeight: "20px", fontWeight: "500" }], "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }], "display-sm": ["28px", { lineHeight: "38px", letterSpacing: "-0.01em", fontWeight: "700" }], "headline-xl": ["24px", { lineHeight: "34px", fontWeight: "600" }], "body-lg": ["16px", { lineHeight: "26px", fontWeight: "400" }], "headline-lg": ["20px", { lineHeight: "28px", fontWeight: "600" }], "headline-sm": ["16px", { lineHeight: "24px", fontWeight: "600" }], "display-lg": ["36px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700" }], "label-sm": ["11px", { lineHeight: "14px", fontWeight: "600" }], "body-md": ["14px", { lineHeight: "22px", fontWeight: "400" }], "label-md": ["12px", { lineHeight: "16px", fontWeight: "500" }], "fiscal-numeric-lg": ["28px", { lineHeight: "32px", letterSpacing: "0", fontWeight: "700" }], "fiscal-numeric-md": ["15px", { lineHeight: "20px", letterSpacing: "0", fontWeight: "600" }] } } } }</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="bg-primary-container text-on-primary py-space-xs px-space-md"><div class="max-w-7xl mx-auto flex items-center justify-between font-label-md text-label-md"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary-container text-[18px]">local_shipping</span><span>شحن مجاني للطلبات أكثر من 3,000 ج.م</span><span class="mx-space-xs opacity-40">|</span><span>استخدم قسيمة: <strong class="text-secondary-container tracking-wider font-label-lg text-label-lg">ROYAL10</strong> لخصم 10%</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-3xs text-secondary-container"><span class="material-symbols-outlined text-[16px]">support_agent</span><span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr">19805</span></div><span class="text-on-primary-container font-label-sm text-label-sm">خدمة عملاء الضيافة الفاخرة</span></div></div></div><div class="h-20 max-w-7xl mx-auto px-space-md flex items-center justify-between gap-space-lg"><div class="flex items-center gap-space-md"><img alt="Luxury minimalist emblem logo for 'dr.porcelain' (دكتور بورسلين) home ceramic and porcelain brand. Modern geometric porcelain teacup or fine china plate silhouette fused with a clean medical/doctor pulse or subtle crest, dark slate navy and warm gold accents, vector logo mark, premium and clean.. Design context: - Primary color: #0f172a
+- Font: ibmPlexSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UWg7S1htqvPTk_twEIGix8g33-GxazeU4kFaFDnxWo0qN56rjxQjfSgOG9WcwXwmuju-xQZfyiZi43nvPuWQenook3zKdsdTE2UoB_0MkAK5bGLsc_-I6o8y4RQ0NZvz4yojOtp0eQtQhmOLVMx1007Qbe5TBZC1H-1_xoWfHoUWaCtZ7QwiMtssJPlUtfdN6C1lB_8dMI3NEnbUnXOxAxTAhrEp54Y5k5_1eAaLJ9VQeZhTyDhvoUt_E"/><div class="flex flex-col"><span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">دكتور بورسلين</span><span class="font-label-sm text-label-sm text-on-surface-variant">عالم المائدة والأواني الملكية</span></div></div><div class="flex-1 max-w-xl"><div class="relative flex items-center"><input class="w-full h-11 pr-space-xl pl-space-3xl rounded-xl bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" placeholder="ابحث بالاسم، عدد القطع، أو المجموعة الفاخرة..." type="text"/><span class="material-symbols-outlined absolute right-space-sm text-on-surface-variant text-[20px]">search</span><div class="absolute left-space-xs flex items-center gap-space-3xs"><span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors">124 قطعة</span><span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors">بوهيمي</span></div></div></div><div class="flex items-center gap-space-md"><a class="relative p-space-xs text-on-surface-variant hover:text-secondary transition-colors" data-path="wishlist" href="#"><span class="material-symbols-outlined text-[24px]">favorite</span><span class="absolute top-1 right-1 bg-secondary text-on-secondary font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">4</span></a><a class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container px-space-sm py-space-xs rounded-xl transition-colors" data-path="cart" href="#"><div class="relative flex items-center"><span class="material-symbols-outlined text-secondary text-[24px]">shopping_bag</span><span class="absolute -top-1 -right-1 bg-error text-on-error font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">2</span></div><div class="flex flex-col text-right"><span class="font-label-sm text-label-sm text-on-surface-variant">السلة (2)</span><span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">5,420 ج.م</span></div></a><div class="flex items-center gap-space-xs pr-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XGEPp-KLRjdWDPOfJGlqvkC0E4HajkYX-Mc5r3fW4qvP2M9OgwRTAOazgHVHfYfmqgUpekzl02eM3oPt3Xt-6awKwlNqn1W3_hKE93OBjm97LqEyScK6VP-FGSu7XwvWTuvV4GdPRSHIOxjzLaRWCfkq9FoyWe3mlEKoUYLtTSjWxMEUm8hLsmQIPy_ZXxOMPcqJVKhAC48GEezTDtm4ohAZ9iwuu_O6JL0wTFeoT2SKLgwTI0VX0fEA"/><div class="hidden lg:flex flex-col"><span class="font-label-md text-label-md text-on-surface">حسابي الملكي</span><span class="font-label-sm text-label-sm text-on-surface-variant">مرحباً د. أحمد</span></div></div></div></div></header><main class="w-full pt-32 bg-surface"><div class="flex flex-col w-full">
+<!-- Top Sovereign Announcement Marquee -->
+<div class="w-full bg-surface-container-high py-space-xs px-space-md flex items-center justify-between overflow-hidden text-on-surface">
+<div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+<div class="flex items-center gap-space-sm font-label-sm text-label-sm">
+<span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm">موسم الأفراح 2025</span>
+<span class="text-on-surface font-label-md text-label-md">خصم فوري يصل إلى 25% على أطقم جهاز العروسة المتكاملة (124 قطعة) مع هدايا ضيافة إضافية</span>
+</div>
+<div class="hidden md:flex items-center gap-space-lg font-label-sm text-label-sm text-on-surface-variant">
+<span class="flex items-center gap-space-3xs"><span class="material-symbols-outlined text-secondary text-[16px]">verified_user</span>معتمد لدى الرقابة الصناعية الألمانية</span>
+<span class="flex items-center gap-space-3xs"><span class="material-symbols-outlined text-secondary text-[16px]">inventory_2</span>تغليف كبس هوائي فاخر مصفح</span>
+</div>
+</div>
+</div>
+<!-- Main Storefront Canvas Grid -->
+<div class="max-w-7xl mx-auto w-full px-space-md py-space-lg">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+<!-- Collapsible Right-Hand Category & Fiscal Ledger Drawer (RTL Primary Sidebar) -->
+<aside class="hidden lg:block lg:col-span-3 space-y-space-lg">
+<!-- Royal Collections Navigator -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">account_tree</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">أقسام القصر الملكي</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded-md">8 فئات</span>
+</div>
+<nav class="space-y-space-2xs">
+<a class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low text-secondary font-label-md text-label-md group hover:bg-surface-container transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">dinner_dining</span>
+<span>أطقم السفرة (124 &amp; 112 ق)</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md bg-surface-container-lowest px-space-xs rounded-md text-secondary">38</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-md text-body-md group transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">coffee</span>
+<span>أطقم الشاي والقهوة الملكية</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">24</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-md text-body-md group transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">wine_bar</span>
+<span>كريستال بوهيمي تشيكي أصلي</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">42</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-md text-body-md group transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">flatware</span>
+<span>أطقم ملاعق وشوك إيطالية مذهبة</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">19</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-md text-body-md group transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">tapas</span>
+<span>صواني وحوامل الضيافة الفاخرة</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">15</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-md text-body-md group transition-all" href="#">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">nature</span>
+<span>تحف وفازات بورسلين عظمي</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant">31</span>
+</a>
+</nav>
+</div>
+<!-- VIP Bridal Advisory Widget -->
+<div class="bg-primary-container text-on-primary p-space-md rounded-xl shadow-md relative overflow-hidden">
+<div class="absolute -left-6 -bottom-6 opacity-10">
+<span class="material-symbols-outlined text-[140px]">diamond</span>
+</div>
+<div class="relative z-10 space-y-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-container text-[20px]">crown</span>
+<span class="font-label-sm text-label-sm text-secondary-container font-bold tracking-wider uppercase">استشارة النخبة المجانية</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-primary">تنسيق وتجهيز مائدة العروس</h4>
+<p class="font-body-sm text-body-sm text-on-primary-container">احجزي موعداً مع خبير المائدة الملكية لاختيار الأطقم المناسبة لعدد الضيوف ومساحة النيش.</p>
+<button class="w-full bg-secondary hover:bg-secondary-container hover:text-on-secondary-container text-on-secondary py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>حجز استشارة هاتفية</span>
+</button>
+</div>
+</div>
+<!-- Authenticity & Bone China Quality Seal -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm space-y-space-sm">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[20px]">award_star</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">معايير دكتور بورسلين</span>
+</div>
+<div class="space-y-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+<span>نسبة نقاء رماد العظام (Bone Ash):</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">48% معتمد</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+<span>عيار الذهب المستخدم:</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">24 قيراط سائل</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+<span>مقاومة غسالة الأطباق:</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">1000 دورة غسيل</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Showcase Stream -->
+<div class="col-span-1 lg:col-span-9 space-y-space-2xl">
+<!-- 1. Hero Sovereign Promotional Banner -->
+<div class="relative bg-primary-container text-on-primary rounded-xl overflow-hidden shadow-xl">
+<div class="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+<div class="md:col-span-7 p-space-xl flex flex-col justify-between relative z-10 space-y-space-md">
+<div class="space-y-space-xs">
+<div class="inline-flex items-center gap-space-2xs bg-surface-container-lowest/15 backdrop-blur-md px-space-sm py-space-3xs rounded-full">
+<span class="material-symbols-outlined text-secondary-container text-[16px]">stars</span>
+<span class="font-label-sm text-label-sm text-secondary-container font-semibold tracking-wide">الإصدار الحصري المحدود لعام 2025</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-primary font-bold leading-tight">
+                  فخامة القصور الملكية<br/><span class="text-secondary-container">على مائدتك اليومية</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-lg leading-relaxed pt-space-2xs">
+                  تشكيلة 2025 الحصرية من أطقم البورسلين العظمي الألماني (Bone China) المذهب بماء الذهب عيار 24 قيراط مع ضمان 10 سنوات ضد بهتان الألوان وتآكل النقوش.
+                </p>
+</div>
+<div class="space-y-space-md pt-space-xs">
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="bg-secondary hover:bg-secondary-container hover:text-on-secondary-container text-on-secondary font-label-lg text-label-lg px-space-lg py-space-sm rounded-lg flex items-center gap-space-xs transition-colors shadow-md">
+<span>تسوق التشكيلة الملكية الآن</span>
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</button>
+<button class="bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary font-label-lg text-label-lg px-space-lg py-space-sm rounded-lg flex items-center gap-space-xs transition-colors backdrop-blur-sm">
+<span>تصفح العروض والخصومات</span>
+<span class="material-symbols-outlined text-[18px]">local_offer</span>
+</button>
+</div>
+<!-- Trust Micro Ledger -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-xs pt-space-sm border-t border-on-primary-container/20">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-secondary-container text-[18px]">local_shipping</span>
+<span class="font-label-sm text-label-sm text-on-primary">شحن مجاني لكافة مصر</span>
+</div>
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-secondary-container text-[18px]">handshake</span>
+<span class="font-label-sm text-label-sm text-on-primary">فحص واستلام باليد</span>
+</div>
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-secondary-container text-[18px]">published_with_changes</span>
+<span class="font-label-sm text-label-sm text-on-primary">استبدال فوري 14 يوماً</span>
+</div>
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-secondary-container text-[18px]">verified</span>
+<span class="font-label-sm text-label-sm text-on-primary">نقاء العظام 48%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="md:col-span-5 relative min-h-[280px] md:min-h-full">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Exquisite ultra-luxurious fine bone china dining set displayed on an opulent marble table with pure 24k gold hand-painted baroque filigree trims, soft studio lighting highlighting the porcelain translucent glow and warm gold reflections, regal palace tableware arrangement in deep navy and warm gold ambient tone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5Opcr7QuQt3uLMaurd4hJ-LfGcX4PLSH7Q3mB9tlDmNnSxWRhSD5gg8zEmymdPW_SC8MekrpZwj5S3lF5yTrUiE-4Ze5Zklu7X86uUAgNtgNw-iKOapISjhQ_6_H0dzEA2ZlWiTnhyah8sHGl43IOxI9OMBlggmANxQyCb6MAZxE92hdc_jIpWoN1jgag6bd2vY5Kj1rZ6_C86JandbiwTSA8Q3TvGGMoPk65n9XrvfVTXJwuTZkB"/>
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container via-transparent to-transparent hidden md:block"></div>
+<div class="absolute top-space-md left-space-md bg-surface-container-lowest text-on-surface px-space-sm py-space-2xs rounded-xl shadow-lg flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-error font-bold tracking-wider">خصم محدود</span>
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold leading-none">-25%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">على الحجز المبكر</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. قسم جديد في المتجر (New Arrivals / Product First) -->
+<section class="space-y-space-md">
+<div class="flex items-end justify-between">
+<div>
+<div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+<span class="material-symbols-outlined text-[16px]">fiber_new</span>
+<span>وصول حديث لمستودعاتنا الملكية</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">جديد في المتجر</h2>
+</div>
+<a class="flex items-center gap-space-3xs text-secondary hover:text-on-secondary-container font-label-md text-label-md group" href="#">
+<span>عرض كل المنتجات الجديدة</span>
+<span class="material-symbols-outlined text-[16px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+</a>
+</div>
+<!-- 4 Cards Grid - Sequence: Image First -> Price Second -> Details Third -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<!-- Image First Container -->
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Victoria Princess 84 piece luxury dining porcelain set with delicate gold filigree and embossed botanical borders, set arranged with plates, soup bowls, and serving platters on clean neutral backdrop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJZawhBg5E1N1rVQz29ZzuFSPdbckiiJVfz-cuvkNL32yZwkPabRi1IYFhAbJeXjwwaCrJCtsm2p4hoXL0Uy7_szB862d6BjDbRNLfbQLcjxABscmzbJz8aTBeclnmCnhNSeAlSQN8zWH4QauzkSQcVyhnvWsO5iEO_YcO2kG4aauiHEus7g6d-ei8yzw9y1lgaXltDkm6UEV0fj-ATGEZNM_raRXDzmrhDHdjc67XM5cgPZ7iclGh"/>
+<span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-16%</span>
+<span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-error font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+<span>متبقي 4 قطع فقط</span>
+</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<!-- Price Second & Product Details Third -->
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<!-- Fiscal Price Header -->
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">18,900</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">22,500 ج.م</span>
+</div>
+<div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">savings</span>
+<span>وفرت 3,600 ج.م</span>
+</div>
+</div>
+<!-- Product Name & Attributes Third -->
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.9</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(18 تقييم)</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم سفرة فيكتوريا برينسيس العظمي (84 ق) مذهب كامل</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">خدمة 12 فرد | مذهب بماء الذهب 24 ق | مقاوم للخدش</p>
+</div>
+<!-- Quick Action CTA -->
+<button class="w-full mt-space-xs bg-surface-container-high hover:bg-secondary hover:text-on-secondary text-on-surface py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+<span>إضافة سريعة للسلة</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Imperial Bohemia gilded porcelain tea and coffee set 24 pieces with classic royal blue and gold pattern, bone china teacup and teapot on decorative table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCgZBbujcai2TfT_RQqT9Bynj_D2T4HRJ9RX9Iugre5VK6-5iftJeNQXDcGllTsRetL9G0rpUi0NqUAjcI1M4QgG9u3voPIJRYxwlVyDtunXo-4RQkN-FvpWp30oY2aQ2WCcPZ-b0G0ivUvV_OkVSCZCC78_K7PlzJSNzliA4w3Zk7uIIZ2ckABc2ACEALVY6KLXxZRAkCLczYv_6MnnPzBfYQ3scXoeaa_8auQwbtQR0vVKdd3CoJ"/>
+<span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-13%</span>
+<span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-on-surface-variant font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>متوفر بالمستودع</span>
+</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">4,850</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">5,600 ج.م</span>
+</div>
+<div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">savings</span>
+<span>وفرت 750 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.8</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(32 تقييم)</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم شاي وقهوة إمبريال بوهيميا مذهب (24 ق)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">6 فناجين قهوة + 6 شاي + براد + سكرية ولبانة</p>
+</div>
+<button class="w-full mt-space-xs bg-surface-container-high hover:bg-secondary hover:text-on-secondary text-on-surface py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+<span>إضافة سريعة للسلة</span>
+</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Louis XVI oval gilded luxury porcelain and antique brass serving hospitality tray with engraved baroque floral filigree patterns and ornate handles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXjuHenXyO9lJifTXCMaEbgq3W3jtAgRMIFlqmAdk_jw-XYV6TQh7uYNqTFqTp2aPT6T2oS--58Ffw0CqLjoeR0cRFStxV_wMzSjRY4KsOYvNJMzaeW2tTR_M_eanD02-BeG8OmEXLGNdny-2Hx2TJ_vVVASwS4Xr9vLKCJ5G03fBfBSMLeXNkqHzx4sxI6NMO9BViZKy4HZey3sLJbfIU6pS2nydsbPdft2Tz9iY821OcsfjYkxf2"/>
+<span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-20%</span>
+<span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-error font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+<span>متبقي قطعتان</span>
+</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">2,150</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">2,700 ج.م</span>
+</div>
+<div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">savings</span>
+<span>وفرت 550 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">5.0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(9 تقييمات)</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">صينية ضيافة لويس السادس عشر بيضاوية مذهبة</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">مقابض نحاسية مصبوبة | قاعدة بورسلين مزجج ملكي</p>
+</div>
+<button class="w-full mt-space-xs bg-surface-container-high hover:bg-secondary hover:text-on-secondary text-on-surface py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+<span>إضافة سريعة للسلة</span>
+</button>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Cozy Gold bohemian porcelain luxury mug set of 6 with textured 24k gold leaf handles, delicate rim and marble gift storage case" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg1i8tHgucjIKIaT-uGCsjG9ceceaxI9GDjAWDBpTkfT9UGBIjtkqAsIIxtUQfJsKooOeF5Esskgo_xhBjws2BBaIjQPlClxbzBqoRF-Dw4mLTpnZiFn2v4TMznCy5jLPFJwNHHcobSM__nCWmVBIdPIR4snJ28uR2PnU985KGTIKTkfb6Lr1xpS4OIxLyG_qK3k0rL1lqBD4vJ8RyeuW3RiKLiB0iOriwGd0TebT6Qmqb9r0XRYxH"/>
+<span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-19%</span>
+<span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-on-surface-variant font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">local_shipping</span>
+<span>شحن غداً</span>
+</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">1,450</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">1,800 ج.م</span>
+</div>
+<div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">savings</span>
+<span>وفرت 350 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.7</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(45 تقييماً)</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم مجات بورسلين بوهيمي كوزي جولد (6 ق)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">سعة 380 مل | عزل حراري مزدوج | يد مذهبة مريحة</p>
+</div>
+<button class="w-full mt-space-xs bg-surface-container-high hover:bg-secondary hover:text-on-secondary text-on-surface py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+<span>إضافة سريعة للسلة</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Promotional Category Showcase Banner Grid -->
+<section class="space-y-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">روائع التشكيلات والتصنيفات</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant">اختر المجموعة المناسبة لمنزلك وضيافتك</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Category 1: كامل العرايس -->
+<div class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Grand bridal luxury table setting with full complete porcelain 124 pieces dining collection, gold chargers, crystal glassware, and candelabra centerpiece" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgl00S_FnnG2_7TdU8EcnigdMFi1FM2JYtf8HYcudbJotRkxQAY1bd2UmcF6C0xPkoqwoZlKGuuEk1dXX7LdgyU37kEPe7iUxiZ2oM3yjxUJ3R2nKdLvHjI3pEC01Hui7q04eL5muGDwwzzlnRBLgegy1WjZ5_cq8Ka1Gq_nLOGJ-D4DPxKqkBCnB5RAdlaVSK4EsMDqxV3imAL0-ICY1CHhcKwoJveaodYsrzx2YTqREJPnl7_UJN"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
+<span class="font-label-sm text-label-sm bg-secondary px-space-xs py-space-3xs rounded-md">الأكثر طلباً للعرايس</span>
+<h3 class="font-headline-lg text-headline-lg font-bold">أطقم السفرة المتكاملة</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container">124 &amp; 112 قطعة تكفي 12 إلى 18 فرداً</p>
+<div class="pt-space-2xs flex items-center gap-space-3xs font-label-md text-label-md text-secondary-container">
+<span>تصفح 38 طقماً</span>
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+</div>
+</div>
+</div>
+<!-- Category 2: الشاي والضيافة -->
+<div class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Exquisite royal English tea party porcelain cups with 24k gold trims and fine bone china teapot on a white linen table with fresh flowers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0SpNvhWAIycQ3nyOXKgGIGr4e_6y37TXa5PAi2-0M8j0u26f4_87rpanDD8M2hsH1szPpnyKxlr7D7DDZjx2SRmTlLHvpAb_P2-9w_AswUqzTjGDWoWnwPdk6gyG_RiT5nRoYHz_kRnIryOz2VoylZik_K3SWbv-T_W4_c-4TPVwyCypP87-rgOV4kXXDLCKU-Wrp1DOyLUwRz_t9z8MiCbn75NtZUCx27JrjlCta3GuDOSYvrLhj"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded-md">ضيافة ملكية</span>
+<h3 class="font-headline-lg text-headline-lg font-bold">الشاي والقهوة والضيافة</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container">أطقم 24 و 32 قطعة بتشطيبات ذهبية</p>
+<div class="pt-space-2xs flex items-center gap-space-3xs font-label-md text-label-md text-secondary-container">
+<span>تصفح 24 طقماً</span>
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+</div>
+</div>
+</div>
+<!-- Category 3: كريستال بوهيمي -->
+<div class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Sparkling handcrafted Czech Bohemian crystal wine glasses and water goblets with intricate cut glass patterns reflecting soft golden lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxfWcRCV5vG72qchWEyRWOfcwzFZ9-TdRceRNXo5PIWcLpamU_I2IVq90BMiXfe47yc_337yCDdWKT9Veh_FdAtVOZX_h0hXQ1u0E0MaWY1XY05bjQ9Ko10vbWHCVXzpU1sa44k9cxOewAu-lekiNnUpHNst_EUzZBNkcxQWKuZqUPs5DIqjoXBcFgWExd9Wsmo4pIJf9SvrVXQ2bAddxnhlmd_EiOD9PQorYJjULAWSJLT91D_9Ze"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded-md">صناعة تشيكية</span>
+<h3 class="font-headline-lg text-headline-lg font-bold">كريستال وبوهيمي أصلي</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container">كؤوس وكاسات رصاص 24% نقي</p>
+<div class="pt-space-2xs flex items-center gap-space-3xs font-label-md text-label-md text-secondary-container">
+<span>تصفح 42 مجموعة</span>
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+</div>
+</div>
+</div>
+<!-- Category 4: أدوات المائدة المذهبة -->
+<div class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="High end luxury Italian cutlery set gold electroplated heavy gauge flatware presented neatly in an open dark walnut wooden presentation chest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGSTVDYdKx0g1tssWQxyhesx7XeFG7ZjYulFNdbNaspD23WHt0IORY5PbcLhrW2Wuk0_zMPLO9PIp-n4fnOKxe9dTfvLQvcimQM4lyjCkt4ya02PoQvDtqcI-zmmwBx6lC0-ileFfEYaS89xf0weQCz9nwEVnublgmlvpnc8yMQVZMlBVHTsdPs7I47Myi9DUJoqP8_zXDvbI4r8c2hAo3bi8mLWE7DAZOH1b7LLlvaSEtB4N3tNkT"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded-md">ستانلس 18/10</span>
+<h3 class="font-headline-lg text-headline-lg font-bold">ملاعق وشوك إيطالية</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container">حقائب خشبية مذهبة فاخرة 84 و 120 ق</p>
+<div class="pt-space-2xs flex items-center gap-space-3xs font-label-md text-label-md text-secondary-container">
+<span>تصفح 19 طقماً</span>
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. قسم الأكثر مبيعاً والمميزة (Best Sellers & Featured) -->
+<section class="space-y-space-md">
+<div class="flex items-center justify-between border-b border-surface-container pb-space-sm">
+<div class="space-y-space-3xs">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+<span class="font-label-md text-label-md font-bold">خيارات الصفوة ونخبة العملاء</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأكثر مبيعاً لعام 2025</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm px-space-sm py-space-3xs rounded-full">تحديث فوري للمخزون</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Best Seller 1 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Royal Imperial 124 piece gold gilded fine bone china dining set top seller 2025 with complete soup tureen large platters and matching tea elements on navy velvet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZkvX5SePZyvrGSKbd6R7vyjTmzCH4pFa44ms5tu_nACG7o0_FL685aER8ktMg0_7uKZ8V9ntRTY2nm7pKhVoyeRrpcY1iddeg1gQHydKcroF9bdfALKmBRXWWGmjXn4CSRZaZRUxM9Y2j2T9BmMGpU3qdZF2NNnKGRkjjkAvK6-WCmYCXgihRlf1y19Zjj61tBr1VZjPyxm6K3fElqAmBa1Hj-APIvT_MHe1sjl-SaIAM8Jcovafg"/>
+<span class="absolute top-space-xs right-space-xs bg-secondary text-on-secondary font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">الأكثر مبيعاً 2025</span>
+<span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-25%</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">28,500</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">38,000 ج.م</span>
+</div>
+<div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">price_check</span>
+<span>وفرت 9,500 ج.م كاش</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.95</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(112 مقتني)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">مُوثق</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم سفرة رويال إمبراطوري مذهب (124 ق)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">شامل حلة الشوربة + الشيالة + أطباق الفاكهة والتورتة</p>
+</div>
+<div class="space-y-space-2xs pt-space-xs">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+<span>أضف لسلة الشراء</span>
+</button>
+<button class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant py-space-3xs rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-space-3xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+<span>أضف للمقارنة الفنية</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Best Seller 2 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Doctor Porcelain Royal Crown cutlery set 84 pieces in luxury dark polished mahogany wooden briefcase with velvet interior and golden clasp" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0DRuwXFJVJ-bmNckBN6h4NTMixPT1omIAHaA7bg2YRHZJp8hMTZj-v5EUbdaE7Q4eQCmHYp25uCY29A1aSFWy0Rd3BMv_RQSCdpIhDvayoYWeRq2UIPMIR7H5dc1Yf2qaHXub6Lwx0YCZxM9FqTXqAmI6RXQdTIiE-xt59zWWH8fgyBpizKESAY3cgQHBi_x53jWdSF4oQ6XulnNXTx0yRyrRbxYQSofzUb0x092zmpIGmRPJit3-"/>
+<span class="absolute top-space-xs right-space-xs bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">حقيبة خشبية</span>
+<span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-19%</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">7,800</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">9,600 ج.م</span>
+</div>
+<div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">price_check</span>
+<span>وفرت 1,800 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.88</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(64 مقتني)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">مُوثق</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم ملاعق وشوك رويال كراون (84 ق)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">مذهب بالكامل عيار 24 في شنطة خشبية قطيفة فاخرة</p>
+</div>
+<div class="space-y-space-2xs pt-space-xs">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+<span>أضف لسلة الشراء</span>
+</button>
+<button class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant py-space-3xs rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-space-3xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+<span>أضف للمقارنة الفنية</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Best Seller 3 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="English royal Ludwig tea and coffee set 32 pieces in fine bone china with rich cobalt blue and intricate gold leaf inlays on white porcelain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5JNPmZeOS9Y6bJ85TBKmx4herR95BprXbAARXWn1xwx-qymzavz-gGvHzgqe6nDLFB3AN2JlWwz2xhCfSKXAmKNzOTQGXs6QEKmk1CU2aOJjW3qCcwkMQz4xSZiZlN5UpypZCL3IPbwjIKXa3Om1sD8eBS2LLK6adGLcwUp2ZnM1xQx_8T9UspW8BZLfoOzo8Q6LMbNbqCV_OXzNcKE1vumSOzpfuIe0_kwK_fwZCIiZSGi7EbQKA"/>
+<span class="absolute top-space-xs right-space-xs bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">لودفيغ الأصلي</span>
+<span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-19%</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">6,400</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">7,900 ج.م</span>
+</div>
+<div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">price_check</span>
+<span>وفرت 1,500 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.92</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(51 مقتني)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">مُوثق</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">طقم شاي وقهوة ملكي إنجليزي لودفيغ (32 ق)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">مكتمل مع شيالة الكحك والبسكويت ذات الدورين</p>
+</div>
+<div class="space-y-space-2xs pt-space-xs">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+<span>أضف لسلة الشراء</span>
+</button>
+<button class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant py-space-3xs rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-space-3xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+<span>أضف للمقارنة الفنية</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Best Seller 4 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="relative aspect-square w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Vienna Royal porcelain decorative vase 45cm height hand painted with classical romantic pastoral scene, rich gold gilded handles and fluted base" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCREAlH5DBPQNtDpxLYD8WKxxpJaQntD52mqkwdUX4CzopixEldkc14Qli1ZjH-JtaV8QZkDDM5VPYwEzRMBMJkivaLmHtSHBb7TVVXTJMvSbWY3licm4Ay83tUKXmSJanfRecQdEuyDdvEAJxEtUZy2S3Q2XIDIOrzhh0BVrfIHqhzOhwe9wswCKcdEBu0GXuD7kFJmvnbGqJHSqWgIKl_mkMF79Z6OVyHnUQKv9vtuay5jywOrVp4"/>
+<span class="absolute top-space-xs right-space-xs bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">رسم يدوي</span>
+<span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">-22%</span>
+<button class="absolute top-space-xs left-space-xs w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm" title="أضف للمفضلة">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+<div class="space-y-space-3xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">3,200</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">4,100 ج.م</span>
+</div>
+<div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">price_check</span>
+<span>وفرت 900 ج.م</span>
+</div>
+</div>
+<div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">4.96</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(28 مقتني)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">مُوثق</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2">فازة بورسلين عظمي فيينا رويال (ارتفاع 45 سم)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">مرسومة يدوياً بالريشة | توقيع الفنان في القاعدة</p>
+</div>
+<div class="space-y-space-2xs pt-space-xs">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+<span>أضف لسلة الشراء</span>
+</button>
+<button class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant py-space-3xs rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-space-3xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+<span>أضف للمقارنة الفنية</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. قسم شوهد مؤخراً (Recently Viewed Sessions) -->
+<section class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm space-y-space-sm" id="recently-viewed-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">history</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">منتجات شاهدتها مؤخراً في جلستك</h2>
+</div>
+<button class="text-on-surface-variant hover:text-error font-label-sm text-label-sm flex items-center gap-space-3xs transition-colors" id="clear-history-btn">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+<span>مسح السجل</span>
+</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-sm" id="history-items-grid">
+<!-- Recents 1 -->
+<div class="bg-surface-container-low p-space-xs rounded-lg flex items-center gap-space-xs group hover:bg-surface-container transition-colors">
+<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Royal Imperial 124 piece gold gilded fine bone china dining set thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwfMXvVfYz8jkx6IgWpJsd5cN7TDcg6YBMhk750S29XenFT_NqA7sySo8GOT77QU_4PTOOgr8MXE0x8IFul4oZFB4ab_yFTeg7CYiYwi5Hyqz01-9x9gMt_jjJTB-brBP0dB_oNI3E3wJnjqzHO20vHtv6fAb9kw5mQla2gqfeRETvynh2u9vao2FamZ5gI5e0ErFic7HouF0hrLx3-bhwiYchQbr2sqmXDtWKXm-OB_YrLNGjv86i"/>
+</div>
+<div class="min-w-0 flex-1">
+<h4 class="font-label-md text-label-md text-on-surface truncate">طقم سفرة رويال إمبراطوري (124 ق)</h4>
+<div class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">28,500 ج.م</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تم الاستعراض منذ 5 دقائق</span>
+</div>
+</div>
+<!-- Recents 2 -->
+<div class="bg-surface-container-low p-space-xs rounded-lg flex items-center gap-space-xs group hover:bg-surface-container transition-colors">
+<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Deep porcelain serving bowl with gilded scalloped rim and soft blue motif" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDThzeE0mQfGXr7adwtMc3EcMaaySvpYcxQGpXH6X_4axjecBNqdzisQyXniF3lsb3v0mEv9T-b2w1UDce1l7ls2iEFhNQCJAmn3udeFRBYmnfQOUnun9FpmDXMOiA1j659byUaoyxUl0TsSbRrUq0GIEqNjuWJvJXLqyG_QcTDUy5xaz7u8uz9zB2yjy4QZh_nAuv2DeAqDY62CBRB0vwyEz8Py5CROrINvTQYG6cIkQEEtQUuNspo"/>
+</div>
+<div class="min-w-0 flex-1">
+<h4 class="font-label-md text-label-md text-on-surface truncate">سلطانية تقديم عميقة بورسلين</h4>
+<div class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">890 ج.م</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تم الاستعراض منذ 12 دقيقة</span>
+</div>
+</div>
+<!-- Recents 3 -->
+<div class="bg-surface-container-low p-space-xs rounded-lg flex items-center gap-space-xs group hover:bg-surface-container transition-colors">
+<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="English bone china classic teapot with gold handle and lid finial" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-JTa4QYb9KUBpeLQi9G6RXgsYt3OhH6oSehpsESB5KdVTGyksZQ5puuNLwDBZWSyNGp5ovmM2uAS-qLDiQXVMn04c7zgLHoyV4COXTlDFpmxDCpcAmlQWrKhWncr7TDhI-C_Yc2RxLclXObzFbZ5ZwgkcgF8j5sIWpkRwMgmmOf1lz6GG31-H171LWwoRfEnU9KE39rJfXmOZmcGdJ4AkGJrVf7jflT6aMcjo-bAmet8ocbUoIYI-"/>
+</div>
+<div class="min-w-0 flex-1">
+<h4 class="font-label-md text-label-md text-on-surface truncate">براد شاي إنجليزي لودفيغ</h4>
+<div class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">1,650 ج.م</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تم الاستعراض منذ 20 دقيقة</span>
+</div>
+</div>
+<!-- Recents 4 -->
+<div class="bg-surface-container-low p-space-xs rounded-lg flex items-center gap-space-xs group hover:bg-surface-container transition-colors">
+<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Bohemian fine porcelain espresso cup and saucer with gold leaf pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJlNidmrwMiNHFmOG4z5vdPy4BIZa8gbVY5RjiZHuFQjlMEtkG4JpiASUig7WlWub_SpDVvHBw9irCWaUyZZ7HIF06iQczZAbVPqO0_I7OaOFQ4q9_aw-s94dbRNiI0TrNbHO4HzaEpfBgBktDsL7EiR7e_h1G984pYZJxPzyADjNHNphWOXUlxYfRgykunNTE3Unvw8u2UaCf8jNkfCCaL_Zd2jf9VpFYZNCuXx2y4-cA-KwPiMXM"/>
+</div>
+<div class="min-w-0 flex-1">
+<h4 class="font-label-md text-label-md text-on-surface truncate">فنجان قهوة بوهيمي مذهب</h4>
+<div class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">340 ج.م</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تم الاستعراض منذ 35 دقيقة</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+    // Micro-interaction for clearing recently viewed history
+    const clearBtn = document.getElementById('clear-history-btn');
+    const historyContainer = document.getElementById('history-items-grid');
+    if (clearBtn && historyContainer) {
+      clearBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        historyContainer.innerHTML = '<div class="col-span-full py-space-sm text-center text-on-surface-variant font-label-md text-label-md bg-surface-container-low rounded-lg">تم مسح سجل المشاهدة المؤقت لهذه الجلسة بنجاح.</div>';
+        clearBtn.style.display = 'none';
+      });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-low text-on-surface mt-space-3xl"><div class="max-w-7xl mx-auto px-space-md pt-space-3xl pb-space-xl"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-2xl mb-space-2xl"><div class="lg:col-span-2 space-y-space-md"><div class="flex items-center gap-space-sm"><img alt="Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UWg7S1htqvPTk_twEIGix8g33-GxazeU4kFaFDnxWo0qN56rjxQjfSgOG9WcwXwmuju-xQZfyiZi43nvPuWQenook3zKdsdTE2UoB_0MkAK5bGLsc_-I6o8y4RQ0NZvz4yojOtp0eQtQhmOLVMx1007Qbe5TBZC1H-1_xoWfHoUWaCtZ7QwiMtssJPlUtfdN6C1lB_8dMI3NEnbUnXOxAxTAhrEp54Y5k5_1eAaLJ9VQeZhTyDhvoUt_E"/><span class="font-headline-lg text-headline-lg text-on-surface font-bold">دكتور بورسلين</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">الوجهة الأولى والأعرق في مصر لأطقم المائدة والبورسلين الفاخر والكريستال البوهيمي المعتمد. فخامة وأناقة تليق بقصور ومنازل النخبة.</p><div class="flex items-center gap-space-md font-label-md text-label-md text-on-surface"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary">verified</span><span>ضمان أصالة المنتجات 100%</span></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary">security</span><span>شحن مؤمن ضد الكسر</span></div></div></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">مجموعات البورسلين</h4><ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant"><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">أطقم سفرة كاملة (124 ق)</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">أطقم شاي وقهوة بريميوم</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">صواني وأواني الضيافة النحاسية</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">كؤوس وكاسات بوهيمي تشيكي</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">تحف وديكورات مائدة</a></li></ul></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">خدمة العملاء والضمان</h4><ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant"><li><a class="hover:text-on-surface transition-colors" data-path="warranty-information" href="#">شهادة الضمان والاستبدال</a></li><li><a class="hover:text-on-surface transition-colors" data-path="shipping-policy" href="#">سياسة الشحن والتسليم الملكي</a></li><li><a class="hover:text-on-surface transition-colors" data-path="order-tracking" href="#">تتبع حالة الطلب والتغليف</a></li><li><a class="hover:text-on-surface transition-colors" data-path="store-locator" href="#">معارض وصالات العرض</a></li><li><a class="hover:text-on-surface transition-colors" data-path="frequently-asked-questions" href="#">الأسئلة المتكررة للعناية</a></li></ul></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">بيانات الشركة الرسمية</h4><div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant"><p><span class="font-label-md text-label-md text-on-surface">الخط الساخن المباشر:</span> <span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr text-secondary font-bold">19805</span></p><p><span class="font-label-md text-label-md text-on-surface">السجل التجاري:</span> 489211 - القاهرة</p><p><span class="font-label-md text-label-md text-on-surface">البطاقة الضريبية:</span> 632-194-081</p><p><span class="font-label-md text-label-md text-on-surface">ساعات العمل:</span> يومياً من 10 ص إلى 11 م</p></div></div></div><div class="pt-space-xl bg-surface-container-low flex flex-col md:flex-row items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant"><p>© 2025 دكتور بورسلين (dr.porcelain) للأدوات المنزلية والتحف الفاخرة. جميع الحقوق محفوظة.</p><div class="flex items-center gap-space-sm font-label-sm text-label-sm"><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">دفع عند الاستلام</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">Visa / MasterCard</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ValU / تقسيط</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ميزة Meeza</span></div></div></div></footer></body></html>

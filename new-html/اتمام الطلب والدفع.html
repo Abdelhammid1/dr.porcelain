@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-secondary-container": "#00476e", "on-error-container": "#93000a", "on-background": "#0b1c30", "primary-fixed-dim": "#bec6e0", "on-surface": "#0b1c30", "on-primary": "#ffffff", "surface-dim": "#cbdbf5", "error": "#ba1a1a", "primary": "#000000", "inverse-primary": "#bec6e0", "surface-container-highest": "#d3e4fe", "tertiary-fixed-dim": "#ffb77d", "secondary": "#006398", "on-secondary": "#ffffff", "surface-tint": "#565e74", "secondary-container": "#5bb8fe", "on-primary-container": "#7c839b", "on-primary-fixed": "#131b2e", "inverse-on-surface": "#eaf1ff", "on-secondary-fixed": "#001d31", "background": "#f8f9ff", "on-secondary-fixed-variant": "#004b73", "surface-variant": "#d3e4fe", "surface-container-high": "#dce9ff", "error-container": "#ffdad6", "on-error": "#ffffff", "tertiary-fixed": "#ffdcc3", "surface-container-low": "#eff4ff", "on-tertiary-container": "#c76c00", "on-tertiary-fixed-variant": "#6e3900", "surface": "#f8f9ff", "inverse-surface": "#213145", "on-primary-fixed-variant": "#3f465c", "on-tertiary": "#ffffff", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#93ccff", "on-surface-variant": "#45464d", "outline": "#76777d", "surface-bright": "#f8f9ff", "secondary-fixed": "#cce5ff", "tertiary-container": "#2f1500", "on-tertiary-fixed": "#2f1500", "tertiary": "#000000", "primary-fixed": "#dae2fd", "surface-container": "#e5eeff", "outline-variant": "#c6c6cd", "primary-container": "#131b2e" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-2xs": "0.25rem", "space-lg": "1.25rem", "sidebar-width-expanded": "280px", "space-md": "1rem", "space-xs": "0.5rem", "space-xl": "1.5rem", "gutter-table": "0.75rem", "space-sm": "0.75rem", "space-2xl": "2rem", "space-3xl": "3rem", "space-3xs": "0.125rem", "header-height": "70px", "sidebar-width-collapsed": "80px" }, fontFamily: { "label-lg": ["IBM Plex Sans"], "body-sm": ["IBM Plex Sans"], "display-sm": ["IBM Plex Sans"], "headline-xl": ["IBM Plex Sans"], "body-lg": ["IBM Plex Sans"], "headline-lg": ["IBM Plex Sans"], "headline-sm": ["IBM Plex Sans"], "display-lg": ["IBM Plex Sans"], "label-sm": ["IBM Plex Sans"], "body-md": ["IBM Plex Sans"], "label-md": ["IBM Plex Sans"], "fiscal-numeric-lg": ["IBM Plex Sans"], "fiscal-numeric-md": ["IBM Plex Sans"] }, fontSize: { "label-lg": ["14px", { lineHeight: "20px", fontWeight: "500" }], "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }], "display-sm": ["28px", { lineHeight: "38px", letterSpacing: "-0.01em", fontWeight: "700" }], "headline-xl": ["24px", { lineHeight: "34px", fontWeight: "600" }], "body-lg": ["16px", { lineHeight: "26px", fontWeight: "400" }], "headline-lg": ["20px", { lineHeight: "28px", fontWeight: "600" }], "headline-sm": ["16px", { lineHeight: "24px", fontWeight: "600" }], "display-lg": ["36px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700" }], "label-sm": ["11px", { lineHeight: "14px", fontWeight: "600" }], "body-md": ["14px", { lineHeight: "22px", fontWeight: "400" }], "label-md": ["12px", { lineHeight: "16px", fontWeight: "500" }], "fiscal-numeric-lg": ["28px", { lineHeight: "32px", letterSpacing: "0", fontWeight: "700" }], "fiscal-numeric-md": ["15px", { lineHeight: "20px", letterSpacing: "0", fontWeight: "600" }] } } } }</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="bg-primary-container text-on-primary py-space-xs px-space-md"><div class="max-w-7xl mx-auto flex items-center justify-between font-label-md text-label-md"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary-container text-[18px]">local_shipping</span><span>شحن مجاني للطلبات أكثر من 3,000 ج.م</span><span class="mx-space-xs opacity-40">|</span><span>استخدم قسيمة: <strong class="text-secondary-container tracking-wider font-label-lg text-label-lg">ROYAL10</strong> لخصم 10%</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-3xs text-secondary-container"><span class="material-symbols-outlined text-[16px]">support_agent</span><span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr">19805</span></div><span class="text-on-primary-container font-label-sm text-label-sm">خدمة عملاء الضيافة الفاخرة</span></div></div></div><div class="h-20 max-w-7xl mx-auto px-space-md flex items-center justify-between gap-space-lg"><div class="flex items-center gap-space-md"><img alt="Luxury minimalist emblem logo for 'dr.porcelain' (دكتور بورسلين) home ceramic and porcelain brand. Modern geometric porcelain teacup or fine china plate silhouette fused with a clean medical/doctor pulse or subtle crest, dark slate navy and warm gold accents, vector logo mark, premium and clean.. Design context: - Primary color: #0f172a
+- Font: ibmPlexSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UWg7S1htqvPTk_twEIGix8g33-GxazeU4kFaFDnxWo0qN56rjxQjfSgOG9WcwXwmuju-xQZfyiZi43nvPuWQenook3zKdsdTE2UoB_0MkAK5bGLsc_-I6o8y4RQ0NZvz4yojOtp0eQtQhmOLVMx1007Qbe5TBZC1H-1_xoWfHoUWaCtZ7QwiMtssJPlUtfdN6C1lB_8dMI3NEnbUnXOxAxTAhrEp54Y5k5_1eAaLJ9VQeZhTyDhvoUt_E"/><div class="flex flex-col"><span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">دكتور بورسلين</span><span class="font-label-sm text-label-sm text-on-surface-variant">عالم المائدة والأواني الملكية</span></div></div><div class="flex-1 max-w-xl"><div class="relative flex items-center"><input class="w-full h-11 pr-space-xl pl-space-3xl rounded-xl bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" placeholder="ابحث بالاسم، عدد القطع، أو المجموعة الفاخرة..." type="text"/><span class="material-symbols-outlined absolute right-space-sm text-on-surface-variant text-[20px]">search</span><div class="absolute left-space-xs flex items-center gap-space-3xs"><span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors">124 قطعة</span><span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors">بوهيمي</span></div></div></div><div class="flex items-center gap-space-md"><a class="relative p-space-xs text-on-surface-variant hover:text-secondary transition-colors" data-path="wishlist" href="#"><span class="material-symbols-outlined text-[24px]">favorite</span><span class="absolute top-1 right-1 bg-secondary text-on-secondary font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">4</span></a><a class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container px-space-sm py-space-xs rounded-xl transition-colors" data-path="cart" href="#"><div class="relative flex items-center"><span class="material-symbols-outlined text-secondary text-[24px]">shopping_bag</span><span class="absolute -top-1 -right-1 bg-error text-on-error font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">2</span></div><div class="flex flex-col text-right"><span class="font-label-sm text-label-sm text-on-surface-variant">السلة (2)</span><span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">5,420 ج.م</span></div></a><div class="flex items-center gap-space-xs pr-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XGEPp-KLRjdWDPOfJGlqvkC0E4HajkYX-Mc5r3fW4qvP2M9OgwRTAOazgHVHfYfmqgUpekzl02eM3oPt3Xt-6awKwlNqn1W3_hKE93OBjm97LqEyScK6VP-FGSu7XwvWTuvV4GdPRSHIOxjzLaRWCfkq9FoyWe3mlEKoUYLtTSjWxMEUm8hLsmQIPy_ZXxOMPcqJVKhAC48GEezTDtm4ohAZ9iwuu_O6JL0wTFeoT2SKLgwTI0VX0fEA"/><div class="hidden lg:flex flex-col"><span class="font-label-md text-label-md text-on-surface">حسابي الملكي</span><span class="font-label-sm text-label-sm text-on-surface-variant">مرحباً د. أحمد</span></div></div></div></div></header><main class="w-full pt-32 bg-surface"><div class="flex flex-col w-full">
+<!-- Interactive & State Orchestration Script -->
+<script>
+    function toggleCheckoutMode(mode) {
+      const guestTab = document.getElementById('tab-guest');
+      const memberTab = document.getElementById('tab-member');
+      const memberNotice = document.getElementById('member-loyalty-banner');
+      const memberLoginFields = document.getElementById('member-auth-box');
+
+      if (mode === 'guest') {
+        guestTab.className = 'flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 bg-surface-container-lowest text-on-surface shadow-sm text-center flex items-center justify-center gap-space-xs';
+        memberTab.className = 'flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface text-center flex items-center justify-center gap-space-xs';
+        memberNotice.classList.add('hidden');
+        memberLoginFields.classList.add('hidden');
+      } else {
+        memberTab.className = 'flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 bg-surface-container-lowest text-on-surface shadow-sm text-center flex items-center justify-center gap-space-xs';
+        guestTab.className = 'flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface text-center flex items-center justify-center gap-space-xs';
+        memberNotice.classList.remove('hidden');
+        memberLoginFields.classList.remove('hidden');
+      }
+    }
+
+    function selectPayment(type) {
+      ['cod', 'instapay', 'card', 'installments'].forEach(t => {
+        const cardEl = document.getElementById('pay-method-' + t);
+        const radioIndicator = document.getElementById('radio-' + t);
+        const detailsEl = document.getElementById('details-' + t);
+
+        if (t === type) {
+          cardEl.className = 'p-space-lg rounded-2xl bg-surface-container-low shadow-sm transition-all cursor-pointer relative';
+          radioIndicator.innerHTML = '<span class="w-3 h-3 rounded-full bg-secondary"></span>';
+          if (detailsEl) detailsEl.classList.remove('hidden');
+        } else {
+          cardEl.className = 'p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all cursor-pointer relative';
+          radioIndicator.innerHTML = '<span class="w-3 h-3 rounded-full bg-transparent"></span>';
+          if (detailsEl) detailsEl.classList.add('hidden');
+        }
+      });
+    }
+
+    function handleReceiptUpload(input) {
+      const label = document.getElementById('receipt-upload-label');
+      if (input.files && input.files[0]) {
+        label.innerText = 'تم إرفاق: ' + input.files[0].name;
+        label.classList.add('text-secondary', 'font-bold');
+      }
+    }
+  </script>
+<!-- Checkout Stepper Progress Ribbon -->
+<section class="w-full bg-surface-container-low py-space-lg mb-space-2xl">
+<div class="max-w-7xl mx-auto px-space-md">
+<div class="flex items-center justify-between gap-space-sm overflow-x-auto pb-space-xs">
+<!-- Step 1: Completed -->
+<div class="flex items-center gap-space-xs min-w-max">
+<div class="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-on-secondary shadow-sm">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary font-bold">المرحلة الأولى</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">سلة المقتنيات (3 قطع)</span>
+</div>
+</div>
+<div class="flex-1 h-1 bg-secondary rounded-full mx-space-sm opacity-80 min-w-[32px]"></div>
+<!-- Step 2: Active Current -->
+<div class="flex items-center gap-space-xs min-w-max">
+<div class="w-9 h-9 rounded-full bg-primary-container text-secondary-container flex items-center justify-center font-headline-sm text-headline-sm shadow-md ring-4 ring-surface-container-highest">
+            2
+          </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary font-bold">المرحلة الحالية</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">الشحن ومعاينة الدفع</span>
+</div>
+</div>
+<div class="flex-1 h-1 bg-surface-container-highest rounded-full mx-space-sm min-w-[32px]"></div>
+<!-- Step 3: Upcoming Confirmation -->
+<div class="flex items-center gap-space-xs min-w-max opacity-60">
+<div class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-headline-sm text-headline-sm">
+            3
+          </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">الخطوة القادمة</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">إصدار بوليصة الحجز</span>
+</div>
+</div>
+<div class="flex-1 h-1 bg-surface-container-highest rounded-full mx-space-sm min-w-[32px]"></div>
+<!-- Step 4: Final Receipt -->
+<div class="flex items-center gap-space-xs min-w-max opacity-40">
+<div class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-headline-sm text-headline-sm">
+            4
+          </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">التسليم الفعلي</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">استلام وفحص الطقم</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Checkout Grid Experience -->
+<div class="max-w-7xl mx-auto px-space-md w-full mb-space-3xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-2xl items-start">
+<!-- Primary Action Column (Forms & Methods) -->
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-space-2xl">
+<!-- Account Switcher Pill -->
+<div class="bg-surface-container-low p-space-2xs rounded-2xl flex items-center gap-space-xs shadow-sm">
+<button class="flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 bg-surface-container-lowest text-on-surface shadow-sm text-center flex items-center justify-center gap-space-xs" id="tab-guest" onclick="toggleCheckoutMode('guest')" type="button">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>إتمام سريع كـ ضيف VIP</span>
+</button>
+<button class="flex-1 py-space-sm px-space-md rounded-xl font-headline-sm text-headline-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface text-center flex items-center justify-center gap-space-xs" id="tab-member" onclick="toggleCheckoutMode('member')" type="button">
+<span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+<span>تسجيل دخول العميل الدائم</span>
+<span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">+380 نقطة</span>
+</button>
+</div>
+<!-- Loyalty Bonus Banner (Visible on Member Tab) -->
+<div class="hidden p-space-md rounded-2xl bg-primary-container text-on-primary shadow-md flex items-center justify-between gap-space-md" id="member-loyalty-banner">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary-container text-[28px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-secondary-container">مكافأة النادي الملكي لدكتور بورسلين</span>
+<span class="font-body-sm text-body-sm text-on-primary-container">بتسجيل الدخول، سيتم إضافة 380 نقطة ذهبية تعادل خصماً بقيمة 760 ج.م على طلبك القادم.</span>
+</div>
+</div>
+<a class="px-space-md py-space-xs bg-secondary text-on-secondary rounded-xl font-label-md text-label-md hover:bg-secondary/90 transition-colors whitespace-nowrap shadow-sm" href="#">
+            دخول فوري
+          </a>
+</div>
+<!-- Quick Member Login Drawer -->
+<div class="hidden p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md" id="member-auth-box">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">بيانات العضوية المسجلة</span>
+<span class="font-label-sm text-label-sm text-secondary cursor-pointer hover:underline">نسيت كلمة المرور؟</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-space-3xs">البريد الإلكتروني أو رقم الهاتف</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" type="text" value="ahmed.shafik@royalclient.eg"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-space-3xs">كلمة المرور الملكية</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" type="password" value="••••••••••••"/>
+</div>
+</div>
+</div>
+<!-- Section 1: Shipping & Delivery Details -->
+<div class="p-space-xl rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="w-9 h-9 rounded-xl bg-surface-container-high text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">pin_drop</span>
+</span>
+<div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">1. عنوان التسليم والشحن المصفح</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">تسليم ملكي آمن حتى باب الصالون مع فريق فحص فني متخصص للأطقم الزجاجية والبورسلين.</p>
+</div>
+</div>
+<span class="bg-surface-container-high text-secondary font-label-sm text-label-sm px-space-sm py-space-3xs rounded-full flex items-center gap-space-3xs">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+              توصيل مضمون
+            </span>
+</div>
+<!-- Customer Identity Form -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Full Name -->
+<div class="md:col-span-2">
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                الاسم بالكامل (الاسم الثلاثي أو اللقب) <span class="text-error">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-12 pr-space-xl pl-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" placeholder="مثال: المستشار أحمد نبيل المنشاوي" type="text"/>
+<span class="material-symbols-outlined absolute right-space-sm top-3 text-on-surface-variant text-[20px]">person</span>
+</div>
+</div>
+<!-- Primary Phone -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                رقم الهاتف الأساسي (تواصل واتساب) <span class="text-error">*</span>
+</label>
+<div class="relative flex items-center">
+<input class="w-full h-12 pr-space-xl pl-16 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md text-left focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" dir="ltr" placeholder="010 1234 5678" type="tel"/>
+<span class="material-symbols-outlined absolute right-space-sm top-3 text-on-surface-variant text-[20px]">smartphone</span>
+<span class="absolute left-space-xs px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md">20+</span>
+</div>
+</div>
+<!-- Secondary Phone -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                رقم هاتف بديل إضافي (اختياري)
+              </label>
+<div class="relative flex items-center">
+<input class="w-full h-12 pr-space-xl pl-16 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md text-left focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" dir="ltr" placeholder="011 9876 5432" type="tel"/>
+<span class="material-symbols-outlined absolute right-space-sm top-3 text-on-surface-variant text-[20px]">call</span>
+<span class="absolute left-space-xs px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md">20+</span>
+</div>
+</div>
+<!-- Governorate Dropdown -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                المحافظة <span class="text-error">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-12 pr-space-xl pl-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
+<option selected="" value="cairo">القاهرة (العاصمة)</option>
+<option value="giza">الجيزة وضواحيها</option>
+<option value="alex">الإسكندرية والساحل الشمالي</option>
+<option value="mansoura">الدقهلية (المنصورة)</option>
+<option value="sharqia">الشرقية (الزقازيق)</option>
+<option value="redsea">البحر الأحمر (الجونة / الغردقة)</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-3 text-on-surface-variant text-[20px]">map</span>
+<span class="material-symbols-outlined absolute left-space-sm top-3 text-on-surface-variant text-[20px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- District / City -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                المدينة / الحي السكني <span class="text-error">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-12 pr-space-xl pl-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary" placeholder="مثال: التجمع الخامس، النرجس فيلات، أو الشيخ زايد" type="text"/>
+<span class="material-symbols-outlined absolute right-space-sm top-3 text-on-surface-variant text-[20px]">location_city</span>
+</div>
+</div>
+<!-- Detailed Address -->
+<div class="md:col-span-2">
+<label class="block font-label-md text-label-md text-on-surface mb-space-3xs">
+                العنوان التفصيلي (الشارع، رقم المبنى/الفيلا، رقم الدور) <span class="text-error">*</span>
+</label>
+<textarea class="w-full p-space-md rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary resize-none" placeholder="شارع التسعين الجنوبي، كمبوند ماونتن فيو، فيلا 42 - بجوار نادي الصيد..." rows="2"></textarea>
+</div>
+</div>
+<!-- VIP Delivery Window & Armored Transport Options -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">schedule</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">موعد ومواصفات الشحن والتسليم</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-space-xs py-space-3xs rounded-md font-bold">شحن مجاني مميز</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<label class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-start gap-space-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="mt-1 accent-secondary cursor-pointer" name="delivery_slot" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">شحن سريع خلال 24 - 48 ساعة</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تنسيق هاتفي مسبق مع سيارة التوصيل الملكية المجهزة.</span>
+</div>
+</label>
+<label class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-start gap-space-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+<input class="mt-1 accent-secondary cursor-pointer" name="delivery_slot" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">تسليم في عطلة نهاية الأسبوع (الجمعة/السبت)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">مثالي للمناسبات وتواجد كامل أفراد العائلة للمعانية الشاملة.</span>
+</div>
+</label>
+</div>
+<!-- Armored Packaging Notice -->
+<div class="p-space-sm rounded-lg bg-surface-container-highest flex items-center gap-space-sm text-on-secondary-container">
+<span class="material-symbols-outlined text-[24px]">inventory_2</span>
+<p class="font-body-sm text-body-sm leading-relaxed">
+<strong>تنويه الفخامة:</strong> يتم نقل كافة أطقم 124 قطعة في حاويات خشبية مبطنة بالفوم المضاد للاهتزازات، مع التزام المندوب بإخراج الأطباق وفحص الذهب عيار 24 قطعة قطعة معك.
+              </p>
+</div>
+<!-- Delivery Courier Note -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-space-3xs">ملاحظات تسليم خاصة لسائق الشاحنة المصفحة</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-2 focus:ring-secondary" placeholder="مثال: يرجى إبراز الهوية للبوابة، متوفر مصعد للأحمال الثقيلة، الاتصال قبل الوصول بساعة" type="text"/>
+</div>
+</div>
+</div>
+<!-- Section 2: Payment Gateways & Protocols -->
+<div class="p-space-xl rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="w-9 h-9 rounded-xl bg-surface-container-high text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">payments</span>
+</span>
+<div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">2. وسيلة السداد وتأكيد الحجز</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">اختر أسلوب الدفع الأنسب لك مع ضمان الأمان وحق المعاينة الكاملة قبل السداد.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">lock</span>
+              تشفير مصرفي 256-bit
+            </div>
+</div>
+<!-- Payment Methods Stack -->
+<div class="flex flex-col gap-space-md">
+<!-- Method A: COD & Full Inspection (Default Selected) -->
+<div class="p-space-lg rounded-2xl bg-surface-container-low shadow-sm transition-all cursor-pointer relative" id="pay-method-cod" onclick="selectPayment('cod')">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-space-md">
+<div class="w-5 h-5 rounded-full border-2 border-secondary flex items-center justify-center mt-1" id="radio-cod">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">الدفع عند الاستلام والمعاينة اليدوية</span>
+<span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">الأكثر طلباً واطمئناناً</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-3xs">
+                      لا تدفع أي مبلغ مالي مسبقاً. استلم كراتين الطقم الملكية المصفحة، افتح جميع العلب وافحص القطع بروية كاملة بحضور مندوبنا ثم سدد القيمة.
+                    </p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[32px]">handshake</span>
+</div>
+<!-- Collapsible Extra Details -->
+<div class="mt-space-md pt-space-md flex items-center gap-space-md bg-surface-container-lowest p-space-md rounded-xl" id="details-cod">
+<span class="material-symbols-outlined text-secondary text-[24px]">verified</span>
+<span class="font-body-sm text-body-sm text-on-surface">
+                  يمكنك سداد المبلغ للمندوب نقداً (كاش) أو عبر جهاز الدفع اللاسلكي (POS) المحمول بواسطة بطاقتك البنكية.
+                </span>
+</div>
+</div>
+<!-- Method B: InstaPay & Mobile Wallets -->
+<div class="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all cursor-pointer relative" id="pay-method-instapay" onclick="selectPayment('instapay')">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-space-md">
+<div class="w-5 h-5 rounded-full border-2 border-outline flex items-center justify-center mt-1" id="radio-instapay">
+<span class="w-3 h-3 rounded-full bg-transparent"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">إنستاباي (InstaPay) والمحافظ الذكية</span>
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md">تحويل لحظي فوري</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-3xs">
+                      سدد مباشرة لحساب المتجر الرسمي عبر تطبيق إنستاباي أو فودافون كاش / أورنج / اتصالات كاش بدون رسوم تحويل.
+                    </p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[32px]">account_balance_wallet</span>
+</div>
+<!-- Collapsible Upload Box -->
+<div class="hidden mt-space-md pt-space-md flex flex-col gap-space-sm bg-surface-container-lowest p-space-md rounded-xl" id="details-instapay">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md text-on-surface font-bold">معرّف إنستاباي الرسمي (IPA):</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr text-secondary font-bold">drporcelain@instapay</span>
+</div>
+<button class="px-space-sm py-space-3xs rounded-md bg-surface-container-high text-on-surface font-label-sm text-label-sm hover:bg-surface-container" onclick="navigator.clipboard.writeText('drporcelain@instapay')" type="button">
+                    نسخ المعرّف
+                  </button>
+</div>
+<div class="flex items-center gap-space-sm">
+<label class="flex-1 border border-dashed border-outline-variant hover:border-secondary p-space-md rounded-xl flex items-center justify-center gap-space-xs cursor-pointer transition-colors">
+<input class="hidden" onchange="handleReceiptUpload(this)" type="file"/>
+<span class="material-symbols-outlined text-secondary text-[20px]">upload_file</span>
+<span class="font-label-md text-label-md text-on-surface-variant" id="receipt-upload-label">اضغط هنا لرفع صورة إشعار التحويل البنكي أو السكرين شوت</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Method C: Credit / Debit Cards -->
+<div class="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all cursor-pointer relative" id="pay-method-card" onclick="selectPayment('card')">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-space-md">
+<div class="w-5 h-5 rounded-full border-2 border-outline flex items-center justify-center mt-1" id="radio-card">
+<span class="w-3 h-3 rounded-full bg-transparent"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">البطاقات الائتمانية والبنكية (Visa / MasterCard / ميزة)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-3xs">
+                      سداد مباشر مشفر معتمد من البنك المركزي المصري بتقنية التحقق الثنائي 3D-Secure.
+                    </p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[32px]">credit_card</span>
+</div>
+<!-- Collapsible Card Inputs Mockup -->
+<div class="hidden mt-space-md pt-space-md grid grid-cols-1 sm:grid-cols-2 gap-space-sm bg-surface-container-lowest p-space-md rounded-xl" id="details-card">
+<div class="sm:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-3xs">رقم البطاقة الائتمانية (16 رقماً)</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md focus:outline-none focus:ring-2 focus:ring-secondary" dir="ltr" placeholder="4000 1234 5678 9010" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-3xs">تاريخ الانتهاء (MM / YY)</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md focus:outline-none focus:ring-2 focus:ring-secondary" dir="ltr" placeholder="08 / 28" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-3xs">رمز الأمان (CVV)</label>
+<input class="w-full h-11 px-space-md rounded-xl bg-surface-container-low text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md focus:outline-none focus:ring-2 focus:ring-secondary" dir="ltr" maxlength="4" placeholder="•••" type="password"/>
+</div>
+</div>
+</div>
+<!-- Method D: Installment Partnerships (ValU / souhhoola / Contact) -->
+<div class="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all cursor-pointer relative" id="pay-method-installments" onclick="selectPayment('installments')">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-space-md">
+<div class="w-5 h-5 rounded-full border-2 border-outline flex items-center justify-center mt-1" id="radio-installments">
+<span class="w-3 h-3 rounded-full bg-transparent"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">التقسيط المريح بدون فوائد حتى 6 أشهر</span>
+<span class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">0% فوائد</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-3xs">
+                      قسّط مشترياتك الفاخرة بالتعاون مع ValU، سهولة (souhhoola)، وأمان وContact بخطط دفع مرنة تبدأ من 6,405 ج.م/شهرياً.
+                    </p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[32px]">calendar_month</span>
+</div>
+<!-- Collapsible Providers -->
+<div class="hidden mt-space-md pt-space-md flex flex-wrap items-center gap-space-md bg-surface-container-lowest p-space-md rounded-xl" id="details-installments">
+<span class="font-label-md text-label-md text-on-surface">اختر موفر خدمة التقسيط الخاص بك:</span>
+<div class="flex items-center gap-space-sm">
+<label class="px-space-md py-space-xs rounded-lg bg-surface-container-low cursor-pointer flex items-center gap-space-xs hover:bg-surface-container">
+<input checked="" class="accent-secondary" name="fintech" type="radio"/>
+<span class="font-label-md text-label-md font-bold">ValU (ڤاليو)</span>
+</label>
+<label class="px-space-md py-space-xs rounded-lg bg-surface-container-low cursor-pointer flex items-center gap-space-xs hover:bg-surface-container">
+<input class="accent-secondary" name="fintech" type="radio"/>
+<span class="font-label-md text-label-md font-bold">souhhoola (سهولة)</span>
+</label>
+<label class="px-space-md py-space-xs rounded-lg bg-surface-container-low cursor-pointer flex items-center gap-space-xs hover:bg-surface-container">
+<input class="accent-secondary" name="fintech" type="radio"/>
+<span class="font-label-md text-label-md font-bold">Contact (كونتكت)</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Sovereign Order Summary Column -->
+<div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-space-lg sticky top-28">
+<!-- Summary Box -->
+<div class="p-space-xl rounded-2xl bg-surface-container-lowest shadow-md flex flex-col gap-space-lg">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-xl text-headline-xl text-on-surface font-bold">محتويات الشحنة والطلب</h3>
+<span class="font-label-md text-label-md text-secondary bg-surface-container-low px-space-sm py-space-3xs rounded-full font-bold">3 مقتنيات فاخرة</span>
+</div>
+<!-- Product Mini Items List -->
+<div class="flex flex-col gap-space-md">
+<!-- Item 1 -->
+<div class="flex items-center gap-space-md p-space-xs rounded-xl hover:bg-surface-container-low transition-colors">
+<img class="w-16 h-16 rounded-xl object-cover shadow-sm flex-shrink-0" data-alt="Exquisite 124-piece royal imperial porcelain dinnerware set lavishly rimmed with 24k gold leaf filigree patterns, fine bone china placed on polished white marble background under ambient warm studio spotlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkBG87Pp7p30617_J6Jq2ypAZanLVVOzHZJzsGydHJZYdVsToumGrY_hb4yJD8802kuHeGS95hennuwwPQmdp1-JCGZZ1vUbDmn4VnJXfdZ8ypOCCOiuznBecLoYwempnBvyasWUf1G3QN2mUfbu10OlYgGaiY4VTYQBIWZPL1Wu92YLCFvI6gKjHvmpuY9O0hTrT8zoN3yxaw5fFwhuBplpQAMM_71jGBC6QrrqtPYt5gmjM7U0dR"/>
+<div class="flex-1 min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">طقم سفرة رويال إمبراطوري مذهب 124 قطعة</h4>
+<div class="flex items-center justify-between mt-space-3xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">الكمية: 1 طقم ملكي</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">28,500 ج.م</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-space-md p-space-xs rounded-xl hover:bg-surface-container-low transition-colors">
+<img class="w-16 h-16 rounded-xl object-cover shadow-sm flex-shrink-0" data-alt="Classic British royal Ludwig vintage tea and coffee set 32 pieces, delicate translucent bone china with cobalt blue detailing and ornate gilded handles on dark velvet texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJzJhT1WYrydSw4NLpF7QRsWtNHHgI19neBiBigcn4h3E68Ir2ISTKqjbzZ2lyLhVGulHQy2-oxiD-ny2QVIVdChIPk-_wgm3OELl-BubH5XIbrew-XDBGGnjKUhYxvySNSbsgJLSQZhPJoUc862Mbh6w7sI63W3k2hEhtStKpB3d-bNBeA-PAxPBb41JA1HIHTeTgVMwTxtChIzHo0jp6UsUMQmdwnT745X6WD6WKzQQ6i6ERRDFZ"/>
+<div class="flex-1 min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">طقم شاي وقهوة ملكي إنجليزي لودفيغ 32 ق</h4>
+<div class="flex items-center justify-between mt-space-3xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">الكمية: 1 طقم</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">6,400 ج.م</span>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-space-md p-space-xs rounded-xl hover:bg-surface-container-low transition-colors">
+<img class="w-16 h-16 rounded-xl object-cover shadow-sm flex-shrink-0" data-alt="Luxury 84-piece Royal Crown cutlery set crafted in polished stainless steel with titanium gold PVD coating, arranged elegantly inside an open mahogany wooden presentation chest." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-x5WT7Ne8gYaXhpignyfbvNEo8y9tvE-4yFdZSaZJzCqRmkAin28AXY7kEFc8bymwd0uk5S12Ww69mGbtUNJKyguYk8CBZsPJBllNLN7SnY0leNmJulgIFcmWkI3Ndqu1ryHPeaoUjdYntV9W_DWgFPsTfhmzIpFp0RvYnuRsRlk9lxyeQ14dI2FcIGmaYZ2vOIvNuazY9H_m2XqWqX9wL9yxwxuu3kaWwb6NvKI3l3wxQ3mWZWye"/>
+<div class="flex-1 min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">طقم ملاعق وشوك رويال كراون فاخر 84 ق</h4>
+<div class="flex items-center justify-between mt-space-3xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">الكمية: 1 صندوق خشبي</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">7,800 ج.م</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Coupon Applied Badge & Custom Form -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-secondary text-[18px]">loyalty</span>
+<span>كود الخصم الفعّال:</span>
+<span class="px-space-xs py-space-3xs rounded bg-surface-container-lowest font-mono font-bold text-secondary">ROYAL10</span>
+</div>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">خصم 10%</span>
+</div>
+<div class="flex items-center gap-space-xs mt-space-3xs">
+<input class="flex-1 h-9 px-space-sm rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-secondary" placeholder="هل لديك قسيمة أخرى؟" type="text"/>
+<button class="h-9 px-space-md rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm hover:bg-primary-container/90 transition-colors" type="button">
+                تطبيق
+              </button>
+</div>
+</div>
+<!-- Ledgers & Totals Breakdown -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+<span>الإجمالي الفرعي للأطقم (3):</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">42,700 ج.م</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-secondary font-bold">
+<span>الخصم الترويجي المكتسب (ROYAL10):</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary dir-ltr">-4,270 ج.م</span>
+</div>
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant">
+<span>ضريبة القيمة المضافة (14% شمولية):</span>
+<span class="font-fiscal-numeric-md text-fiscal-numeric-md">4,718 ج.م (مشمولة)</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+<span class="flex items-center gap-space-3xs">
+<span>مصاريف الشحن الملكي والتأمين:</span>
+<span class="material-symbols-outlined text-[14px] text-secondary" title="شحن مجاني فوق 3000 جنيه">help_outline</span>
+</span>
+<span class="font-label-md text-label-md text-secondary font-bold">مـجـانـي</span>
+</div>
+<div class="my-space-xs h-0.5 bg-surface-container-highest rounded-full"></div>
+<!-- Grand Final Numeric Total -->
+<div class="flex items-baseline justify-between">
+<div class="flex flex-col">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">المبلغ الصافي المستحق:</span>
+<span class="font-label-sm text-label-sm text-secondary">إجمالي التوفير: 13,770 ج.م</span>
+</div>
+<div class="flex items-baseline gap-space-3xs">
+<span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary tracking-tight">38,430</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">ج.م</span>
+</div>
+</div>
+</div>
+<!-- Primary Confirmation Action Sovereign CTA -->
+<button class="w-full h-14 bg-primary-container hover:bg-secondary text-on-primary rounded-2xl font-headline-lg text-headline-lg font-bold flex items-center justify-center gap-space-sm shadow-xl hover:shadow-2xl transition-all duration-300 transform active:scale-95 group" type="button">
+<span>تأكيد الطلب وحجز الشحنة الآن</span>
+<span class="material-symbols-outlined text-[24px] transform group-hover:-translate-x-1 transition-transform">arrow_back</span>
+</button>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center">
+            بالنقر على تأكيد الطلب، فإنك توافق على ميثاق الفخامة والضمان المعتمد من دكتور بورسلين.
+          </p>
+</div>
+<!-- Trust Guarantees & Royal Badges Deck -->
+<div class="p-space-lg rounded-2xl bg-surface-container-low flex flex-col gap-space-md shadow-sm">
+<div class="flex items-start gap-space-sm">
+<span class="w-8 h-8 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">search_check</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">المعاينة الشاملة قبل الدفع</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">لك كامل الحق في فتح الصناديق وفحص كل قطعة وطبقة ذهبية والتأكد التام قبل دفع جنيه واحد للمندوب.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<span class="w-8 h-8 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">published_with_changes</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">استبدال واسترجاع مجاني 14 يوماً</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">استبدال فوري بدون أي رسوم شحن إضافية في حال وجود أي ملاحظة صناعية أو رغبة في استبدال الموديل.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<span class="w-8 h-8 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">shield_with_heart</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">ضمان ذهبي معتمد 10 سنوات</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">شهادة ضمان مختومة تشمل ثبات درجات الطلاء وماء الذهب الخالص ضد البهتان في الاستخدام المنزلي.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<span class="w-8 h-8 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">مستشار الضيافة والخط الساخن</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">فريق خدمة العملاء متاح مباشرة عبر الهاتف <strong class="text-secondary font-fiscal-numeric-md">19805</strong> لمساعدتك في أي خطوة.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main><footer class="w-full bg-surface-container-low text-on-surface mt-space-3xl"><div class="max-w-7xl mx-auto px-space-md pt-space-3xl pb-space-xl"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-2xl mb-space-2xl"><div class="lg:col-span-2 space-y-space-md"><div class="flex items-center gap-space-sm"><img alt="Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UWg7S1htqvPTk_twEIGix8g33-GxazeU4kFaFDnxWo0qN56rjxQjfSgOG9WcwXwmuju-xQZfyiZi43nvPuWQenook3zKdsdTE2UoB_0MkAK5bGLsc_-I6o8y4RQ0NZvz4yojOtp0eQtQhmOLVMx1007Qbe5TBZC1H-1_xoWfHoUWaCtZ7QwiMtssJPlUtfdN6C1lB_8dMI3NEnbUnXOxAxTAhrEp54Y5k5_1eAaLJ9VQeZhTyDhvoUt_E"/><span class="font-headline-lg text-headline-lg text-on-surface font-bold">دكتور بورسلين</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">الوجهة الأولى والأعرق في مصر لأطقم المائدة والبورسلين الفاخر والكريستال البوهيمي المعتمد. فخامة وأناقة تليق بقصور ومنازل النخبة.</p><div class="flex items-center gap-space-md font-label-md text-label-md text-on-surface"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary">verified</span><span>ضمان أصالة المنتجات 100%</span></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary">security</span><span>شحن مؤمن ضد الكسر</span></div></div></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">مجموعات البورسلين</h4><ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant"><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">أطقم سفرة كاملة (124 ق)</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">أطقم شاي وقهوة بريميوم</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">صواني وأواني الضيافة النحاسية</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">كؤوس وكاسات بوهيمي تشيكي</a></li><li><a class="hover:text-on-surface transition-colors" data-path="product-catalog" href="#">تحف وديكورات مائدة</a></li></ul></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">خدمة العملاء والضمان</h4><ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant"><li><a class="hover:text-on-surface transition-colors" data-path="warranty-information" href="#">شهادة الضمان والاستبدال</a></li><li><a class="hover:text-on-surface transition-colors" data-path="shipping-policy" href="#">سياسة الشحن والتسليم الملكي</a></li><li><a class="hover:text-on-surface transition-colors" data-path="order-tracking" href="#">تتبع حالة الطلب والتغليف</a></li><li><a class="hover:text-on-surface transition-colors" data-path="store-locator" href="#">معارض وصالات العرض</a></li><li><a class="hover:text-on-surface transition-colors" data-path="frequently-asked-questions" href="#">الأسئلة المتكررة للعناية</a></li></ul></div><div><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">بيانات الشركة الرسمية</h4><div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant"><p><span class="font-label-md text-label-md text-on-surface">الخط الساخن المباشر:</span> <span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr text-secondary font-bold">19805</span></p><p><span class="font-label-md text-label-md text-on-surface">السجل التجاري:</span> 489211 - القاهرة</p><p><span class="font-label-md text-label-md text-on-surface">البطاقة الضريبية:</span> 632-194-081</p><p><span class="font-label-md text-label-md text-on-surface">ساعات العمل:</span> يومياً من 10 ص إلى 11 م</p></div></div></div><div class="pt-space-xl bg-surface-container-low flex flex-col md:flex-row items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant"><p>© 2025 دكتور بورسلين (dr.porcelain) للأدوات المنزلية والتحف الفاخرة. جميع الحقوق محفوظة.</p><div class="flex items-center gap-space-sm font-label-sm text-label-sm"><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">دفع عند الاستلام</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">Visa / MasterCard</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ValU / تقسيط</span><span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ميزة Meeza</span></div></div></div></footer></body></html>

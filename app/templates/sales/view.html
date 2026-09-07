@@ -27,6 +27,11 @@
         <span class="material-symbols-outlined text-[18px]">print</span>
         <span>طباعة</span>
       </button>
+      <a href="{{ url_for('sales.thermal_receipt', invoice_id=invoice.id) }}" target="_blank"
+         class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+        <span>إيصال حراري (80mm)</span>
+      </a>
       {% if invoice.status.value != 'returned' and current_user.can("sales.return") %}
       <a href="{{ url_for('sales.return_form', invoice_id=invoice.id) }}"
          class="h-10 px-space-md bg-tertiary-fixed text-on-tertiary-fixed-variant hover:bg-tertiary-fixed-dim rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">

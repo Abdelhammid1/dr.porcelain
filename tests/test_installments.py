@@ -398,3 +398,35 @@ class TestOverdueDetection:
         due = get_due_today_lines(today=date(2026, 4, 15))
         # قسط واحد فقط مستحق في هذا التاريخ
         assert any(l.id == plan.schedule[0].id for l in due)
+
+
+# ============================================================
+# Thermal receipt — يعمل على أي SalesInvoice (POS, تقسيط, يدوي)
+# ============================================================
+
+class TestUniversalThermalReceipt:
+    """
+    Regression: الإيصال الحراري كان مقصور على POS. الآن /sales/<id>/receipt
+    شغال لأي فاتورة — بيعرض 'مقدم' + 'متبقي' للتقسيط و'عميل نقدي' للـ walk-in.
+    """
+
+    def test_installment_invoice_exposes_plan_backref(self, env):
+        """SalesInvoice.installment_plan backref يشتغل — عشان القالب يقدر يميز."""
+        plan = create_installment_sale(
+            customer_id=env["customer"].id,
+            invoice_date=date(2026, 3, 1),
+            lines=[InvoiceLineDraft(env["variant"].id, qty=1, unit_price=1200)],
+            installments_count=3,
+            frequency=InstallmentFrequency.MONTHLY,
+            down_payment=Decimal("300"),
+        )
+        _db.session.commit()
+
+        inv = plan.sales_invoice
+        # backref المهم للقالب
+        assert inv.installment_plan is not None
+        assert inv.installment_plan.id == plan.id
+        assert inv.installment_plan.down_payment == Decimal("300.000")
+        assert inv.installment_plan.financed_amount == Decimal("900.000")
+        # للفاتورة النقدية العادية source_order يجب أن يكون None
+        assert inv.source_order is None

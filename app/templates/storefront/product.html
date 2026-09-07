@@ -1,435 +1,806 @@
 {% extends "storefront/_base.html" %}
-{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert, wishlist_button %}
+{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert %}
 {% block title %}{{ product.name_ar }}{% endblock %}
 
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode:"class", theme:{ extend:{
+    colors:{
+      "error":"#ba1a1a","primary-fixed":"#dae2fd","on-secondary":"#ffffff",
+      "primary-fixed-dim":"#bec6e0","on-surface-variant":"#45464d",
+      "on-tertiary-container":"#c76c00","secondary":"#006398",
+      "on-tertiary-fixed-variant":"#6e3900","tertiary-fixed-dim":"#ffb77d",
+      "surface-container-high":"#dce9ff","surface-dim":"#cbdbf5",
+      "outline-variant":"#c6c6cd","secondary-fixed":"#cce5ff",
+      "on-tertiary":"#ffffff","inverse-on-surface":"#eaf1ff",
+      "tertiary":"#000000","on-secondary-fixed":"#001d31",
+      "surface-tint":"#565e74","secondary-fixed-dim":"#93ccff",
+      "tertiary-container":"#2f1500","surface-bright":"#f8f9ff",
+      "surface-container-highest":"#d3e4fe","surface-container-lowest":"#ffffff",
+      "surface-variant":"#d3e4fe","background":"#f8f9ff",
+      "on-primary-fixed":"#131b2e","secondary-container":"#5bb8fe",
+      "on-surface":"#0b1c30","on-error":"#ffffff",
+      "on-secondary-fixed-variant":"#004b73","inverse-primary":"#bec6e0",
+      "on-background":"#0b1c30","surface-container-low":"#eff4ff",
+      "primary-container":"#131b2e","on-primary-fixed-variant":"#3f465c",
+      "on-primary-container":"#7c839b","on-secondary-container":"#00476e",
+      "on-error-container":"#93000a","outline":"#76777d",
+      "inverse-surface":"#213145","on-tertiary-fixed":"#2f1500",
+      "on-primary":"#ffffff","tertiary-fixed":"#ffdcc3",
+      "surface":"#f8f9ff","error-container":"#ffdad6",
+      "primary":"#000000","surface-container":"#e5eeff"
+    },
+    borderRadius:{ "DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px" },
+    spacing:{
+      "space-2xs":"0.25rem","space-xs":"0.5rem","space-sm":"0.75rem",
+      "space-md":"1rem","space-lg":"1.25rem","space-xl":"1.5rem",
+      "space-2xl":"2rem","space-3xl":"3rem","space-3xs":"0.125rem"
+    },
+    fontFamily:{
+      "headline-sm":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "label-lg":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "headline-xl":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "label-md":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "display-lg":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "body-lg":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "headline-lg":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "fiscal-numeric-md":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "label-sm":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "body-md":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "display-sm":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "body-sm":["IBM Plex Sans Arabic","IBM Plex Sans"],
+      "fiscal-numeric-lg":["IBM Plex Sans Arabic","IBM Plex Sans"]
+    },
+    fontSize:{
+      "headline-sm":["16px",{lineHeight:"24px",fontWeight:"600"}],
+      "label-lg":["14px",{lineHeight:"20px",fontWeight:"500"}],
+      "headline-xl":["24px",{lineHeight:"34px",fontWeight:"600"}],
+      "label-md":["12px",{lineHeight:"16px",fontWeight:"500"}],
+      "display-lg":["36px",{lineHeight:"48px",letterSpacing:"-0.02em",fontWeight:"700"}],
+      "body-lg":["16px",{lineHeight:"26px",fontWeight:"400"}],
+      "headline-lg":["20px",{lineHeight:"28px",fontWeight:"600"}],
+      "fiscal-numeric-md":["15px",{lineHeight:"20px",letterSpacing:"0",fontWeight:"600"}],
+      "label-sm":["11px",{lineHeight:"14px",fontWeight:"600"}],
+      "body-md":["14px",{lineHeight:"22px",fontWeight:"400"}],
+      "display-sm":["28px",{lineHeight:"38px",letterSpacing:"-0.01em",fontWeight:"700"}],
+      "body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}],
+      "fiscal-numeric-lg":["28px",{lineHeight:"32px",letterSpacing:"0",fontWeight:"700"}]
+    }
+  }}};
+</script>
+<style>
+  .material-symbols-outlined{ font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; line-height:1; letter-spacing:normal; text-transform:none; display:inline-block; white-space:nowrap; word-wrap:normal; direction:ltr; -webkit-font-feature-settings:'liga'; -webkit-font-smoothing:antialiased; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="color:var(--dp-ink-3); font-size:0.85rem; margin-bottom:20px;">
-  <a href="{{ url_for('storefront.home') }}" style="color:var(--dp-ink-3);">الرئيسية</a>
-  <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
-  {% if product.category %}
-  <a href="{{ url_for('storefront.category', category_id=product.category.id) }}" style="color:var(--dp-ink-3);">
-    {{ product.category.name_ar }}
-  </a>
-  <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
-  {% endif %}
-  <span style="color:var(--dp-ink-1);">{{ product.name_ar }}</span>
-</div>
-
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:60px;">
-  <!-- Gallery (Epic 1 — صور حقيقية) -->
-  <div>
-    {% set default_variant = product.default_variant %}
-    <div style="position:relative; aspect-ratio:1; background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
-                border-radius:20px; display:grid; place-items:center; overflow:hidden;
-                font-size:8rem; color:var(--dp-brand);" id="mainImage">
-      {{ sale_badge(default_variant) }}
-      {% if product.images %}
-        <img src="{{ url_for('static', filename=product.primary_image.file_path) }}"
-             alt="{{ product.name_ar }}"
-             style="width:100%; height:100%; object-fit:cover;" id="mainImageImg">
-      {% else %}
-        <i class="bi bi-box"></i>
-      {% endif %}
-    </div>
-    {% if product.images and product.images|length > 1 %}
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px;">
-      {% for img in product.images %}
-      <div class="thumb" data-full="{{ url_for('static', filename=img.file_path) }}"
-           style="aspect-ratio:1; background:#f8fafc; border-radius:10px;
-                  overflow:hidden; cursor:pointer;
-                  border:2px solid {% if img.is_primary %}var(--dp-brand){% else %}var(--dp-line){% endif %};">
-        <img src="{{ url_for('static', filename=img.file_path) }}"
-             alt="" style="width:100%; height:100%; object-fit:cover;">
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- Info + form -->
-  <div>
+<div class="flex flex-col w-full text-on-surface" style="font-family:'IBM Plex Sans Arabic', sans-serif;">
+  <!-- 1. Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-space-lg flex items-center gap-space-2xs text-on-surface-variant font-label-md">
+    <a class="hover:text-primary transition-colors flex items-center gap-space-3xs" href="{{ url_for('storefront.home') }}">
+      <span class="material-symbols-outlined text-sm">home</span>
+      <span>الرئيسية</span>
+    </a>
     {% if product.category %}
-    <div style="font-size:0.85rem; color:var(--dp-brand); font-weight:600; margin-bottom:6px;">
-      {{ product.category.full_path_ar }}
-    </div>
+    <span class="text-outline-variant">/</span>
+    <a class="hover:text-primary transition-colors" href="{{ url_for('storefront.category', category_id=product.category.id) }}">
+      {{ product.category.name_ar }}
+    </a>
     {% endif %}
-    <div style="display:flex; justify-content:space-between; align-items:start; gap:12px;">
-      <h1 style="font-size:1.8rem; font-weight:800; margin:0 0 12px;">{{ product.name_ar }}</h1>
-      <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=product.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-outline-danger btn-sm" title="أضف للمفضلة">
-          <i class="bi bi-heart"></i>
-        </button>
-      </form>
-    </div>
+    <span class="text-outline-variant">/</span>
+    <span class="text-on-surface font-semibold truncate max-w-xs md:max-w-md">{{ product.name_ar }}</span>
+  </nav>
 
-    <!-- Epic 6 — Rating من مراجعات معتمدة (لا placeholder) -->
-    <div style="margin-bottom:14px; font-size:0.95rem;">
-      {{ stars(product.avg_rating, product.review_count) }}
-    </div>
+  {% set dv = product.default_variant %}
 
-    <!-- السعر + شارة الخصم (Epic 2) -->
-    {% set dv = product.default_variant %}
-    <div style="margin-bottom:20px;">
-      {% if dv and dv.is_on_sale %}
-        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
-          <span style="font-size:2rem; font-weight:800; color:#dc2626;">
-            {{ dv.price | money }}
-          </span>
-          <span style="text-decoration:line-through; color:var(--dp-ink-3); font-size:1.1rem;">
-            {{ dv.compare_at_price | money }}
-          </span>
-          <span style="background:#dc2626; color:white; font-weight:800; font-size:0.8rem;
-                       padding:4px 10px; border-radius:999px;">
-            وفّر {{ dv.savings_amount | money }} (-{{ dv.discount_percent }}%)
-          </span>
+  <!-- Main Hero Layout: Product Showcase & Transaction Console -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl mb-space-lg">
+    <!-- Left/Visual: Interactive Image Gallery (Span 7) -->
+    <div class="lg:col-span-7 flex flex-col gap-space-md">
+      <div class="relative w-full rounded-xl overflow-hidden bg-surface-container-lowest shadow-sm group">
+        <div class="aspect-[4/3] w-full overflow-hidden relative cursor-zoom-in">
+          {% if product.primary_image %}
+          <img id="main-product-image"
+               class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+               src="{{ url_for('static', filename=product.primary_image.file_path) }}"
+               alt="{{ product.name_ar }}">
+          {% else %}
+          <div class="w-full h-full flex items-center justify-center bg-surface-container text-on-surface-variant">
+            <span class="material-symbols-outlined" style="font-size:96px;">image</span>
+          </div>
+          {% endif %}
+
+          <!-- Badges Overlay -->
+          <div class="absolute top-space-md right-space-md flex flex-col gap-space-2xs items-end pointer-events-none z-10">
+            {% if dv and dv.is_on_sale %}
+            <span class="bg-error text-on-error px-space-sm py-space-3xs rounded-full font-label-md shadow-sm font-bold flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-xs">local_fire_department</span>
+              -{{ dv.discount_percent }}% عرض حصري
+            </span>
+            {% endif %}
+            <span class="bg-secondary text-on-secondary px-space-sm py-space-3xs rounded-full font-label-sm shadow-sm flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-xs">local_shipping</span>
+              شحن مؤمن
+            </span>
+            <span class="bg-primary-container text-on-primary-container px-space-sm py-space-3xs rounded-full font-label-sm shadow-sm flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-xs">verified</span>
+              ضمان الجودة
+            </span>
+          </div>
+
+          <div class="absolute bottom-space-md left-space-md bg-surface-container-lowest/80 backdrop-blur-md text-on-surface p-space-2xs rounded-lg flex items-center gap-space-3xs font-label-sm shadow-sm">
+            <span class="material-symbols-outlined text-sm">zoom_in</span>
+            <span>انقر للتكبير</span>
+          </div>
         </div>
-      {% else %}
-        <span style="font-size:2rem; font-weight:800; color:var(--dp-brand);">
-          {{ (dv.price if dv else product.default_price) | money }}
-        </span>
-      {% endif %}
-    </div>
-
-    <!-- عداد تنازلي للعرض (Epic 2) -->
-    {% if product.offer_is_live %}
-    <div style="background:linear-gradient(135deg,#fef3c7,#fde68a); border:1px solid #f59e0b;
-                border-radius:12px; padding:14px; margin-bottom:20px;"
-         data-countdown-target="{{ product.offer_ends_at.isoformat() }}">
-      <div style="font-size:0.85rem; color:#92400e; margin-bottom:6px;">
-        <i class="bi bi-lightning-fill"></i> ينتهي العرض خلال:
       </div>
-      <div id="offerCountdown" style="font-family:'Cairo',sans-serif; font-weight:800;
-                                       font-size:1.5rem; color:#dc2626; direction:ltr;">--:--:--</div>
-    </div>
-    {% endif %}
 
-    {% if product.description %}
-    <p style="color:var(--dp-ink-2); line-height:1.8; margin-bottom:24px;">
-      {{ product.description }}
-    </p>
-    {% endif %}
-
-    <!-- Variants (color) + Ticket 2 Epic 3: تنبيه متبقي X قطع -->
-    {% if product.variants|length > 1 %}
-    <div style="margin-bottom:20px;">
-      <label class="form-label" style="font-weight:700;">اللون</label>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        {% for v in product.variants %}
-        <label style="cursor:pointer;">
-          <input type="radio" name="variant_id" value="{{ v.id }}"
-                 form="add-form" {% if loop.first %}checked{% endif %} style="display:none;"
-                 class="variant-radio" {% if v.stock_qty <= 0 %}disabled{% endif %}>
-          <span class="variant-chip" style="padding:8px 16px; border:2px solid var(--dp-line);
-                    border-radius:999px; font-weight:600; display:inline-block;
-                    {% if v.stock_qty <= 0 %}opacity:.5; text-decoration:line-through;{% endif %}">
-            {{ v.color or v.variant_name or 'افتراضي' }}
-          </span>
-        </label>
+      <!-- Horizontal Thumbnails Strip -->
+      {% if product.images and product.images|length > 1 %}
+      <div class="grid grid-cols-5 gap-space-sm">
+        {% for img in product.images %}
+        <button type="button"
+                class="thumb-btn rounded-lg overflow-hidden bg-surface-container-lowest p-space-3xs shadow-sm transition-all {% if img.is_primary %}bg-surface-container-high{% else %}hover:bg-surface-container-high{% endif %}"
+                data-full="{{ url_for('static', filename=img.file_path) }}">
+          <img class="w-full aspect-square object-cover rounded"
+               src="{{ url_for('static', filename=img.file_path) }}"
+               alt="{{ product.name_ar }}">
+        </button>
         {% endfor %}
       </div>
-      {# تنبيه المخزون على كل variant لو منخفض #}
-      {% for v in product.variants %}
-        {% if v.stock_qty and v.stock_qty > 0 and v.reorder_level and v.reorder_level > 0
-              and v.stock_qty <= v.reorder_level %}
-        <div style="color:#dc2626; font-size:0.8rem; font-weight:700; margin-top:6px;">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          {{ v.color or v.variant_name or 'الافتراضي' }}: متبقي {{ v.stock_qty | qty }} قطع بس
+      {% endif %}
+
+      <!-- Trust signals ribbon -->
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm grid grid-cols-3 gap-space-sm text-center">
+        <div class="flex flex-col items-center">
+          <span class="material-symbols-outlined text-secondary text-2xl mb-space-3xs">security</span>
+          <span class="font-label-md font-bold">تأمين كسر 100%</span>
+          <span class="font-body-sm text-on-surface-variant">استبدال فوري عند الاستلام</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="material-symbols-outlined text-secondary text-2xl mb-space-3xs">inventory_2</span>
+          <span class="font-label-md font-bold">فحص جودة يدوي</span>
+          <span class="font-body-sm text-on-surface-variant">مفحوص قطعة بقطعة</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="material-symbols-outlined text-secondary text-2xl mb-space-3xs">credit_card</span>
+          <span class="font-label-md font-bold">دفع مريح</span>
+          <span class="font-body-sm text-on-surface-variant">كاش عند الاستلام</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Order Console & Commerce Engine (Span 5) -->
+    <div class="lg:col-span-5 flex flex-col gap-space-md">
+      <!-- Product Title, Rating & SKU -->
+      <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-sm">
+        <!-- SKU & Category -->
+        <div class="flex items-center justify-between font-label-sm">
+          {% if dv %}
+          <span class="font-fiscal-numeric-md text-on-surface-variant bg-surface-container px-space-xs py-space-3xs rounded" dir="ltr">
+            كود: {{ dv.sku }}
+          </span>
+          {% endif %}
+          {% if product.category %}
+          <div class="flex items-center gap-space-3xs text-secondary font-bold">
+            <span class="material-symbols-outlined text-xs">diamond</span>
+            <span>{{ product.category.name_ar }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="flex items-start justify-between gap-space-sm">
+          <h1 class="font-headline-xl text-headline-xl font-bold text-on-surface leading-snug flex-1">
+            {{ product.name_ar }}
+          </h1>
+          <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=product.id) }}" class="shrink-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" title="أضف للمفضلة"
+                    class="p-space-xs rounded-lg bg-surface-container-low hover:bg-error-container text-error transition-colors">
+              <span class="material-symbols-outlined">favorite</span>
+            </button>
+          </form>
+        </div>
+
+        {% if product.brand %}
+        <p class="font-label-md text-on-surface-variant tracking-wide">{{ product.brand }}</p>
+        {% endif %}
+
+        <!-- Rating & Reviews Snapshot -->
+        <div class="flex items-center gap-space-sm pt-space-2xs">
+          {% set r = (product.avg_rating or 0) | float %}
+          {% set full = r | int %}
+          {% set half = 1 if (r - full) >= 0.5 else 0 %}
+          {% set empty = 5 - full - half %}
+          <div class="flex items-center text-amber-500">
+            {% for _ in range(full) %}
+            <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+            {% endfor %}
+            {% if half %}
+            <span class="material-symbols-outlined text-lg">star_half</span>
+            {% endif %}
+            {% for _ in range(empty) %}
+            <span class="material-symbols-outlined text-lg">star</span>
+            {% endfor %}
+            <span class="font-fiscal-numeric-md font-bold text-on-surface mr-space-2xs">{{ product.avg_rating }}</span>
+          </div>
+          {% if product.review_count > 0 %}
+          <span class="text-outline-variant">•</span>
+          <a class="font-label-md text-secondary hover:underline underline-offset-4" href="#reviews-section">
+            ({{ product.review_count }} تقييم معتمد)
+          </a>
+          {% endif %}
+        </div>
+
+        <div class="w-full h-px bg-surface-container mt-space-xs"></div>
+
+        <!-- Price Section -->
+        <div class="flex flex-col gap-space-2xs pt-space-2xs">
+          {% if dv and dv.is_on_sale %}
+          <div class="flex items-baseline gap-space-md flex-wrap">
+            <div class="flex items-baseline gap-space-2xs">
+              <span class="font-display-lg text-display-lg font-bold text-on-surface leading-none">{{ dv.price | money }}</span>
+            </div>
+            <span class="font-headline-sm line-through text-outline">{{ dv.compare_at_price | money }}</span>
+            <span class="bg-error-container text-on-error-container px-space-xs py-space-3xs rounded-md font-label-md font-bold">
+              وفّرت {{ dv.savings_amount | money }} (خصم {{ dv.discount_percent }}%)
+            </span>
+          </div>
+          {% else %}
+          <div class="flex items-baseline gap-space-md flex-wrap">
+            <div class="flex items-baseline gap-space-2xs">
+              <span class="font-display-lg text-display-lg font-bold text-on-surface leading-none">
+                {{ (dv.price if dv else product.default_price) | money }}
+              </span>
+            </div>
+          </div>
+          {% endif %}
+          <span class="font-label-sm text-on-surface-variant">السعر شامل ضريبة القيمة المضافة</span>
+        </div>
+
+        <!-- Countdown Timer (offer_is_live) -->
+        {% if product.offer_is_live %}
+        <div class="bg-surface-container-high/60 rounded-lg p-space-sm flex items-center justify-between mt-space-xs"
+             data-countdown-target="{{ product.offer_ends_at.isoformat() }}">
+          <div class="flex items-center gap-space-2xs text-secondary font-label-md font-bold">
+            <span class="material-symbols-outlined text-sm animate-pulse">timer</span>
+            <span>ينتهي العرض خلال:</span>
+          </div>
+          <div id="offerCountdown" class="flex items-center gap-space-2xs font-fiscal-numeric-md font-bold text-on-surface" dir="ltr">
+            --:--:--
+          </div>
         </div>
         {% endif %}
+
+        <!-- Color & Variant Selector -->
+        {% if product.variants and product.variants|length > 1 %}
+        <div class="flex flex-col gap-space-xs mt-space-xs">
+          <div class="flex items-center justify-between font-label-md">
+            <span class="font-bold text-on-surface">اختر المتغير:</span>
+            <span class="text-secondary font-semibold" id="selected-variant-label">
+              {{ dv.color or dv.variant_name or 'افتراضي' if dv else '' }}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-space-xs">
+            {% for v in product.variants %}
+            <label class="cursor-pointer">
+              <input type="radio" name="variant_id" value="{{ v.id }}" form="add-form"
+                     class="variant-radio sr-only"
+                     data-label="{{ v.color or v.variant_name or 'افتراضي' }}"
+                     {% if loop.first %}checked{% endif %}
+                     {% if v.stock_qty <= 0 %}disabled{% endif %}>
+              <span class="variant-card p-space-xs rounded-lg flex items-center gap-space-xs text-right transition-all
+                          {% if v.stock_qty <= 0 %}bg-surface-container-low opacity-50 cursor-not-allowed
+                          {% elif loop.first %}bg-surface-container-high
+                          {% else %}bg-surface-container-lowest hover:bg-surface-container-low{% endif %}">
+                <span class="w-4 h-4 rounded-full shadow-sm shrink-0 bg-secondary"></span>
+                <span class="flex flex-col min-w-0">
+                  <span class="font-label-md font-bold truncate {% if v.stock_qty <= 0 %}line-through{% endif %}">
+                    {{ v.color or v.variant_name or 'افتراضي' }}
+                  </span>
+                  <span class="font-label-sm {% if v.stock_qty <= 0 %}text-outline{% elif v.is_low_stock %}text-error font-medium{% else %}text-on-surface-variant{% endif %}">
+                    {% if v.stock_qty <= 0 %}
+                      غير متوفر
+                    {% elif v.is_low_stock %}
+                      متبقي {{ v.stock_qty | qty }} فقط
+                    {% else %}
+                      متوفر
+                    {% endif %}
+                  </span>
+                </span>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="variant_id" value="{{ dv.id if dv else '' }}" form="add-form">
+        {% endif %}
+
+        <!-- Low Stock Urgency Alert -->
+        {% if dv and dv.stock_qty and dv.stock_qty > 0 and dv.is_low_stock %}
+        <div class="bg-amber-50 rounded-lg p-space-sm flex items-center gap-space-xs text-amber-900 mt-space-xs">
+          <span class="material-symbols-outlined text-amber-700 animate-bounce">warning</span>
+          <span class="font-label-md font-semibold">
+            متبقي {{ dv.stock_qty | qty }} قطع فقط — اطلب الآن قبل نفاد الكمية
+          </span>
+        </div>
+        {% endif %}
+
+        <!-- Quantity Selector & Primary CTA -->
+        {% if dv and dv.stock_qty and dv.stock_qty > 0 %}
+        <form method="post" action="{{ url_for('storefront.cart_add') }}" id="add-form" class="flex flex-col gap-space-sm mt-space-sm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="flex items-center gap-space-md">
+            <div class="flex items-center bg-surface-container-low rounded-lg p-space-3xs shadow-inner">
+              <button type="button" aria-label="Decrease quantity"
+                      class="w-9 h-9 rounded bg-surface-container-lowest flex items-center justify-center font-bold text-on-surface hover:bg-surface-container transition-colors"
+                      onclick="changeQty(-1)">
+                <span class="material-symbols-outlined text-sm">remove</span>
+              </button>
+              <input class="w-12 text-center bg-transparent font-fiscal-numeric-lg text-headline-sm font-bold text-on-surface focus:outline-none"
+                     id="product-qty-input" name="qty"
+                     max="{{ dv.stock_qty | qty }}" min="1" readonly type="number" value="1">
+              <button type="button" aria-label="Increase quantity"
+                      class="w-9 h-9 rounded bg-surface-container-lowest flex items-center justify-center font-bold text-on-surface hover:bg-surface-container transition-colors"
+                      onclick="changeQty(1)">
+                <span class="material-symbols-outlined text-sm">add</span>
+              </button>
+            </div>
+            <button type="submit"
+                    class="flex-1 h-12 bg-primary text-on-primary hover:bg-zinc-800 rounded-lg font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-space-xs shadow-md transition-all active:scale-[0.99]">
+              <span class="material-symbols-outlined">shopping_cart</span>
+              <span>أضف إلى السلة</span>
+            </button>
+          </div>
+        </form>
+        {% else %}
+        <!-- Notify when back-in-stock -->
+        <div class="bg-amber-50 rounded-lg p-space-md mt-space-sm">
+          <div class="flex items-center gap-space-xs text-amber-900 font-label-md font-bold mb-space-xs">
+            <span class="material-symbols-outlined">warning</span>
+            <span>المنتج غير متوفر حاليًا</span>
+          </div>
+          <form method="post" action="{{ url_for('storefront.notify_when_available', product_id=product.id) }}"
+                class="flex gap-space-xs items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="variant_id" value="{{ dv.id if dv else '' }}">
+            <div class="flex-1">
+              <label class="font-label-sm text-on-surface-variant block mb-space-3xs">إيميلك (لنُخبرك عند التوفر)</label>
+              <input type="email" name="email" required dir="ltr"
+                     value="{{ sf_current_customer.email if sf_current_customer and sf_current_customer.email else '' }}"
+                     class="w-full h-10 px-space-sm rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-secondary font-body-md">
+            </div>
+            <button type="submit"
+                    class="h-10 px-space-lg bg-secondary text-on-secondary rounded-lg font-label-md font-bold flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-sm">notifications</span>
+              <span>أعلمني</span>
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Delivery & Payment Card -->
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-xs font-body-sm text-on-surface-variant">
+        <div class="flex items-center gap-space-xs text-on-surface font-semibold">
+          <span class="material-symbols-outlined text-secondary">verified_user</span>
+          <span>شروط الخدمة والضمان</span>
+        </div>
+        <p class="leading-relaxed">
+          جميع شحنات {{ sf_settings.store_name }} مؤمنة بالكامل. يتم فتح الشحنة ومعاينة القطع بحضور مندوب التوصيل لضمان سلامتها قبل سداد أي مستحقات.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editorial Specs & Details Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+    <!-- Left Column: Description & Features -->
+    <div class="lg:col-span-7 flex flex-col gap-space-xl">
+      {% if product.description or product.features %}
+      <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-md">
+        {% if product.description %}
+        <div class="flex items-center gap-space-xs text-secondary">
+          <span class="material-symbols-outlined">auto_awesome</span>
+          <h2 class="font-headline-xl text-headline-xl font-bold text-on-surface">وصف المنتج</h2>
+        </div>
+        <div class="font-body-lg text-body-lg text-on-surface leading-relaxed flex flex-col gap-space-sm">
+          <p>{{ product.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Feature Bullet Points -->
+        {% if product.features %}
+        <div class="pt-space-sm">
+          <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-space-sm">أبرز المزايا والمواصفات:</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+            {% for feat in product.features %}
+            <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
+              <span class="material-symbols-outlined text-secondary shrink-0">workspace_premium</span>
+              <div>
+                <span class="font-label-lg font-bold block text-on-surface">{{ feat.text }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Set Composition Table -->
+      {% if product.composition %}
+      <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">table_restaurant</span>
+            <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">تكوين الطقم</h3>
+          </div>
+          {% if product.piece_count %}
+          <span class="bg-surface-container px-space-sm py-space-3xs rounded-full font-fiscal-numeric-md font-bold text-on-surface">
+            {{ product.piece_count }} قطعة
+          </span>
+          {% endif %}
+        </div>
+        <p class="font-body-sm text-on-surface-variant">
+          محتويات الطقم بالتفصيل:
+        </p>
+        <div class="overflow-x-auto rounded-lg bg-surface-container-low">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-surface-container-high text-on-surface font-headline-sm text-label-lg">
+                <th class="py-space-sm px-space-md">القطعة</th>
+                <th class="py-space-sm px-space-md text-left font-fiscal-numeric-md">العدد</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-container font-body-md">
+              {% for line in product.composition %}
+              <tr class="hover:bg-surface-container/60 transition-colors">
+                <td class="py-space-xs px-space-md font-medium">{{ line.content_name_ar }}</td>
+                <td class="py-space-xs px-space-md text-left font-fiscal-numeric-md font-bold text-secondary">{{ line.quantity }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            {% if product.piece_count %}
+            <tfoot>
+              <tr class="bg-surface-container-high text-on-surface font-headline-sm">
+                <td class="py-space-sm px-space-md font-bold">المجموع الكلي</td>
+                <td class="py-space-sm px-space-md text-left font-fiscal-numeric-lg font-bold text-primary">{{ product.piece_count }} قطعة</td>
+              </tr>
+            </tfoot>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Specifications -->
+    <div class="lg:col-span-5 flex flex-col gap-space-lg">
+      {% if product.origin_country or product.piece_count or product.brand or product.unit %}
+      <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center gap-space-xs text-secondary">
+          <span class="material-symbols-outlined">tune</span>
+          <h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">المواصفات الفنية</h3>
+        </div>
+        <div class="flex flex-col divide-y divide-surface-container font-label-md">
+          {% if product.brand %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">العلامة التجارية:</span>
+            <span class="font-bold text-on-surface">{{ product.brand }}</span>
+          </div>
+          {% endif %}
+          {% if product.origin_country %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">بلد المنشأ:</span>
+            <span class="font-bold text-on-surface">{{ product.origin_country }}</span>
+          </div>
+          {% endif %}
+          {% if product.piece_count %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">عدد القطع:</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md">{{ product.piece_count }} قطعة</span>
+          </div>
+          {% endif %}
+          {% if product.unit and product.unit != 'قطعة' %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">الوحدة:</span>
+            <span class="font-bold text-on-surface">{{ product.unit }}</span>
+          </div>
+          {% endif %}
+          {% if dv %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">كود المنتج:</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md" dir="ltr">{{ dv.sku }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quality Seal Certificate Box -->
+      <div class="bg-primary-container text-on-primary-container rounded-xl p-space-xl shadow-md flex flex-col gap-space-sm relative overflow-hidden">
+        <div class="absolute -bottom-6 -left-6 text-on-primary-fixed-variant/10 pointer-events-none">
+          <span class="material-symbols-outlined" style="font-size: 140px;">verified</span>
+        </div>
+        <div class="flex items-center gap-space-xs text-secondary-container">
+          <span class="material-symbols-outlined">gavel</span>
+          <span class="font-label-lg font-bold">شهادة الأصالة والضمان</span>
+        </div>
+        <p class="font-body-md text-on-primary-fixed-variant leading-relaxed">
+          يُرفق مع كل طقم بطاقة ضمان تضمن أصالة الخامات ومطابقتها لمعايير سلامة الأغذية.
+        </p>
+        <div class="flex items-center justify-between pt-space-xs text-on-primary-fixed-variant font-label-sm">
+          <span>{{ sf_settings.store_name }}</span>
+          <span class="text-secondary-container font-bold">100% Food Safe</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frequently Bought Together -->
+  {% if frequently %}
+  <section class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm mt-space-xl mb-space-2xl">
+    <div class="flex items-center gap-space-xs mb-space-md">
+      <span class="material-symbols-outlined text-secondary">shopping_basket</span>
+      <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">عادةً يُشترى معه</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+      {% for v in frequently %}
+      <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+         class="flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-colors">
+        <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+          {% if v.product.primary_image %}
+          <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
+          {% else %}
+          <span class="material-symbols-outlined text-on-surface-variant">image</span>
+          {% endif %}
+        </div>
+        <div class="flex flex-col min-w-0 flex-1">
+          <span class="font-label-md font-bold truncate text-on-surface">{{ v.display_name }}</span>
+          <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ v.price | money }}</span>
+          {% if v.is_on_sale %}
+          <span class="font-label-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
+          {% endif %}
+        </div>
+      </a>
       {% endfor %}
     </div>
-    {% else %}
-    <input type="hidden" name="variant_id" value="{{ product.variants[0].id if product.variants else '' }}" form="add-form">
-    {{ low_stock_alert(product.variants[0]) if product.variants else '' }}
-    {% endif %}
+  </section>
+  {% endif %}
 
-    <!-- Qty + add to cart | OR back-in-stock (Ticket 4 Epic 6) -->
-    {% set dv2 = product.default_variant %}
-    {% if dv2 and dv2.stock_qty > 0 %}
-    <form method="post" action="{{ url_for('storefront.cart_add') }}" id="add-form">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:end; margin-bottom:20px;">
-        <div>
-          <label class="form-label" style="font-weight:700;">الكمية</label>
-          <input type="number" name="qty" value="1" min="1"
-                 style="width:100px; padding:12px; border-radius:10px; border:1px solid var(--dp-line-strong); text-align:center; font-weight:700; font-size:1.1rem;">
+  <!-- Customer Reviews Section -->
+  <section id="reviews-section" class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm mt-space-xl mb-space-2xl flex flex-col gap-space-xl">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md border-b border-surface-container pb-space-lg">
+      <div>
+        <div class="flex items-center gap-space-xs text-secondary">
+          <span class="material-symbols-outlined">reviews</span>
+          <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">تقييمات العملاء</h3>
         </div>
-        <button type="submit" class="sf-btn-primary" style="padding:14px 30px; font-size:1rem;">
-          <i class="bi bi-basket-fill"></i> أضف للسلة
-        </button>
+        <p class="font-body-md text-on-surface-variant mt-space-3xs">
+          {% if product.review_count > 0 %}
+          {{ product.review_count }} تقييم معتمد من عملاء حقيقيين
+          {% else %}
+          كن أول من يقيّم هذا المنتج
+          {% endif %}
+        </p>
       </div>
-    </form>
-    {% else %}
-    {# نفد المخزون — نعرض فورم "أعلمني لما يتوفر" #}
-    <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:12px;
-                padding:16px; margin-bottom:20px;">
-      <div style="font-weight:700; color:#92400e; margin-bottom:10px;">
-        <i class="bi bi-exclamation-triangle-fill"></i> المنتج غير متوفر حاليًا
+    </div>
+
+    <!-- Review submission form -->
+    {% if can_review and not already_reviewed %}
+    <div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col gap-space-md">
+      <div class="flex items-center gap-space-xs text-on-surface font-headline-sm font-bold">
+        <span class="material-symbols-outlined text-secondary">edit</span>
+        <span>شارك تقييمك</span>
       </div>
-      <form method="post" action="{{ url_for('storefront.notify_when_available', product_id=product.id) }}"
-            class="d-flex gap-2 align-items-end">
+      <form method="post" action="{{ url_for('storefront.submit_product_review', product_id=product.id) }}" class="flex flex-col gap-space-sm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="variant_id" value="{{ dv2.id if dv2 else '' }}">
-        <div style="flex:1;">
-          <label class="form-label small">إيميلك (لنُخبرك عند التوفر)</label>
-          <input type="email" name="email" class="form-control"
-                 value="{{ sf_current_customer.email if sf_current_customer and sf_current_customer.email else '' }}"
-                 required dir="ltr">
+        <div>
+          <label class="font-label-md text-on-surface-variant block mb-space-3xs">التقييم</label>
+          <div class="rating-picker flex items-center gap-space-2xs" style="flex-direction:row-reverse; justify-content:end;">
+            {% for i in range(5, 0, -1) %}
+            <input type="radio" name="rating" value="{{ i }}" id="rating{{ i }}"
+                   class="sr-only" {% if i == 5 %}required{% endif %}>
+            <label for="rating{{ i }}" class="cursor-pointer text-2xl" style="color:#e5e7eb;">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+            </label>
+            {% endfor %}
+          </div>
         </div>
-        <button type="submit" class="btn btn-warning">
-          <i class="bi bi-bell-fill"></i> أعلمني
+        <div>
+          <label class="font-label-md text-on-surface-variant block mb-space-3xs">تفاصيل تجربتك (اختياري)</label>
+          <textarea name="comment" rows="3"
+                    class="w-full p-space-sm rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-secondary font-body-md"
+                    placeholder="شاركنا رأيك في المنتج..."></textarea>
+        </div>
+        <button type="submit"
+                class="h-10 bg-primary text-on-primary font-label-md font-bold px-space-xl rounded-lg self-end hover:bg-zinc-800 transition-colors flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-sm">send</span>
+          <span>إرسال التقييم</span>
         </button>
       </form>
     </div>
+    {% elif already_reviewed %}
+    <div class="bg-surface-container-low p-space-md rounded-lg flex items-center gap-space-xs text-on-surface font-label-md">
+      <span class="material-symbols-outlined text-secondary">info</span>
+      <span>سبق أن قيّمت هذا المنتج.</span>
+    </div>
+    {% elif sf_current_customer %}
+    <div class="bg-surface-container-low p-space-md rounded-lg flex items-center gap-space-xs text-on-surface-variant font-label-md">
+      <span class="material-symbols-outlined">info</span>
+      <span>يمكنك تقييم المنتج بعد شرائه.</span>
+    </div>
     {% endif %}
 
-    <!-- Trust badges -->
-    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:20px;
-                border-top:1px solid var(--dp-line); font-size:0.8rem; color:var(--dp-ink-2);">
-      <div style="text-align:center;">
-        <i class="bi bi-truck" style="font-size:1.5rem; color:var(--dp-brand);"></i>
-        <div style="margin-top:4px;">شحن سريع</div>
-      </div>
-      <div style="text-align:center;">
-        <i class="bi bi-arrow-counterclockwise" style="font-size:1.5rem; color:var(--dp-brand);"></i>
-        <div style="margin-top:4px;">14 يوم للإرجاع</div>
-      </div>
-      <div style="text-align:center;">
-        <i class="bi bi-shield-check" style="font-size:1.5rem; color:var(--dp-brand);"></i>
-        <div style="margin-top:4px;">ضمان جودة</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Epic 3 — المواصفات (تظهر فقط لو فيه بيانات) -->
-{% if product.origin_country or product.piece_count or product.brand or product.unit %}
-<section style="margin-bottom:40px;">
-  <div class="sf-section-header"><h2>المواصفات</h2></div>
-  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;">
-    <dl class="row mb-0">
-      {% if product.brand %}
-      <dt class="col-md-3 text-muted">العلامة التجارية</dt>
-      <dd class="col-md-9">{{ product.brand }}</dd>
-      {% endif %}
-      {% if product.origin_country %}
-      <dt class="col-md-3 text-muted">بلد المنشأ</dt>
-      <dd class="col-md-9">{{ product.origin_country }}</dd>
-      {% endif %}
-      {% if product.piece_count %}
-      <dt class="col-md-3 text-muted">عدد القطع</dt>
-      <dd class="col-md-9">{{ product.piece_count }}</dd>
-      {% endif %}
-      {% if product.unit and product.unit != 'قطعة' %}
-      <dt class="col-md-3 text-muted">الوحدة</dt>
-      <dd class="col-md-9">{{ product.unit }}</dd>
-      {% endif %}
-    </dl>
-  </div>
-</section>
-{% endif %}
-
-<!-- Epic 3 — المميزات -->
-{% if product.features %}
-<section style="margin-bottom:40px;">
-  <div class="sf-section-header"><h2>المميزات</h2></div>
-  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:20px;">
-    <ul style="list-style:none; padding:0; margin:0;">
-      {% for feat in product.features %}
-      <li style="padding:8px 0; border-bottom:1px solid var(--dp-line);">
-        <i class="bi bi-check-circle-fill" style="color:var(--dp-brand); margin-inline-end:8px;"></i>
-        {{ feat.text }}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-</section>
-{% endif %}
-
-<!-- Epic 4 — تكوين الطقم -->
-{% if product.composition %}
-<section style="margin-bottom:40px;">
-  <div class="sf-section-header"><h2>محتويات الطقم</h2></div>
-  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th style="width:100px;">الكمية</th>
-          <th>المحتوى</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for line in product.composition %}
-        <tr>
-          <td><span class="badge bg-primary">{{ line.quantity }}</span></td>
-          <td>{{ line.content_name_ar }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</section>
-{% endif %}
-
-<!-- Epic 6 — قسم المراجعات -->
-<section style="margin-bottom:40px;">
-  <div class="sf-section-header">
-    <h2>تقييمات العملاء
-      {% if product.review_count > 0 %}
-      <span style="font-size:0.9rem; color:var(--dp-ink-3); font-weight:500;">
-        ({{ product.review_count }} مراجعة)
-      </span>
-      {% endif %}
-    </h2>
-  </div>
-
-  {% if can_review and not already_reviewed %}
-  <div style="background:var(--dp-brand-tint); border:1px solid var(--dp-brand);
-              border-radius:14px; padding:20px; margin-bottom:20px;">
-    <h6 style="font-weight:800; margin-bottom:12px;">
-      <i class="bi bi-pencil-square"></i> شارك تقييمك
-    </h6>
-    <form method="post" action="{{ url_for('storefront.submit_product_review', product_id=product.id) }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="margin-bottom:12px;">
-        <label class="form-label small">التقييم</label>
-        <div class="rating-picker" style="display:flex; gap:4px; flex-direction:row-reverse; justify-content:end;">
-          {% for i in range(5, 0, -1) %}
-          <input type="radio" name="rating" value="{{ i }}" id="rating{{ i }}"
-                 style="display:none;" {% if i == 5 %}required{% endif %}>
-          <label for="rating{{ i }}" style="cursor:pointer; font-size:1.6rem; color:#e5e7eb;"
-                 onmouseover="this.style.color='#f59e0b'"
-                 onmouseout="if(!this.previousElementSibling.checked)this.style.color='#e5e7eb'">
-            <i class="bi bi-star-fill"></i>
-          </label>
+    <!-- Rating Summary + Review List -->
+    {% if product.approved_reviews %}
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-space-xl items-center">
+      <div class="md:col-span-4 bg-surface-container-low p-space-xl rounded-xl text-center flex flex-col items-center justify-center">
+        <span class="font-fiscal-numeric-lg text-[56px] leading-none font-bold text-on-surface">{{ product.avg_rating }}</span>
+        {% set r2 = (product.avg_rating or 0) | float %}
+        {% set full2 = r2 | int %}
+        {% set half2 = 1 if (r2 - full2) >= 0.5 else 0 %}
+        {% set empty2 = 5 - full2 - half2 %}
+        <div class="flex items-center text-amber-500 my-space-xs">
+          {% for _ in range(full2) %}
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">star</span>
+          {% endfor %}
+          {% if half2 %}
+          <span class="material-symbols-outlined text-2xl">star_half</span>
+          {% endif %}
+          {% for _ in range(empty2) %}
+          <span class="material-symbols-outlined text-2xl">star</span>
           {% endfor %}
         </div>
+        <span class="font-label-md text-on-surface-variant">مبني على {{ product.review_count }} تقييم معتمد</span>
       </div>
-      <div style="margin-bottom:12px;">
-        <label class="form-label small">تعليقك (اختياري)</label>
-        <textarea name="comment" rows="3" class="form-control"
-                  placeholder="شاركنا رأيك في المنتج..."></textarea>
-      </div>
-      <button type="submit" class="sf-btn-primary">
-        <i class="bi bi-send"></i> إرسال التقييم
-      </button>
-    </form>
-  </div>
-  {% elif already_reviewed %}
-  <div class="alert alert-info">
-    <i class="bi bi-info-circle"></i> سبق أن قيّمت هذا المنتج.
-  </div>
-  {% elif sf_current_customer %}
-  <div class="alert alert-secondary">
-    يمكنك تقييم المنتج بعد شرائه.
-  </div>
-  {% endif %}
-
-  {% if product.approved_reviews %}
-  <div style="display:flex; flex-direction:column; gap:12px;">
-    {% for r in product.approved_reviews %}
-    <div style="background:white; border:1px solid var(--dp-line); border-radius:14px; padding:18px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div>
-          <strong>{{ r.customer.name_ar }}</strong>
-          <span style="color:var(--dp-ink-3); font-size:0.8rem; margin-inline-start:8px;">
-            {{ r.created_at | hdate }}
-          </span>
+      <div class="md:col-span-8 flex flex-col divide-y divide-surface-container gap-space-lg">
+        {% for r in product.approved_reviews %}
+        <div class="pt-space-lg first:pt-0 flex flex-col gap-space-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-secondary">
+                {{ r.customer.name_ar[:1] if r.customer and r.customer.name_ar else '?' }}
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-space-xs">
+                  <span class="font-headline-sm text-label-lg font-bold text-on-surface">
+                    {{ r.customer.name_ar if r.customer else 'عميل' }}
+                  </span>
+                  <span class="bg-emerald-100 text-emerald-800 text-label-sm px-space-2xs py-space-3xs rounded-full font-bold flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-xs">verified</span>
+                    مشترٍ معتمد
+                  </span>
+                </div>
+                <span class="font-label-sm text-on-surface-variant">{{ r.created_at | hdate }}</span>
+              </div>
+            </div>
+            <div class="flex items-center text-amber-500">
+              {% for _ in range(r.rating) %}
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">star</span>
+              {% endfor %}
+              {% for _ in range(5 - r.rating) %}
+              <span class="material-symbols-outlined text-base">star</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% if r.comment %}
+          <p class="font-body-md text-on-surface leading-relaxed">{{ r.comment }}</p>
+          {% endif %}
         </div>
-        {{ stars(r.rating, 0) }}
+        {% endfor %}
       </div>
-      {% if r.comment %}
-      <div style="color:var(--dp-ink-2); line-height:1.8;">{{ r.comment }}</div>
-      {% endif %}
     </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div style="background:white; border:1px solid var(--dp-line); border-radius:14px;
-              padding:40px; text-align:center; color:var(--dp-ink-3);">
-    لا توجد مراجعات معتمدة بعد. كن أول من يقيّم هذا المنتج!
-  </div>
+    {% else %}
+    <div class="bg-surface-container-low rounded-xl p-space-xl text-center text-on-surface-variant font-body-md">
+      لا توجد مراجعات معتمدة بعد.
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Related Products -->
+  {% if related %}
+  <section class="mb-space-3xl">
+    <div class="flex items-center justify-between mb-space-lg">
+      <div class="flex items-center gap-space-xs text-secondary">
+        <span class="material-symbols-outlined">auto_awesome_motion</span>
+        <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">منتجات ذات صلة</h3>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+      {% for v in related %}
+      <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+         class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
+        <div class="aspect-square relative overflow-hidden bg-surface-container">
+          {% if v.product.primary_image %}
+          <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+               src="{{ url_for('static', filename=v.product.primary_image.file_path) }}"
+               alt="{{ v.display_name }}">
+          {% else %}
+          <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined" style="font-size:48px;">image</span>
+          </div>
+          {% endif %}
+          {% if v.is_on_sale %}
+          <span class="absolute top-space-xs right-space-xs bg-error text-on-error font-label-sm px-space-2xs py-space-3xs rounded">
+            -{{ v.discount_percent }}%
+          </span>
+          {% endif %}
+        </div>
+        <div class="p-space-md flex flex-col flex-1 justify-between gap-space-xs">
+          <div>
+            {% if v.product.category %}
+            <span class="font-label-sm text-on-surface-variant">{{ v.product.category.name_ar }}</span>
+            {% endif %}
+            <h4 class="font-headline-sm font-bold text-on-surface truncate">{{ v.display_name }}</h4>
+          </div>
+          <div class="flex items-center justify-between pt-space-xs">
+            <div class="flex flex-col">
+              {% if v.is_on_sale %}
+              <span class="font-label-sm line-through text-outline">{{ v.compare_at_price | money }}</span>
+              {% endif %}
+              <span class="font-fiscal-numeric-md font-bold text-on-surface">{{ v.price | money }}</span>
+            </div>
+            <span class="p-space-2xs rounded-lg bg-surface-container-low text-secondary">
+              <span class="material-symbols-outlined text-sm">arrow_back</span>
+            </span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
   {% endif %}
-</section>
-
-<!-- Related products (Epic 5 — علاقات يدوية مع fallback) -->
-{% if related %}
-<section>
-  <div class="sf-section-header">
-    <h2>منتجات ذات صلة</h2>
-  </div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
-    {% for v in related %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-      {{ sale_badge(v) }}
-      <div class="sf-product-image">
-        {{ product_thumb(v.product) }}
-      </div>
-      <div class="sf-product-body">
-        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-        <div class="sf-product-name">{{ v.display_name }}</div>
-        <div>{{ price_block(v) }}</div>
-      </div>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-<!-- Epic 5 — عادة يُشترى معه -->
-{% if frequently %}
-<section>
-  <div class="sf-section-header">
-    <h2>عادةً يُشترى معه</h2>
-  </div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
-    {% for v in frequently %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-      {{ sale_badge(v) }}
-      <div class="sf-product-image">
-        {{ product_thumb(v.product) }}
-      </div>
-      <div class="sf-product-body">
-        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-        <div class="sf-product-name">{{ v.display_name }}</div>
-        <div>{{ price_block(v) }}</div>
-      </div>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
+</div>
 
 <script>
-  // معالج الأنماط لاختيار المتغير
+  // Variant selection: sync radio + label + chip highlight
   document.querySelectorAll('.variant-radio').forEach(r => {
     r.addEventListener('change', () => {
-      document.querySelectorAll('.variant-chip').forEach(c => {
-        c.style.borderColor = 'var(--dp-line)';
-        c.style.background = '';
-        c.style.color = '';
+      document.querySelectorAll('.variant-card').forEach(c => {
+        c.classList.remove('bg-surface-container-high');
+        c.classList.add('bg-surface-container-lowest');
       });
-      const chip = r.closest('label').querySelector('.variant-chip');
-      chip.style.borderColor = 'var(--dp-brand)';
-      chip.style.background = 'var(--dp-brand-tint)';
-      chip.style.color = 'var(--dp-brand-dark)';
+      const card = r.closest('label').querySelector('.variant-card');
+      if (card) {
+        card.classList.remove('bg-surface-container-lowest');
+        card.classList.add('bg-surface-container-high');
+      }
+      const label = document.getElementById('selected-variant-label');
+      if (label && r.dataset.label) label.textContent = r.dataset.label;
     });
-    if (r.checked) r.dispatchEvent(new Event('change'));
   });
 
-  // معرض الصور - تبديل الصورة الرئيسية
-  document.querySelectorAll('.thumb').forEach(t => {
+  // Gallery thumbnails
+  document.querySelectorAll('.thumb-btn').forEach(t => {
     t.addEventListener('click', () => {
       const full = t.dataset.full;
-      const img = document.getElementById('mainImageImg');
+      const img = document.getElementById('main-product-image');
       if (img && full) img.src = full;
-      document.querySelectorAll('.thumb').forEach(x => x.style.borderColor = 'var(--dp-line)');
-      t.style.borderColor = 'var(--dp-brand)';
+      document.querySelectorAll('.thumb-btn').forEach(x => {
+        x.classList.remove('bg-surface-container-high');
+      });
+      t.classList.add('bg-surface-container-high');
     });
   });
 
-  // Epic 2 — عداد تنازلي للعرض المحدد
+  // Quantity selector
+  function changeQty(delta) {
+    const input = document.getElementById('product-qty-input');
+    if (!input) return;
+    let val = parseInt(input.value, 10) || 1;
+    const max = parseInt(input.max, 10) || 99;
+    val = Math.max(1, Math.min(max, val + delta));
+    input.value = val;
+  }
+
+  // Countdown timer (Epic 2)
   (function() {
     const box = document.querySelector('[data-countdown-target]');
     if (!box) return;
@@ -437,10 +808,7 @@
     const el = document.getElementById('offerCountdown');
     function tick() {
       const diff = target - Date.now();
-      if (diff <= 0) {
-        box.style.display = 'none';  // إخفاء تلقائي عند الانتهاء
-        return;
-      }
+      if (diff <= 0) { box.style.display = 'none'; return; }
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
@@ -450,17 +818,17 @@
       parts.push(String(h).padStart(2, '0'));
       parts.push(String(m).padStart(2, '0'));
       parts.push(String(s).padStart(2, '0'));
-      el.textContent = parts.join(':');
+      if (el) el.textContent = parts.join(':');
     }
     setInterval(tick, 1000); tick();
   })();
 
-  // rating stars على فورم إرسال المراجعة
+  // Rating stars picker
   document.querySelectorAll('.rating-picker input[type="radio"]').forEach(input => {
     input.addEventListener('change', () => {
       const val = parseInt(input.value);
       document.querySelectorAll('.rating-picker label').forEach((lbl, idx) => {
-        const num = 5 - idx;  // reversed
+        const num = 5 - idx;
         lbl.style.color = num <= val ? '#f59e0b' : '#e5e7eb';
       });
     });

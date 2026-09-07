@@ -87,7 +87,10 @@ class InstallmentPlan(db.Model, TimestampMixin):
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # علاقات
-    sales_invoice = relationship("SalesInvoice", lazy="joined")
+    sales_invoice = relationship(
+        "SalesInvoice", lazy="joined",
+        backref=db.backref("installment_plan", uselist=False, lazy="joined"),
+    )
     customer = relationship("Party", lazy="joined")
     schedule = relationship(
         "InstallmentScheduleLine",

@@ -314,6 +314,33 @@ def return_view(return_id):
     return render_template("sales/return_view.html", ret=ret)
 
 
+@sales_bp.route("/<int:invoice_id>/receipt", methods=["GET"])
+@login_required
+@require_permission("sales.view")
+def thermal_receipt(invoice_id):
+    """إيصال حراري 80mm عام لأي فاتورة بيع — POS، تقسيط، أونلاين، أو يدوي.
+
+    نفس القالب المستخدم في pos.receipt، لكن يعمل مع أي SalesInvoice بغض
+    النظر عن مصدرها. الفروق التي يعرضها القالب:
+      - المصدر (POS / أونلاين / تقسيط / يدوي)
+      - العميل: 'عميل نقدي' لو walk-in، وإلا الاسم الفعلي
+      - التقسيط: مقدم + متبقي + عدد الأقساط
+      - الآجل: مدفوع + متبقي
+    """
+    inv = db.session.get(SalesInvoice, invoice_id) or abort(404)
+    return render_template(
+        "pos/receipt.html",
+        invoice=inv,
+        store_name=str(get_setting("store.name", "دكتور بورسلين") or "دكتور بورسلين"),
+        store_addr=str(get_setting("store.address", "") or ""),
+        store_phone=str(get_setting("store.phone", "") or ""),
+        store_cr=str(get_setting("store.commercial_reg", "") or ""),
+        tax_number=str(get_setting("store.tax_number", "") or ""),
+        tax_enabled=bool(get_setting("tax.enabled", False)),
+        tax_rate=str(get_setting("tax.default_rate", "14")),
+    )
+
+
 @sales_bp.route("/returns/<int:return_id>/receipt", methods=["GET"])
 @login_required
 @require_permission("sales.view")

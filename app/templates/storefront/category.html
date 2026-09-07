@@ -1,143 +1,587 @@
 {% extends "storefront/_base.html" %}
-{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert %}
+{% from "storefront/_macros.html" import product_thumb %}
 {% block title %}{{ category.name_ar }}{% endblock %}
 
+{% block head %}
+{# ============================================================
+   Tailwind CDN + MD3 tokens (mirrors app/templates/base.html)
+   The storefront _base.html shell is Bootstrap-based; Tailwind is
+   loaded per page so the MD3-tokened mockup markup renders correctly.
+   ============================================================ #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary-container": "#2f1500", "on-primary": "#ffffff",
+          "surface-container": "#e5eeff", "error-container": "#ffdad6",
+          "background": "#f8f9ff", "surface-container-high": "#dce9ff",
+          "primary-container": "#131b2e", "on-primary-fixed": "#131b2e",
+          "primary-fixed": "#dae2fd", "outline": "#76777d",
+          "on-primary-container": "#7c839b", "surface-container-low": "#eff4ff",
+          "inverse-primary": "#bec6e0", "secondary": "#006398",
+          "inverse-surface": "#213145", "surface-bright": "#f8f9ff",
+          "on-secondary": "#ffffff", "surface-variant": "#d3e4fe",
+          "primary-fixed-dim": "#bec6e0", "on-tertiary-container": "#c76c00",
+          "tertiary-fixed": "#ffdcc3", "on-error-container": "#93000a",
+          "secondary-fixed": "#cce5ff", "secondary-fixed-dim": "#93ccff",
+          "on-tertiary": "#ffffff", "outline-variant": "#c6c6cd",
+          "error": "#ba1a1a", "secondary-container": "#5bb8fe",
+          "surface-container-lowest": "#ffffff", "on-surface-variant": "#45464d",
+          "on-secondary-fixed": "#001d31", "tertiary-fixed-dim": "#ffb77d",
+          "surface-container-highest": "#d3e4fe", "on-primary-fixed-variant": "#3f465c",
+          "on-surface": "#0b1c30", "on-tertiary-fixed-variant": "#6e3900",
+          "on-error": "#ffffff", "surface-dim": "#cbdbf5",
+          "inverse-on-surface": "#eaf1ff", "surface-tint": "#565e74",
+          "primary": "#000000", "on-background": "#0b1c30",
+          "on-secondary-fixed-variant": "#004b73", "surface": "#f8f9ff",
+          "on-secondary-container": "#00476e", "on-tertiary-fixed": "#2f1500",
+          "tertiary": "#000000"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: {
+          "space-3xl": "3rem", "space-3xs": "0.125rem", "space-2xs": "0.25rem",
+          "space-xl": "1.5rem", "space-2xl": "2rem", "space-sm": "0.75rem",
+          "space-xs": "0.5rem", "space-md": "1rem", "space-lg": "1.25rem"
+        },
+        fontSize: {
+          "display-sm": ["28px", { "lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+          "fiscal-numeric-lg": ["28px", { "lineHeight": "32px", "letterSpacing": "0", "fontWeight": "700" }],
+          "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+          "headline-xl": ["24px", { "lineHeight": "34px", "fontWeight": "600" }],
+          "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+          "fiscal-numeric-md": ["15px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "600" }],
+          "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+          "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+          "headline-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+          "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+          "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+          "display-lg": ["36px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+          "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "600" }]
+        }
+      }
+    }
+  };
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+  }
+  .sf-md3-scope { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="margin-bottom:24px;">
-  <div style="color:var(--dp-ink-3); font-size:0.85rem; margin-bottom:8px;">
-    <a href="{{ url_for('storefront.home') }}" style="color:var(--dp-ink-3);">الرئيسية</a>
-    <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
-    <span>{{ category.name_ar }}</span>
-  </div>
-  <h1 style="font-size:2rem; font-weight:800; margin:0;">{{ category.name_ar }}</h1>
-  <div style="color:var(--dp-ink-3); margin-top:4px;">{{ variants|length }} منتج</div>
-</div>
+<div class="sf-md3-scope w-full text-on-surface">
+  <div class="flex flex-col w-full">
 
-<div style="display:grid; grid-template-columns:280px 1fr; gap:24px;">
-  <!-- Filters sidebar -->
-  <aside>
-    <div class="card" style="padding:20px;">
-      <h6 style="font-weight:800; margin-bottom:14px;">الفلاتر</h6>
-      <form method="get">
-        <div style="margin-bottom:16px;">
-          <label class="form-label small">بحث</label>
-          <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm"
-                 placeholder="اسم المنتج">
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="form-label small">نطاق السعر</label>
-          <div style="display:flex; gap:6px;">
-            <input type="number" name="price_min" value="{{ price_min or '' }}"
-                   class="form-control form-control-sm" placeholder="من">
-            <input type="number" name="price_max" value="{{ price_max or '' }}"
-                   class="form-control form-control-sm" placeholder="إلى">
+    {# ============ Breadcrumbs + Category Hero ============ #}
+    <section class="w-full bg-surface-container-lowest shadow-[0_1px_4px_rgba(0,0,0,0.03)] mb-space-lg rounded-xl">
+      <div class="max-w-7xl mx-auto px-space-md py-space-md">
+        <nav class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-sm">
+          <a href="{{ url_for('storefront.home') }}"
+             class="hover:text-secondary flex items-center gap-space-3xs transition-colors">
+            <span class="material-symbols-outlined text-[16px]">home</span>
+            <span>الرئيسية</span>
+          </a>
+          <span class="material-symbols-outlined text-outline-variant text-[14px]">chevron_left</span>
+          {% if category.parent %}
+          <a href="{{ url_for('storefront.category', category_id=category.parent.id) }}"
+             class="hover:text-secondary transition-colors">{{ category.parent.name_ar }}</a>
+          <span class="material-symbols-outlined text-outline-variant text-[14px]">chevron_left</span>
+          {% endif %}
+          <span class="text-on-surface font-semibold">{{ category.name_ar }}</span>
+        </nav>
+
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary-container via-[#1a2640] to-primary-container p-space-xl text-on-primary shadow-lg">
+          <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-secondary/15 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -right-8 -top-8 w-56 h-56 bg-tertiary-fixed-dim/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+            <div class="max-w-3xl space-y-space-xs">
+              <div class="flex items-center gap-space-xs">
+                <span class="bg-secondary-fixed/20 text-secondary-fixed px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm flex items-center gap-space-3xs">
+                  <span class="material-symbols-outlined text-[15px]">verified</span>
+                  {{ store.name }}
+                </span>
+                <span class="text-on-primary-container font-label-sm text-label-sm">•</span>
+                <span class="text-on-primary-container font-label-sm text-label-sm">
+                  معروض {{ variants | length }} منتج
+                </span>
+              </div>
+              <h1 class="font-display-sm text-display-sm lg:font-display-lg lg:text-display-lg font-bold tracking-tight text-on-primary">
+                {{ category.name_ar }}
+              </h1>
+              {% if category.description %}
+              <p class="font-body-md text-body-md text-on-primary-container leading-relaxed">
+                {{ category.description }}
+              </p>
+              {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-space-sm shrink-0 bg-surface-container-lowest/5 backdrop-blur-md p-space-sm rounded-xl border border-on-primary/10">
+              <div class="flex items-center gap-space-xs text-right">
+                <span class="material-symbols-outlined text-secondary-container text-[24px]">local_shipping</span>
+                <div>
+                  <p class="font-label-md text-label-md text-on-primary font-semibold">شحن مؤمّن</p>
+                  <p class="font-body-sm text-body-sm text-on-primary-container">ضد مخاطر الكسر</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-space-xs text-right">
+                <span class="material-symbols-outlined text-secondary-container text-[24px]">workspace_premium</span>
+                <div>
+                  <p class="font-label-md text-label-md text-on-primary font-semibold">ضمان الأصالة</p>
+                  <p class="font-body-sm text-body-sm text-on-primary-container">استبدال 14 يوم</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Epic 7 — فلتر البراند -->
-        {% if available_brands %}
-        <div style="margin-bottom:16px;">
-          <label class="form-label small">العلامة التجارية</label>
-          <div style="max-height:180px; overflow-y:auto; padding:6px; border:1px solid var(--dp-line); border-radius:8px;">
-            {% for b in available_brands %}
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="brand" value="{{ b }}"
-                     id="brand{{ loop.index }}"
-                     {% if b in selected_brands %}checked{% endif %}>
-              <label class="form-check-label small" for="brand{{ loop.index }}">{{ b }}</label>
+          {# Sub-category chips (real data) #}
+          {% if category.children %}
+          <div class="relative z-10 mt-space-lg pt-space-md border-t border-on-primary/10 flex items-center gap-space-xs overflow-x-auto pb-space-2xs">
+            <span class="text-on-primary-container font-label-sm text-label-sm whitespace-nowrap pl-space-xs">التصنيفات الفرعية:</span>
+            {% for sub in category.children %}
+            <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
+               class="bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap transition-all">
+              {{ sub.name_ar }}
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-space-md w-full pb-space-3xl">
+
+      {# ============ Utility Bar: sort + results counter
+          The sort <select> uses form="filtersForm" so changing it submits
+          together with all sidebar filters (single GET carrying every field). #}
+      <div class="bg-surface-container-lowest rounded-xl p-space-sm mb-space-lg shadow-sm flex flex-wrap items-center justify-between gap-space-md">
+          <div class="flex items-center gap-space-md">
+            <button type="button" id="filterToggleBtn"
+                    class="lg:hidden flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-sm py-space-xs rounded-lg font-label-md text-label-md transition-colors">
+              <span class="material-symbols-outlined text-[18px]">tune</span>
+              <span>تصفية النتائج</span>
+              {% set active_filters = (selected_brands | length) + (selected_colors | length)
+                                       + (1 if (price_min is not none) else 0)
+                                       + (1 if (price_max is not none) else 0)
+                                       + (1 if q else 0) %}
+              {% if active_filters %}
+              <span class="bg-secondary text-on-secondary w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold">{{ active_filters }}</span>
+              {% endif %}
+            </button>
+            <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+              <span>عدد النتائج:</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ variants | length }}</span>
+              <span>منتج متاح</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-space-md">
+            <div class="flex items-center gap-space-xs">
+              <label class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap" for="catalogSort">الترتيب حسب:</label>
+              <div class="relative">
+                <select id="catalogSort" name="sort" form="filtersForm" onchange="document.getElementById('filtersForm').submit()"
+                        class="appearance-none bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md pr-space-sm pl-space-xl py-space-xs rounded-lg focus:outline-none focus:bg-surface-container-lowest transition-colors cursor-pointer">
+                  <option value="newest" {% if sort == 'newest' %}selected{% endif %}>الأحدث وصولاً</option>
+                  <option value="best_selling" {% if sort == 'best_selling' %}selected{% endif %}>الأكثر مبيعًا</option>
+                  <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>السعر: من الأقل إلى الأعلى</option>
+                  <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>السعر: من الأعلى إلى الأقل</option>
+                </select>
+                <span class="material-symbols-outlined absolute left-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+              </div>
+            </div>
+          </div>
+      </div>
+
+      {# ============ Layout: Sidebar filters + Product grid ============ #}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+
+        {# ============ Faceted Sidebar (single Jinja form wired to route filters) ============ #}
+        <aside id="filtersSidebar" class="lg:col-span-3 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm space-y-space-xl sticky top-24">
+          <div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[22px]">tune</span>
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الفلاتر</span>
+            </div>
+            {% if selected_brands or selected_colors or q or price_min is not none or price_max is not none %}
+            <a href="{{ url_for('storefront.category', category_id=category.id) }}"
+               class="text-error hover:underline font-label-sm text-label-sm font-semibold transition-all">
+              إعادة ضبط
+            </a>
+            {% endif %}
+          </div>
+
+          {# Note: the sort <select> in the utility bar uses form="filtersForm"
+              — it submits with this form, so no hidden `sort` input here (would
+              collide with the select's own value in the same form). #}
+          <form method="get" id="filtersForm" class="space-y-space-xl">
+            {# Search #}
+            <div class="space-y-space-sm">
+              <label class="font-label-lg text-label-lg text-on-surface font-semibold" for="q">بحث في القسم</label>
+              <div class="relative">
+                <input type="search" name="q" id="q" value="{{ q }}"
+                       placeholder="اسم المنتج أو الكود"
+                       class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm pr-space-xl pl-space-sm py-space-xs rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary">
+                <span class="material-symbols-outlined absolute right-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+              </div>
+            </div>
+
+            {# Price range #}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">نطاق السعر (ج.م)</span>
+              </div>
+              <div class="flex items-center gap-space-xs pt-space-2xs">
+                <div class="flex-1 bg-surface-container-low rounded-lg p-space-xs text-right">
+                  <span class="block font-label-sm text-[10px] text-on-surface-variant">الحد الأدنى</span>
+                  <input type="number" name="price_min" value="{{ price_min or '' }}" placeholder="0"
+                         class="w-full bg-transparent font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold focus:outline-none">
+                </div>
+                <span class="text-on-surface-variant">-</span>
+                <div class="flex-1 bg-surface-container-low rounded-lg p-space-xs text-right">
+                  <span class="block font-label-sm text-[10px] text-on-surface-variant">الحد الأقصى</span>
+                  <input type="number" name="price_max" value="{{ price_max or '' }}" placeholder="∞"
+                         class="w-full bg-transparent font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold focus:outline-none">
+                </div>
+              </div>
+            </div>
+
+            {# Brand facets (real distinct values from route) #}
+            {% if available_brands %}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">العلامة التجارية</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="space-y-space-xs font-body-sm text-body-sm max-h-64 overflow-y-auto">
+                {% for b in available_brands %}
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="brand" value="{{ b }}"
+                           {% if b in selected_brands %}checked{% endif %}
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors {% if b in selected_brands %}font-medium{% endif %}">{{ b }}</span>
+                  </div>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {# Color facets (real distinct values from route) #}
+            {% if available_colors %}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">اللون</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="space-y-space-xs font-body-sm text-body-sm max-h-64 overflow-y-auto">
+                {% for c in available_colors %}
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="color" value="{{ c }}"
+                           {% if c in selected_colors %}checked{% endif %}
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors {% if c in selected_colors %}font-medium{% endif %}">{{ c }}</span>
+                  </div>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {# Sub-categories (real data) #}
+            {% if category.children %}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <span class="block font-label-lg text-label-lg text-on-surface font-semibold mb-space-xs">التصنيفات الفرعية</span>
+              <div class="space-y-space-2xs">
+                {% for sub in category.children %}
+                <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
+                   class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low text-on-surface font-body-sm text-body-sm transition-colors">
+                  <span>{{ sub.name_ar }}</span>
+                  <span class="material-symbols-outlined text-[14px] text-on-surface-variant">chevron_left</span>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <button type="submit"
+                    class="w-full bg-primary-container hover:bg-[#1f2c4a] text-on-primary py-space-sm rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-space-xs transition-all shadow-md">
+              <span class="material-symbols-outlined text-[20px]">done_all</span>
+              <span>تطبيق الفلاتر</span>
+            </button>
+          </form>
+        </aside>
+
+        {# ============ Products Grid ============ #}
+        <section class="lg:col-span-9 space-y-space-xl">
+
+          {# Active filter chips (real selected values) #}
+          {% if selected_brands or selected_colors or q or price_min is not none or price_max is not none %}
+          <div class="flex flex-wrap items-center gap-space-xs">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">الفلاتر المطبقة:</span>
+
+            {% if q %}
+            <a href="{{ url_for('storefront.category', category_id=category.id,
+                                sort=sort,
+                                brand=selected_brands, color=selected_colors,
+                                price_min=price_min, price_max=price_max) }}"
+               class="bg-surface-container-lowest text-on-surface shadow-sm px-space-sm py-space-2xs rounded-full font-label-sm text-label-sm flex items-center gap-space-2xs hover:bg-surface-container">
+              بحث: {{ q }}
+              <span class="material-symbols-outlined text-[14px] text-on-surface-variant">close</span>
+            </a>
+            {% endif %}
+
+            {% if price_min is not none or price_max is not none %}
+            <a href="{{ url_for('storefront.category', category_id=category.id,
+                                sort=sort, q=q,
+                                brand=selected_brands, color=selected_colors) }}"
+               class="bg-surface-container-lowest text-on-surface shadow-sm px-space-sm py-space-2xs rounded-full font-label-sm text-label-sm flex items-center gap-space-2xs hover:bg-surface-container">
+              السعر:
+              {% if price_min is not none %}{{ price_min | int }}{% else %}0{% endif %}
+              -
+              {% if price_max is not none %}{{ price_max | int }}{% else %}∞{% endif %}
+              ج.م
+              <span class="material-symbols-outlined text-[14px] text-on-surface-variant">close</span>
+            </a>
+            {% endif %}
+
+            {% for b in selected_brands %}
+            {% set others = selected_brands | reject('equalto', b) | list %}
+            <a href="{{ url_for('storefront.category', category_id=category.id,
+                                sort=sort, q=q,
+                                brand=others, color=selected_colors,
+                                price_min=price_min, price_max=price_max) }}"
+               class="bg-surface-container-lowest text-on-surface shadow-sm px-space-sm py-space-2xs rounded-full font-label-sm text-label-sm flex items-center gap-space-2xs hover:bg-surface-container">
+              {{ b }}
+              <span class="material-symbols-outlined text-[14px] text-on-surface-variant">close</span>
+            </a>
+            {% endfor %}
+
+            {% for c in selected_colors %}
+            {% set others = selected_colors | reject('equalto', c) | list %}
+            <a href="{{ url_for('storefront.category', category_id=category.id,
+                                sort=sort, q=q,
+                                brand=selected_brands, color=others,
+                                price_min=price_min, price_max=price_max) }}"
+               class="bg-surface-container-lowest text-on-surface shadow-sm px-space-sm py-space-2xs rounded-full font-label-sm text-label-sm flex items-center gap-space-2xs hover:bg-surface-container">
+              {{ c }}
+              <span class="material-symbols-outlined text-[14px] text-on-surface-variant">close</span>
+            </a>
+            {% endfor %}
+
+            <a href="{{ url_for('storefront.category', category_id=category.id) }}"
+               class="text-secondary font-label-sm text-label-sm hover:underline pr-space-xs">
+              مسح الكل
+            </a>
+          </div>
+          {% endif %}
+
+          {# ============ Product Grid (real variants) ============ #}
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
+            {% for v in variants %}
+            <article class="group relative bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+              <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                 class="relative overflow-hidden bg-surface-container-low block">
+                <div class="w-full h-64 bg-surface-container-low flex items-center justify-center text-secondary text-[80px] group-hover:scale-105 transition-transform duration-500">
+                  {{ product_thumb(v.product) }}
+                </div>
+
+                {# Sale badge / New arrival badge #}
+                <div class="absolute top-space-sm right-space-sm flex flex-col gap-space-2xs items-start">
+                  {% if v.is_on_sale %}
+                  <span class="bg-error text-on-error px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
+                    -{{ v.discount_percent }}%
+                  </span>
+                  {% endif %}
+                  {% if v.stock_qty and v.stock_qty > 0 and v.reorder_level and v.stock_qty <= v.reorder_level %}
+                  <span class="bg-[#ecfdf5] text-[#047857] px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow-sm">
+                    متبقي {{ v.stock_qty | int }} قطع
+                  </span>
+                  {% elif v.stock_qty and v.stock_qty > 0 %}
+                  <span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
+                    متوفر
+                  </span>
+                  {% else %}
+                  <span class="bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
+                    نفد المخزون
+                  </span>
+                  {% endif %}
+                </div>
+
+                {# Piece count / SKU micro badge #}
+                <div class="absolute bottom-space-xs right-space-xs left-space-xs flex items-center justify-between bg-primary-container/80 backdrop-blur-md px-space-sm py-space-3xs rounded-lg text-on-primary font-label-sm text-label-sm">
+                  <span class="flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-[16px] text-secondary-container">inventory_2</span>
+                    <span dir="ltr">{{ v.sku }}</span>
+                  </span>
+                  {% if v.color %}
+                  <span class="text-on-primary-container">{{ v.color }}</span>
+                  {% endif %}
+                </div>
+              </a>
+
+              {# Wishlist quick action (preserved storefront route + csrf) #}
+              <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=v.product_id) }}"
+                    class="absolute top-space-sm left-space-sm z-10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" title="إضافة للمفضلة"
+                        class="w-9 h-9 rounded-full bg-surface-container-lowest/90 backdrop-blur text-on-surface hover:text-error flex items-center justify-center shadow transition-colors">
+                  <span class="material-symbols-outlined text-[20px]">favorite</span>
+                </button>
+              </form>
+
+              {# Content details #}
+              <div class="p-space-md flex flex-col flex-1 justify-between gap-space-md">
+                <div class="space-y-space-xs">
+                  <div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+                    {% if v.product.brand %}
+                    <span class="text-secondary font-semibold">{{ v.product.brand }}</span>
+                    {% else %}
+                    <span></span>
+                    {% endif %}
+                    {% if v.product.review_count and v.product.review_count > 0 %}
+                    <div class="flex items-center">
+                      <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1; color:#f59e0b;">star</span>
+                      <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface mr-1">{{ v.product.avg_rating }}</span>
+                      <span class="text-on-surface-variant text-[11px]">({{ v.product.review_count }})</span>
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                     class="block font-headline-sm text-headline-sm text-on-surface font-bold group-hover:text-secondary transition-colors">
+                    {{ v.display_name }}
+                  </a>
+
+                  {% if v.product.description %}
+                  <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    {{ v.product.description }}
+                  </p>
+                  {% endif %}
+
+                  <div class="flex items-center gap-space-xs pt-space-2xs">
+                    {% if v.product.category %}
+                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">
+                      {{ v.product.category.name_ar }}
+                    </span>
+                    {% endif %}
+                    {% if v.product.brand %}
+                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">
+                      {{ v.product.brand }}
+                    </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="pt-space-sm border-t border-surface-container flex items-end justify-between gap-space-xs">
+                  <div>
+                    <div class="flex items-center gap-space-2xs">
+                      <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ v.price | money }}</span>
+                    </div>
+                    {% if v.is_on_sale %}
+                    <div class="flex items-center gap-space-xs">
+                      <span class="font-body-sm text-body-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
+                      <span class="bg-error-container text-on-error-container px-space-3xs py-0 rounded font-label-sm text-[11px] font-bold">
+                        وفر {{ v.savings_amount | money }}
+                      </span>
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <form method="post" action="{{ url_for('storefront.cart_add') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="variant_id" value="{{ v.id }}">
+                    <input type="hidden" name="qty" value="1">
+                    <button type="submit"
+                            class="bg-primary-container text-on-primary hover:bg-secondary px-space-md py-space-xs rounded-xl font-label-md text-label-md flex items-center gap-space-3xs transition-colors shadow disabled:opacity-60"
+                            {% if v.stock_qty <= 0 %}disabled{% endif %}>
+                      <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                      <span>{% if v.stock_qty > 0 %}اقتناء{% else %}نفد{% endif %}</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </article>
+            {% else %}
+            <div class="col-span-full py-space-3xl px-space-md text-center bg-surface-container-lowest rounded-xl">
+              <div class="text-on-surface-variant space-y-space-sm">
+                <span class="material-symbols-outlined text-[64px] opacity-40">inventory_2</span>
+                <p class="font-body-lg text-body-lg">لا توجد منتجات تطابق البحث</p>
+                <p class="font-body-sm text-body-sm">جرّب تعديل الفلاتر أو مسحها.</p>
+                {% if selected_brands or selected_colors or q or price_min is not none or price_max is not none %}
+                <a href="{{ url_for('storefront.category', category_id=category.id) }}"
+                   class="inline-flex items-center gap-space-xs bg-secondary text-on-secondary px-space-md py-space-xs rounded-lg font-label-md text-label-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors">
+                  <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                  <span>مسح الفلاتر</span>
+                </a>
+                {% endif %}
+              </div>
             </div>
             {% endfor %}
           </div>
-        </div>
-        {% endif %}
 
-        <!-- Epic 7 — فلتر اللون -->
-        {% if available_colors %}
-        <div style="margin-bottom:16px;">
-          <label class="form-label small">اللون</label>
-          <div style="max-height:180px; overflow-y:auto; padding:6px; border:1px solid var(--dp-line); border-radius:8px;">
-            {% for c in available_colors %}
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="color" value="{{ c }}"
-                     id="color{{ loop.index }}"
-                     {% if c in selected_colors %}checked{% endif %}>
-              <label class="form-check-label small" for="color{{ loop.index }}">{{ c }}</label>
+          {# ============ Consultation Banner (marketing static) ============ #}
+          <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-container via-[#1b253b] to-primary-container p-space-xl text-on-primary shadow-lg mt-space-2xl">
+            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-space-lg">
+              <div class="flex items-center gap-space-md">
+                <div class="w-16 h-16 rounded-2xl bg-secondary/20 flex items-center justify-center shrink-0 border border-secondary-container/30">
+                  <span class="material-symbols-outlined text-secondary-container text-[36px]">room_service</span>
+                </div>
+                <div class="space-y-space-3xs text-right">
+                  <h4 class="font-headline-lg text-headline-lg font-bold text-on-primary">
+                    محتار في اختيار المنتج المناسب؟
+                  </h4>
+                  <p class="font-body-md text-body-md text-on-primary-container max-w-xl">
+                    تواصل مع خدمة عملاء {{ store.name }} — نساعدك في اختيار الطقم المناسب لمنزلك.
+                  </p>
+                </div>
+              </div>
+              <div class="flex flex-col sm:flex-row items-center gap-space-sm shrink-0 w-full md:w-auto">
+                {% if sf_settings.store_phone %}
+                <a href="tel:{{ sf_settings.store_phone }}"
+                   class="w-full sm:w-auto bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container px-space-lg py-space-sm rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-space-xs transition-colors shadow-md">
+                  <span class="material-symbols-outlined text-[20px]">call</span>
+                  <span>اتصل بنا</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('storefront.track_order') }}"
+                   class="w-full sm:w-auto bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-space-md py-space-sm rounded-xl font-label-lg text-label-lg font-semibold transition-colors">
+                  تتبع طلبك
+                </a>
+              </div>
             </div>
-            {% endfor %}
           </div>
-        </div>
-        {% endif %}
 
-        <div style="margin-bottom:16px;">
-          <label class="form-label small">الترتيب</label>
-          <select name="sort" class="form-select form-select-sm">
-            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>الأحدث</option>
-            <option value="best_selling" {% if sort == 'best_selling' %}selected{% endif %}>الأكثر مبيعًا</option>
-            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>السعر: من الأقل</option>
-            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>السعر: من الأعلى</option>
-          </select>
-        </div>
-        <button type="submit" class="sf-btn-primary" style="width:100%;">
-          <i class="bi bi-funnel"></i> تطبيق
-        </button>
-        {% if selected_brands or selected_colors or q or price_min or price_max %}
-        <a href="{{ url_for('storefront.category', category_id=category.id) }}"
-           class="btn btn-sm btn-outline-secondary mt-2" style="width:100%;">
-          <i class="bi bi-x-circle"></i> مسح الفلاتر
-        </a>
-        {% endif %}
-      </form>
-    </div>
-
-    {% if category.children %}
-    <div class="card mt-3" style="padding:20px;">
-      <h6 style="font-weight:800; margin-bottom:10px;">التصنيفات الفرعية</h6>
-      {% for sub in category.children %}
-      <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
-         style="display:block; padding:6px 0; color:var(--dp-ink-2); text-decoration:none; font-size:0.9rem;">
-        <i class="bi bi-chevron-double-left" style="font-size:0.7rem"></i>
-        {{ sub.name_ar }}
-      </a>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </aside>
-
-  <!-- Products grid -->
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px; align-content:start;">
-    {% for v in variants %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-      {{ sale_badge(v) }}
-      <div class="sf-product-image">
-        {{ product_thumb(v.product) }}
+        </section>
       </div>
-      <div class="sf-product-body">
-        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-        <div class="sf-product-name">{{ v.display_name }}</div>
-        {% if v.product.review_count > 0 %}
-        <div style="margin-bottom:4px; font-size:0.75rem;">
-          {{ stars(v.product.avg_rating, v.product.review_count) }}
-        </div>
-        {% endif %}
-        <div>{{ price_block(v) }}</div>
-        {{ low_stock_alert(v) }}
-        <form method="post" action="{{ url_for('storefront.cart_add') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="variant_id" value="{{ v.id }}">
-          <input type="hidden" name="qty" value="1">
-          <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}>
-            <i class="bi bi-basket-fill"></i>
-            {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
-          </button>
-        </form>
-      </div>
-    </a>
-    {% else %}
-    <div style="grid-column:1/-1; padding:60px 20px; text-align:center; background:white; border-radius:14px; color:var(--dp-ink-3);">
-      <div style="font-size:3rem; opacity:0.4;">📦</div>
-      <p style="margin:14px 0 0;">لا توجد منتجات في هذا القسم</p>
-    </div>
-    {% endfor %}
+    </main>
   </div>
 </div>
+
+<script>
+  // Mobile filter sidebar toggle
+  (function () {
+    var btn = document.getElementById('filterToggleBtn');
+    var sidebar = document.getElementById('filtersSidebar');
+    if (btn && sidebar) {
+      btn.addEventListener('click', function () {
+        sidebar.classList.toggle('hidden');
+        if (!sidebar.classList.contains('hidden')) {
+          window.scrollTo({ top: sidebar.offsetTop - 120, behavior: 'smooth' });
+        }
+      });
+    }
+  })();
+</script>
 {% endblock %}

@@ -169,19 +169,40 @@
         <p class="title-ar">*** فاتورة مبيعات ضريبية مبسطة ***</p>
         <p class="title-en">TAX INVOICE — SIMPLIFIED</p>
         <p class="title-num">فاتورة رقم: {{ invoice.doc_number }}</p>
+        {# مصدر الفاتورة — للتمييز على الإيصال #}
+        {% if invoice.pos_session_id %}
+          {% set _src = 'نقطة البيع POS' %}
+        {% elif invoice.source_order %}
+          {% set _src = 'أونلاين — طلب ' ~ invoice.source_order.doc_number %}
+        {% elif invoice.installment_plan %}
+          {% set _src = 'بيع بالتقسيط' %}
+        {% else %}
+          {% set _src = 'بيع يدوي' %}
+        {% endif %}
+        <p class="title-num" style="font-size:8.5px; opacity:.85;">مصدر: {{ _src }}</p>
       </div>
     </div>
 
     <div class="dashed"></div>
 
     <div class="totals">
-      <div class="row"><span class="label">تاريخ ووقت الحركة:</span><span class="val">{{ invoice.invoice_date.strftime('%d/%m/%Y') }} — {{ invoice.created_at.strftime('%I:%M:%S %p') }}</span></div>
-      <div class="row"><span class="label">الكاشير المسئول:</span><span class="arabic" style="font-weight:600;">{{ invoice.created_by.full_name if invoice.created_by else '—' }}</span></div>
+      <div class="row"><span class="label">تاريخ ووقت الحركة:</span><span class="val">{{ invoice.invoice_date.strftime('%d/%m/%Y') }}{% if invoice.created_at %} — {{ invoice.created_at.strftime('%I:%M:%S %p') }}{% endif %}</span></div>
+      {% if invoice.created_by %}
+      <div class="row"><span class="label">{{ 'الكاشير المسئول' if invoice.pos_session_id else 'المستخدم' }}:</span><span class="arabic" style="font-weight:600;">{{ invoice.created_by.full_name }}</span></div>
+      {% endif %}
       {% if invoice.pos_session %}
       <div class="row"><span class="label">رقم الوردية:</span><span class="val">{{ invoice.pos_session.doc_number }}</span></div>
       {% endif %}
       <div class="dashed"></div>
-      <div class="row"><span class="label">اسم العميل:</span><span class="arabic" style="font-weight:700;">{{ invoice.customer.name_ar }}{% if invoice.customer.phone %} ({{ invoice.customer.phone }}){% endif %}</span></div>
+      <div class="row"><span class="label">اسم العميل:</span>
+        <span class="arabic" style="font-weight:700;">
+          {%- if invoice.customer -%}
+            {{ invoice.customer.name_ar }}{% if invoice.customer.phone %} ({{ invoice.customer.phone }}){% endif %}
+          {%- else -%}
+            عميل نقدي
+          {%- endif -%}
+        </span>
+      </div>
     </div>
 
     <div class="items-header">
@@ -229,7 +250,8 @@
       <div class="row" style="font-weight:700;">
         <span>طريقة السداد:</span>
         <span style="background:white; padding:2px 6px; border:1px solid #d1d5db; border-radius:2px; font-family:'Courier Prime', monospace;">
-          {% if invoice.payment_method.value == 'cash' %}نقداً (Cash)
+          {% if invoice.installment_plan %}تقسيط
+          {% elif invoice.payment_method.value == 'cash' %}نقداً (Cash)
           {% elif invoice.payment_method.value == 'card' %}بطاقة (Card)
           {% elif invoice.payment_method.value == 'wallet' %}محفظة إلكترونية
           {% elif invoice.payment_method.value == 'bank' %}تحويل بنكي
@@ -237,6 +259,47 @@
           {% else %}{{ invoice.payment_method.value }}{% endif %}
         </span>
       </div>
+
+      {# تفاصيل التقسيط: مقدم + متبقي + عدد الأقساط #}
+      {% if invoice.installment_plan %}
+      {% set plan = invoice.installment_plan %}
+      <div style="margin-top:6px; padding:6px 8px; background:#f8fafc; border:1px dashed #94a3b8; border-radius:3px;">
+        <div class="row" style="font-size:10px;">
+          <span class="label">المقدم (Down):</span>
+          <span class="val" style="font-weight:700;">{{ plan.down_payment | money }}</span>
+        </div>
+        <div class="row" style="font-size:10px;">
+          <span class="label">المتبقي (Financed):</span>
+          <span class="val" style="font-weight:700;">{{ plan.financed_amount | money }}</span>
+        </div>
+        <div class="row" style="font-size:10px;">
+          <span class="label">عدد الأقساط:</span>
+          <span class="val">{{ plan.schedule | length }} قسط ({{ plan.frequency.value }})</span>
+        </div>
+        {% if plan.total_paid %}
+        <div class="row" style="font-size:10px; color:#065f46;">
+          <span class="label">المحصَّل حتى الآن:</span>
+          <span class="val" style="font-weight:700;">{{ plan.total_paid | money }}</span>
+        </div>
+        <div class="row" style="font-size:10px; color:#b91c1c;">
+          <span class="label">الباقي على العميل:</span>
+          <span class="val" style="font-weight:700;">{{ plan.total_remaining | money }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {# مبلغ مدفوع فعليًا في الفاتورة الآجلة العادية #}
+      {% elif invoice.payment_method.value == 'on_credit' and invoice.amount_paid > 0 %}
+      <div style="margin-top:4px; padding:4px 6px; background:#f8fafc; border:1px dashed #94a3b8; border-radius:3px;">
+        <div class="row" style="font-size:10px;">
+          <span class="label">مدفوع:</span>
+          <span class="val" style="font-weight:700;">{{ invoice.amount_paid | money }}</span>
+        </div>
+        <div class="row" style="font-size:10px; color:#b91c1c;">
+          <span class="label">متبقي:</span>
+          <span class="val" style="font-weight:700;">{{ invoice.amount_due | money }}</span>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     <div class="dashed"></div>

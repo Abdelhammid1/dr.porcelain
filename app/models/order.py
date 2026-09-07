@@ -100,7 +100,10 @@ class Order(db.Model, TimestampMixin):
     delivered_at = Column(DateTime(timezone=True), nullable=True)
 
     customer = relationship("Party", lazy="joined")
-    sales_invoice = relationship("SalesInvoice")
+    sales_invoice = relationship(
+        "SalesInvoice",
+        backref=db.backref("source_order", uselist=False),
+    )
     lines = relationship(
         "OrderLine", back_populates="order",
         cascade="all, delete-orphan", lazy="selectin",

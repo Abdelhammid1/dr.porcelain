@@ -173,6 +173,7 @@ def build_cart_view(customer_id: int | None = None) -> CartView:
     # Ticket 2 Epic 2 — كوبون خصم (لو موجود وصالح)
     coupon_code = get_coupon()
     if coupon_code and view.subtotal > 0:
+        from flask import flash
         from app.services.coupons import CouponError, validate_and_compute
         try:
             info = validate_and_compute(
@@ -181,8 +182,11 @@ def build_cart_view(customer_id: int | None = None) -> CartView:
             view.coupon_code = info["coupon"].code
             view.coupon_id = info["coupon"].id
             view.discount_amount = info["discount_amount"]
-        except CouponError:
-            # كوبون تعطّل بعد وضعه في السلة → إزالته بهدوء
+        except CouponError as e:
+            # كوبون تعطّل بعد وضعه في السلة (السلة اتغيرت أو استُنفد
+            # الاستخدام). نخبر العميل بدل ما نعمل clear صامت — كان ده سبب
+            # ظهور "الكوبون مش بيتفعل" في تذكرة سابقة.
+            flash(f"تعذّر تطبيق كود الخصم {coupon_code}: {e}", "warning")
             clear_coupon()
 
     # net قبل الضريبة (بعد الخصم)

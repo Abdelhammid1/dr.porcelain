@@ -1,169 +1,519 @@
 {% extends "storefront/_base.html" %}
-{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb %}
+{% from "storefront/_macros.html" import product_thumb %}
 {% block title %}الرئيسية{% endblock %}
 
-{% block content %}
-<!-- Hero slider (banner) -->
-<section style="background:linear-gradient(135deg,#0f172a 0%,#0284c7 100%);
-                border-radius:20px; padding:60px 40px; color:white; margin-bottom:30px;
-                position:relative; overflow:hidden;">
-  <div style="position:absolute; inset:0;
-              background:radial-gradient(circle at 20% 30%,rgba(14,165,233,.15),transparent 40%),
-                         radial-gradient(circle at 80% 70%,rgba(255,255,255,.05),transparent 40%);"></div>
-  <div style="position:relative; max-width:600px;">
-    <span class="badge bg-white text-primary mb-3" style="color:var(--dp-brand-dark) !important; padding:6px 14px;">
-      عروض حصرية
-    </span>
-    <h1 style="font-size:2.4rem; font-weight:800; margin-bottom:14px; line-height:1.3;">
-      {{ hero.title }}
-    </h1>
-    <p style="font-size:1.05rem; color:#e0f2fe; line-height:1.7; margin-bottom:24px;">
-      {{ hero.subtitle }}
-    </p>
-    {% if root_categories %}
-    <a href="{{ url_for('storefront.category', category_id=root_categories[0].id) }}"
-       class="sf-btn-primary" style="background:white; color:var(--dp-brand-dark);">
-      <i class="bi bi-arrow-left-circle"></i> {{ hero.cta }}
-    </a>
-    {% endif %}
-  </div>
-</section>
-
-<!-- Shop by category (circular cards) -->
-{% if root_categories %}
-<section>
-  <div class="sf-section-header">
-    <h2>تسوق حسب الأقسام</h2>
-    <a href="{{ url_for('storefront.home') }}" class="text-decoration-none" style="color:var(--dp-brand); font-weight:600;">
-      عرض الكل <i class="bi bi-arrow-left"></i>
-    </a>
-  </div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:20px;">
-    {% for cat in root_categories %}
-    <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
-       style="text-decoration:none; text-align:center;">
-      <div style="width:120px; height:120px; margin:0 auto 10px; border-radius:50%;
-                  background:linear-gradient(135deg,var(--dp-brand-tint),var(--dp-brand-soft));
-                  display:grid; place-items:center; font-size:2.5rem; color:var(--dp-brand);
-                  transition:transform 0.15s;">
-        <i class="bi bi-{% if 'مطبخ' in cat.name_ar %}cup-hot{% elif 'حمام' in cat.name_ar %}droplet{% else %}bag{% endif %}"></i>
-      </div>
-      <div style="font-weight:600; color:var(--dp-ink-1);">{{ cat.name_ar }}</div>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-<!-- Best sellers -->
-{% if best_sellers %}
-<section>
-  <div class="sf-section-header">
-    <h2>الأكثر مبيعًا</h2>
-  </div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:20px;">
-    {% for v in best_sellers %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-      {{ sale_badge(v) }}
-      <div class="sf-product-image">
-        {{ product_thumb(v.product, icon='bi-box') }}
-      </div>
-      <div class="sf-product-body">
-        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-        <div class="sf-product-name">{{ v.display_name }}</div>
-        {% if v.product.review_count > 0 %}
-        <div style="margin-bottom:4px; font-size:0.75rem;">
-          {{ stars(v.product.avg_rating, v.product.review_count) }}
-        </div>
-        {% endif %}
-        <div>{{ price_block(v) }}</div>
-        <form method="post" action="{{ url_for('storefront.cart_add') }}" onclick="event.stopPropagation();">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="variant_id" value="{{ v.id }}">
-          <input type="hidden" name="qty" value="1">
-          <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}
-                  onclick="event.stopPropagation();">
-            <i class="bi bi-basket-fill"></i>
-            {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
-          </button>
-        </form>
-      </div>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-<!-- Limited-time offers (Countdown) -->
-<section style="margin-top:40px;">
-  <div style="background:linear-gradient(135deg,#dc2626 0%,#f59e0b 100%);
-              border-radius:20px; padding:30px; color:white; display:grid;
-              grid-template-columns:1fr auto; gap:20px; align-items:center;">
-    <div>
-      <div style="opacity:.9; font-size:0.85rem; margin-bottom:6px;">
-        <i class="bi bi-lightning-fill"></i> عرض لفترة محدودة
-      </div>
-      <h3 style="font-weight:800; margin:0 0 8px; font-size:1.5rem;">خصومات تصل حتى 30% على مجموعة مختارة</h3>
-      <div id="countdown" style="font-family:'Cairo',sans-serif; font-weight:700; direction:ltr;">--:--:--</div>
-    </div>
-    {% if root_categories %}
-    <a href="{{ url_for('storefront.category', category_id=root_categories[0].id) }}"
-       class="sf-btn-primary" style="background:white; color:#dc2626;">
-      تسوق العروض
-    </a>
-    {% endif %}
-  </div>
-</section>
-
-<!-- New arrivals -->
-{% if new_arrivals %}
-<section>
-  <div class="sf-section-header">
-    <h2>وصل حديثًا</h2>
-  </div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:20px;">
-    {% for v in new_arrivals %}
-    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-      {{ sale_badge(v) }}
-      <div class="sf-product-image">
-        {{ product_thumb(v.product, icon='bi-star-fill') }}
-      </div>
-      <div class="sf-product-body">
-        <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-        <div class="sf-product-name">{{ v.display_name }}</div>
-        {% if v.product.review_count > 0 %}
-        <div style="margin-bottom:4px; font-size:0.75rem;">
-          {{ stars(v.product.avg_rating, v.product.review_count) }}
-        </div>
-        {% endif %}
-        <div>{{ price_block(v) }}</div>
-        <form method="post" action="{{ url_for('storefront.cart_add') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="variant_id" value="{{ v.id }}">
-          <input type="hidden" name="qty" value="1">
-          <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}>
-            <i class="bi bi-basket-fill"></i>
-            {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
-          </button>
-        </form>
-      </div>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
+{% block head %}
+{# ============================================================
+   Tailwind CDN + MD3 tokens (same config as app/templates/base.html)
+   The storefront _base.html layout is Bootstrap-based; we load Tailwind
+   here so this page can render the ported mockup using MD3 utility
+   classes without touching the shared shell.
+   ============================================================ #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
-  // عداد تنازلي (24 ساعة من الآن — لأغراض العرض)
-  const target = Date.now() + 24 * 60 * 60 * 1000;
-  function tick() {
-    const diff = Math.max(0, target - Date.now());
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    const el = document.getElementById('countdown');
-    if (el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
-  setInterval(tick, 1000); tick();
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary-container": "#2f1500", "on-primary": "#ffffff",
+          "surface-container": "#e5eeff", "error-container": "#ffdad6",
+          "background": "#f8f9ff", "surface-container-high": "#dce9ff",
+          "primary-container": "#131b2e", "on-primary-fixed": "#131b2e",
+          "primary-fixed": "#dae2fd", "outline": "#76777d",
+          "on-primary-container": "#7c839b", "surface-container-low": "#eff4ff",
+          "inverse-primary": "#bec6e0", "secondary": "#006398",
+          "inverse-surface": "#213145", "surface-bright": "#f8f9ff",
+          "on-secondary": "#ffffff", "surface-variant": "#d3e4fe",
+          "primary-fixed-dim": "#bec6e0", "on-tertiary-container": "#c76c00",
+          "tertiary-fixed": "#ffdcc3", "on-error-container": "#93000a",
+          "secondary-fixed": "#cce5ff", "secondary-fixed-dim": "#93ccff",
+          "on-tertiary": "#ffffff", "outline-variant": "#c6c6cd",
+          "error": "#ba1a1a", "secondary-container": "#5bb8fe",
+          "surface-container-lowest": "#ffffff", "on-surface-variant": "#45464d",
+          "on-secondary-fixed": "#001d31", "tertiary-fixed-dim": "#ffb77d",
+          "surface-container-highest": "#d3e4fe", "on-primary-fixed-variant": "#3f465c",
+          "on-surface": "#0b1c30", "on-tertiary-fixed-variant": "#6e3900",
+          "on-error": "#ffffff", "surface-dim": "#cbdbf5",
+          "inverse-on-surface": "#eaf1ff", "surface-tint": "#565e74",
+          "primary": "#000000", "on-background": "#0b1c30",
+          "on-secondary-fixed-variant": "#004b73", "surface": "#f8f9ff",
+          "on-secondary-container": "#00476e", "on-tertiary-fixed": "#2f1500",
+          "tertiary": "#000000"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: {
+          "space-3xl": "3rem", "space-3xs": "0.125rem", "space-2xs": "0.25rem",
+          "space-xl": "1.5rem", "space-2xl": "2rem", "space-sm": "0.75rem",
+          "space-xs": "0.5rem", "space-md": "1rem", "space-lg": "1.25rem"
+        },
+        fontSize: {
+          "display-sm": ["28px", { "lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+          "fiscal-numeric-lg": ["28px", { "lineHeight": "32px", "letterSpacing": "0", "fontWeight": "700" }],
+          "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+          "headline-xl": ["24px", { "lineHeight": "34px", "fontWeight": "600" }],
+          "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+          "fiscal-numeric-md": ["15px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "600" }],
+          "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+          "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+          "headline-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+          "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+          "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+          "display-lg": ["36px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+          "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "600" }]
+        }
+      }
+    }
+  };
 </script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+  }
+  .sf-md3-scope { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sf-md3-scope w-full text-on-surface">
+  <div class="flex flex-col w-full">
+
+    {# ============ 1. Announcement Marquee (settings-driven) ============ #}
+    {% if sf_settings.announcement %}
+    <div class="w-full bg-surface-container-high py-space-xs px-space-md flex items-center justify-between overflow-hidden text-on-surface rounded-xl mb-space-lg">
+      <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+        <div class="flex items-center gap-space-sm font-label-sm text-label-sm">
+          <span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm">إعلان المتجر</span>
+          <span class="text-on-surface font-label-md text-label-md">{{ sf_settings.announcement }}</span>
+        </div>
+        <div class="hidden md:flex items-center gap-space-lg font-label-sm text-label-sm text-on-surface-variant">
+          <span class="flex items-center gap-space-3xs"><span class="material-symbols-outlined text-secondary text-[16px]">verified_user</span>ضمان الأصالة</span>
+          <span class="flex items-center gap-space-3xs"><span class="material-symbols-outlined text-secondary text-[16px]">inventory_2</span>تغليف فاخر</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ============ Main Grid: sidebar + content ============ #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+
+      {# ============ Sidebar (categories drawer + info panels) ============ #}
+      <aside class="hidden lg:block lg:col-span-3 space-y-space-lg">
+
+        {# Royal Collections Navigator — real categories #}
+        {% if root_categories %}
+        <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+          <div class="flex items-center justify-between pb-space-sm mb-space-sm">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[20px]">account_tree</span>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface">أقسام {{ store.name }}</h3>
+            </div>
+            <span class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded-md">
+              {{ root_categories | length }} فئة
+            </span>
+          </div>
+          <nav class="space-y-space-2xs">
+            {% for cat in root_categories %}
+            <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
+               class="flex items-center justify-between p-space-xs rounded-lg
+                      {% if loop.first %}bg-surface-container-low text-secondary font-label-md text-label-md{% else %}text-on-surface font-body-md text-body-md{% endif %}
+                      hover:bg-surface-container transition-all group">
+              <div class="flex items-center gap-space-xs">
+                <span class="material-symbols-outlined
+                             {% if loop.first %}text-[18px]{% else %}text-on-surface-variant text-[18px]{% endif %}">category</span>
+                <span>{{ cat.name_ar }}</span>
+              </div>
+              {% if cat.children %}
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md
+                           {% if loop.first %}bg-surface-container-lowest px-space-xs rounded-md text-secondary{% else %}text-on-surface-variant{% endif %}">
+                {{ cat.children | length }}
+              </span>
+              {% endif %}
+            </a>
+            {% endfor %}
+          </nav>
+        </div>
+        {% endif %}
+
+        {# VIP Consultation panel (marketing, static — decorative panel from mockup) #}
+        <div class="bg-primary-container text-on-primary p-space-md rounded-xl shadow-md relative overflow-hidden">
+          <div class="absolute -left-6 -bottom-6 opacity-10 pointer-events-none">
+            <span class="material-symbols-outlined text-[140px]">diamond</span>
+          </div>
+          <div class="relative z-10 space-y-space-sm">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary-container text-[20px]">workspace_premium</span>
+              <span class="font-label-sm text-label-sm text-secondary-container font-bold tracking-wider uppercase">استشارة مجانية</span>
+            </div>
+            <h4 class="font-headline-sm text-headline-sm text-on-primary">تنسيق وتجهيز مائدتك الملكية</h4>
+            <p class="font-body-sm text-body-sm text-on-primary-container">
+              تحدّث مع خبير المائدة لاختيار الأطقم المناسبة لعدد الضيوف ومساحة النيش.
+            </p>
+            {% if sf_settings.store_phone %}
+            <a href="tel:{{ sf_settings.store_phone }}"
+               class="w-full bg-secondary hover:bg-secondary-container hover:text-on-secondary-container text-on-secondary py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+              <span class="material-symbols-outlined text-[16px]">call</span>
+              <span>اتصل بنا</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Quality standards panel (marketing, static — decorative panel from mockup) #}
+        <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm space-y-space-sm">
+          <div class="flex items-center gap-space-xs text-secondary">
+            <span class="material-symbols-outlined text-[20px]">workspace_premium</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface">معايير {{ store.name }}</span>
+          </div>
+          <div class="space-y-space-xs text-on-surface-variant font-body-sm text-body-sm">
+            <div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+              <span>ضمان الأصالة</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">100%</span>
+            </div>
+            <div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+              <span>الاستبدال</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">14 يوم</span>
+            </div>
+            <div class="flex items-center justify-between bg-surface-container-low p-space-2xs rounded-lg">
+              <span>الشحن</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">مؤمّن ضد الكسر</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {# ============ Main Content Showcase Stream ============ #}
+      <div class="col-span-1 lg:col-span-9 space-y-space-2xl">
+
+        {# 1. Hero Sovereign Promotional Banner (settings-driven) #}
+        <div class="relative bg-primary-container text-on-primary rounded-xl overflow-hidden shadow-xl">
+          <div class="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+            <div class="md:col-span-7 p-space-xl flex flex-col justify-between relative z-10 space-y-space-md">
+              <div class="space-y-space-xs">
+                <div class="inline-flex items-center gap-space-2xs bg-surface-container-lowest/15 backdrop-blur-md px-space-sm py-space-3xs rounded-full">
+                  <span class="material-symbols-outlined text-secondary-container text-[16px]">stars</span>
+                  <span class="font-label-sm text-label-sm text-secondary-container font-semibold tracking-wide">
+                    {{ store.name }}
+                  </span>
+                </div>
+                <h1 class="font-display-lg text-display-lg text-on-primary font-bold leading-tight">
+                  {{ hero.title or 'أجود المنتجات لمائدتك' }}
+                </h1>
+                {% if hero.subtitle %}
+                <p class="font-body-lg text-body-lg text-on-primary-container max-w-lg leading-relaxed pt-space-2xs">
+                  {{ hero.subtitle }}
+                </p>
+                {% endif %}
+              </div>
+              <div class="space-y-space-md pt-space-xs">
+                <div class="flex flex-wrap items-center gap-space-sm">
+                  {% if root_categories %}
+                  <a href="{{ url_for('storefront.category', category_id=root_categories[0].id) }}"
+                     class="bg-secondary hover:bg-secondary-container hover:text-on-secondary-container text-on-secondary font-label-lg text-label-lg px-space-lg py-space-sm rounded-lg flex items-center gap-space-xs transition-colors shadow-md">
+                    <span>{{ hero.cta or 'تسوق الآن' }}</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                  </a>
+                  {% endif %}
+                  <a href="{{ url_for('storefront.search') }}"
+                     class="bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary font-label-lg text-label-lg px-space-lg py-space-sm rounded-lg flex items-center gap-space-xs transition-colors backdrop-blur-sm">
+                    <span>تصفح كامل التشكيلة</span>
+                    <span class="material-symbols-outlined text-[18px]">search</span>
+                  </a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-xs pt-space-sm border-t border-on-primary-container/20">
+                  <div class="flex items-center gap-space-2xs">
+                    <span class="material-symbols-outlined text-secondary-container text-[18px]">local_shipping</span>
+                    <span class="font-label-sm text-label-sm text-on-primary">شحن سريع</span>
+                  </div>
+                  <div class="flex items-center gap-space-2xs">
+                    <span class="material-symbols-outlined text-secondary-container text-[18px]">handshake</span>
+                    <span class="font-label-sm text-label-sm text-on-primary">فحص وإستلام</span>
+                  </div>
+                  <div class="flex items-center gap-space-2xs">
+                    <span class="material-symbols-outlined text-secondary-container text-[18px]">published_with_changes</span>
+                    <span class="font-label-sm text-label-sm text-on-primary">استبدال 14 يوم</span>
+                  </div>
+                  <div class="flex items-center gap-space-2xs">
+                    <span class="material-symbols-outlined text-secondary-container text-[18px]">verified</span>
+                    <span class="font-label-sm text-label-sm text-on-primary">ضمان أصالة</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="md:col-span-5 relative min-h-[280px] md:min-h-full bg-gradient-to-br from-primary-container to-secondary/30">
+              <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                <span class="material-symbols-outlined text-[240px] text-on-primary">restaurant</span>
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-r from-primary-container via-transparent to-transparent hidden md:block"></div>
+              <div class="absolute top-space-md left-space-md bg-surface-container-lowest text-on-surface px-space-sm py-space-2xs rounded-xl shadow-lg flex flex-col items-center">
+                <span class="font-label-sm text-label-sm text-error font-bold tracking-wider">عرض حصري</span>
+                <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold leading-none">جديد</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">تشكيلة {{ store.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# 2. New Arrivals (Real data) #}
+        {% if new_arrivals %}
+        <section class="space-y-space-md">
+          <div class="flex items-end justify-between">
+            <div>
+              <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+                <span class="material-symbols-outlined text-[16px]">fiber_new</span>
+                <span>وصول حديث للمخزون</span>
+              </div>
+              <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">جديد في المتجر</h2>
+            </div>
+            {% if root_categories %}
+            <a href="{{ url_for('storefront.category', category_id=root_categories[0].id) }}"
+               class="flex items-center gap-space-3xs text-secondary hover:text-on-secondary-container font-label-md text-label-md group">
+              <span>عرض كل المنتجات</span>
+              <span class="material-symbols-outlined text-[16px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            </a>
+            {% endif %}
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+            {% for v in new_arrivals %}
+            <div class="relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+              <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                 class="relative aspect-square w-full bg-surface-container-low overflow-hidden block">
+                <div class="w-full h-full flex items-center justify-center text-secondary text-[64px]">
+                  {{ product_thumb(v.product, icon='bi-star-fill') }}
+                </div>
+
+                {% if v.is_on_sale %}
+                <span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">
+                  -{{ v.discount_percent }}%
+                </span>
+                {% endif %}
+
+                {% if v.stock_qty and v.stock_qty > 0 and v.reorder_level and v.stock_qty <= v.reorder_level %}
+                <span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-error font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+                  <span class="material-symbols-outlined text-[14px]">timer</span>
+                  <span>متبقي {{ v.stock_qty | int }} قطع فقط</span>
+                </span>
+                {% elif v.stock_qty and v.stock_qty > 0 %}
+                <span class="absolute bottom-space-xs right-space-xs bg-surface-container-lowest/90 text-on-surface-variant font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm flex items-center gap-space-3xs">
+                  <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                  <span>متوفر</span>
+                </span>
+                {% endif %}
+              </a>
+
+              {# Wishlist toggle — keeps existing storefront route/csrf #}
+              <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=v.product_id) }}"
+                    class="absolute top-space-xs left-space-xs z-10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" title="أضف للمفضلة"
+                        class="w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm">
+                  <span class="material-symbols-outlined text-[18px]">favorite</span>
+                </button>
+              </form>
+
+              <div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+                <div class="space-y-space-3xs">
+                  <div class="flex items-baseline gap-space-xs">
+                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</span>
+                    {% if v.is_on_sale %}
+                    <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">
+                      {{ v.compare_at_price | money }}
+                    </span>
+                    {% endif %}
+                  </div>
+                  {% if v.is_on_sale %}
+                  <div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
+                    <span class="material-symbols-outlined text-[14px]">savings</span>
+                    <span>وفرت {{ v.savings_amount | money }}</span>
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+                  {% if v.product.review_count and v.product.review_count > 0 %}
+                  <div class="flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ v.product.avg_rating }}</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">({{ v.product.review_count }})</span>
+                  </div>
+                  {% endif %}
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                     class="block font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-secondary transition-colors">
+                    {{ v.display_name }}
+                  </a>
+                  {% if v.product.category %}
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">{{ v.product.category.name_ar }}</p>
+                  {% endif %}
+                </div>
+
+                <form method="post" action="{{ url_for('storefront.cart_add') }}" class="mt-space-xs">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="variant_id" value="{{ v.id }}">
+                  <input type="hidden" name="qty" value="1">
+                  <button type="submit"
+                          class="w-full bg-surface-container-high hover:bg-secondary hover:text-on-secondary text-on-surface py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors disabled:opacity-60"
+                          {% if v.stock_qty <= 0 %}disabled{% endif %}>
+                    <span class="material-symbols-outlined text-[18px]">add_shopping_bag</span>
+                    <span>{% if v.stock_qty > 0 %}إضافة للسلة{% else %}نفد المخزون{% endif %}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        {# 3. Promotional Category Showcase Banner Grid (real root_categories) #}
+        {% if root_categories %}
+        <section class="space-y-space-md">
+          <div class="flex items-center justify-between">
+            <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">تسوق حسب الأقسام</h2>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">اختر المجموعة المناسبة لمنزلك</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+            {% for cat in root_categories[:4] %}
+            <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
+               class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer bg-primary-container block">
+              <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-40 transition-opacity">
+                <span class="material-symbols-outlined text-[180px] text-secondary-container">category</span>
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
+                {% if loop.first %}
+                <span class="font-label-sm text-label-sm bg-secondary px-space-xs py-space-3xs rounded-md">الأكثر طلباً</span>
+                {% else %}
+                <span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded-md">تشكيلة مختارة</span>
+                {% endif %}
+                <h3 class="font-headline-lg text-headline-lg font-bold">{{ cat.name_ar }}</h3>
+                {% if cat.children %}
+                <p class="font-body-sm text-body-sm text-on-primary-container">{{ cat.children | length }} تصنيف فرعي</p>
+                {% endif %}
+                <div class="pt-space-2xs flex items-center gap-space-3xs font-label-md text-label-md text-secondary-container">
+                  <span>تصفح القسم</span>
+                  <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        {# 4. Best Sellers (Real data) #}
+        {% if best_sellers %}
+        <section class="space-y-space-md">
+          <div class="flex items-center justify-between border-b border-surface-container pb-space-sm">
+            <div class="space-y-space-3xs">
+              <div class="flex items-center gap-space-xs text-secondary">
+                <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+                <span class="font-label-md text-label-md font-bold">اختيارات العملاء</span>
+              </div>
+              <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">الأكثر مبيعًا</h2>
+            </div>
+            <div class="flex items-center gap-space-xs">
+              <span class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm px-space-sm py-space-3xs rounded-full">تحديث فوري للمخزون</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+            {% for v in best_sellers %}
+            <div class="relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+              <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                 class="relative aspect-square w-full bg-surface-container-low overflow-hidden block">
+                <div class="w-full h-full flex items-center justify-center text-secondary text-[64px]">
+                  {{ product_thumb(v.product, icon='bi-box-fill') }}
+                </div>
+                <span class="absolute top-space-xs right-space-xs bg-secondary text-on-secondary font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">
+                  {% if loop.index == 1 %}الأكثر مبيعًا{% else %}الأكثر طلبًا{% endif %}
+                </span>
+                {% if v.is_on_sale %}
+                <span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">
+                  -{{ v.discount_percent }}%
+                </span>
+                {% endif %}
+              </a>
+
+              <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=v.product_id) }}"
+                    class="absolute top-space-xs left-space-xs z-10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" title="أضف للمفضلة"
+                        class="w-8 h-8 rounded-full bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors shadow-sm">
+                  <span class="material-symbols-outlined text-[18px]">favorite</span>
+                </button>
+              </form>
+
+              <div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+                <div class="space-y-space-3xs">
+                  <div class="flex items-baseline gap-space-xs">
+                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</span>
+                    {% if v.is_on_sale %}
+                    <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">
+                      {{ v.compare_at_price | money }}
+                    </span>
+                    {% endif %}
+                  </div>
+                  {% if v.is_on_sale %}
+                  <div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-[14px]">price_check</span>
+                    <span>وفرت {{ v.savings_amount | money }}</span>
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div class="space-y-space-3xs pt-space-2xs border-t border-surface-container">
+                  {% if v.product.review_count and v.product.review_count > 0 %}
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-space-3xs">
+                      <span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ v.product.avg_rating }}</span>
+                      <span class="font-label-sm text-label-sm text-on-surface-variant">({{ v.product.review_count }})</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">موثّق</span>
+                  </div>
+                  {% endif %}
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                     class="block font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-secondary transition-colors">
+                    {{ v.display_name }}
+                  </a>
+                  {% if v.product.category %}
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">{{ v.product.category.name_ar }}</p>
+                  {% endif %}
+                </div>
+
+                <div class="space-y-space-2xs pt-space-xs">
+                  <form method="post" action="{{ url_for('storefront.cart_add') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="variant_id" value="{{ v.id }}">
+                    <input type="hidden" name="qty" value="1">
+                    <button type="submit"
+                            class="w-full bg-primary-container hover:bg-secondary text-on-primary py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors disabled:opacity-60"
+                            {% if v.stock_qty <= 0 %}disabled{% endif %}>
+                      <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+                      <span>{% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}</span>
+                    </button>
+                  </form>
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+                     class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant py-space-3xs rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-space-3xs transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                    <span>عرض التفاصيل</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,70 +1,177 @@
 {% extends "storefront/_portal_layout.html" %}
 {% block title %}طلباتي{% endblock %}
 
+{% block head %}
+{% include "storefront/_dp_head.html" %}
+{% endblock %}
+
 {% set order_status_labels = {
-  'pending':    ('قيد المعالجة', 'muted'),
-  'processing': ('قيد التجهيز',  'info'),
-  'shipped':    ('تم الشحن',     'brand'),
-  'delivered':  ('تم التسليم',   'success'),
-  'cancelled':  ('ملغى',        'danger'),
-  'returned':   ('مرتجع',       'warning'),
+  'pending':    ('قيد المعالجة', 'bg-surface-container-high text-on-surface-variant', 'schedule'),
+  'processing': ('قيد التجهيز',  'bg-secondary-container/40 text-on-secondary-container', 'inventory_2'),
+  'shipped':    ('تم الشحن',     'bg-secondary text-on-secondary', 'local_shipping'),
+  'delivered':  ('تم التسليم',   'bg-success-container text-success', 'check_circle'),
+  'cancelled':  ('ملغى',        'bg-error-container text-on-error-container', 'cancel'),
+  'returned':   ('مرتجع',       'bg-tertiary-fixed text-on-tertiary-fixed-variant', 'undo'),
 } %}
 
 {% block portal_content %}
-<h1 style="font-size:1.6rem; font-weight:800; margin:0 0 6px;">طلباتي</h1>
-<p style="color:var(--dp-ink-3); margin:0 0 20px;">
-  {{ orders|length }} طلب في المجموع
-</p>
+<div class="dp-scope">
 
-<div style="background:white; border:1px solid var(--dp-line); border-radius:14px; overflow:hidden;">
-  <div class="table-scroll">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>رقم الطلب</th>
-          <th>التاريخ</th>
-          <th>البنود</th>
-          <th>الإجمالي</th>
-          <th>الحالة</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for o in orders %}
-        {% set st = order_status_labels.get(o.status.value, (o.status.value, 'muted')) %}
-        <tr>
-          <td dir="ltr" class="fw-bold">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-space-lg">
+    <div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">سجل الطلبات والشحنات</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-3xs">
+        {{ orders|length }} طلب في المجموع لحساب {{ customer.name_ar }}.
+      </p>
+    </div>
+    <div class="hidden md:flex items-center gap-space-xs font-label-sm text-label-sm bg-surface-container-high px-space-sm py-space-3xs rounded-full text-secondary">
+      <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+      <span>حساب موثق</span>
+    </div>
+  </div>
+
+  {% if orders %}
+  <div class="flex flex-col gap-space-lg">
+    {% for o in orders %}
+    {% set st = order_status_labels.get(o.status.value, (o.status.value, 'bg-surface-container-high text-on-surface-variant', 'help')) %}
+    <article class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+
+      <!-- Header bar -->
+      <div class="p-space-lg bg-surface-container-low flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-space-md">
+          <div class="flex items-center gap-space-xs">
+            <span class="font-headline-sm text-headline-sm font-bold text-on-surface">طلب رقم:</span>
             <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
-               class="text-decoration-none">{{ o.doc_number }}</a>
-          </td>
-          <td>{{ o.order_date | hdate }}</td>
-          <td>
-            <span class="dp-chip tone-brand">{{ o.lines|length }} صنف</span>
-          </td>
-          <td class="fw-bold">{{ o.total | money }}</td>
-          <td><span class="badge badge-{{ st[1] }}">{{ st[0] }}</span></td>
-          <td class="text-end">
-            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
-               class="btn-icon" title="تفاصيل"><i class="bi bi-eye"></i></a>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="6">
-            <div class="empty-state">
-              <div class="empty-state-icon">🛍️</div>
-              <div class="empty-state-title">لا توجد طلبات بعد</div>
-              <div class="empty-state-sub">
-                <a href="{{ url_for('storefront.home') }}" class="sf-btn-primary" style="margin-top:16px;">
-                  <i class="bi bi-arrow-left-circle"></i> ابدأ التسوق
-                </a>
+               class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary dir-ltr no-underline hover:underline">
+              {{ o.doc_number }}
+            </a>
+          </div>
+          <span class="hidden sm:inline text-outline-variant">•</span>
+          <div class="flex items-center gap-space-2xs text-on-surface-variant font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+            <span>تاريخ الطلب: {{ o.order_date | hdate }}</span>
+          </div>
+          <span class="hidden sm:inline text-outline-variant">•</span>
+          <div class="flex items-center gap-space-2xs text-on-surface font-label-md text-label-md">
+            <span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
+            <span>{{ o.lines|length }} صنف</span>
+          </div>
+        </div>
+
+        <div class="inline-flex items-center gap-space-xs px-space-md py-space-2xs rounded-full font-label-md text-label-md font-bold {{ st[1] }}">
+          <span class="material-symbols-outlined text-[18px]">{{ st[2] }}</span>
+          <span>{{ st[0] }}</span>
+        </div>
+      </div>
+
+      <!-- Items summary -->
+      <div class="p-space-lg space-y-space-md">
+        <span class="font-headline-sm text-headline-sm text-on-surface block">مقتنيات الطلب:</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+          {% for line in o.lines[:6] %}
+          <div class="bg-surface-container-low rounded-xl p-space-sm flex gap-space-sm">
+            <div class="w-20 h-20 rounded-lg bg-surface-container flex items-center justify-center shrink-0 overflow-hidden">
+              {% if line.variant and line.variant.product and line.variant.product.primary_image %}
+              <img src="{{ url_for('static', filename=line.variant.product.primary_image.file_path) }}"
+                   alt="{{ line.product_name }}"
+                   class="w-full h-full object-cover">
+              {% else %}
+              <span class="material-symbols-outlined text-[28px] text-secondary">inventory_2</span>
+              {% endif %}
+            </div>
+            <div class="flex flex-col justify-between flex-1 min-w-0">
+              <div>
+                <h2 class="font-label-md text-label-md font-bold text-on-surface line-clamp-1">
+                  {{ line.product_name }}
+                </h2>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">
+                  الكمية: {{ line.qty | qty }}
+                </span>
+              </div>
+              <div class="flex items-baseline gap-space-xs">
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">
+                  {{ line.line_total | money }}
+                </span>
               </div>
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </div>
+          {% endfor %}
+        </div>
+        {% if o.lines|length > 6 %}
+        <p class="text-center font-label-sm text-label-sm text-on-surface-variant">
+          + {{ o.lines|length - 6 }} صنف إضافي — عرض تفاصيل الطلب لرؤية القائمة كاملة.
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Footer: totals + actions -->
+      <div class="p-space-lg bg-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+        <div>
+          <div class="flex items-baseline gap-space-xs">
+            <span class="font-body-sm text-body-sm text-on-surface-variant">الإجمالي:</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
+              {{ o.total | money }}
+            </span>
+          </div>
+          {% if o.shipping_city or o.shipping_address %}
+          <div class="flex items-center gap-space-2xs text-on-surface-variant font-label-sm text-label-sm mt-space-3xs">
+            <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+            <span class="line-clamp-1">
+              {% if o.shipping_city %}{{ o.shipping_city }} — {% endif %}{{ o.shipping_address }}
+            </span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center gap-space-xs flex-wrap w-full md:w-auto">
+          <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+             class="flex-1 md:flex-none bg-secondary text-on-secondary hover:opacity-90 px-space-md py-space-xs rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs shadow transition-opacity no-underline">
+            <span class="material-symbols-outlined text-[18px]">visibility</span>
+            <span>تفاصيل الطلب</span>
+          </a>
+          <a href="{{ url_for('storefront.account_order_pdf', order_number=o.doc_number) }}"
+             class="flex-1 md:flex-none bg-surface-container-lowest text-on-surface hover:bg-surface-container px-space-md py-space-xs rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs shadow-sm transition-colors no-underline">
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            <span>فاتورة PDF</span>
+          </a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
   </div>
+
+  <!-- Guarantee banner -->
+  <div class="mt-space-2xl rounded-xl bg-surface-container-high p-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md">
+    <div class="flex items-center gap-space-md">
+      <div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shrink-0 shadow-sm">
+        <span class="material-symbols-outlined text-[24px]">verified_user</span>
+      </div>
+      <div>
+        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">ميثاق {{ store.name }} لحماية المشتريات</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          كل طلب يخضع لضمان الاستبدال الفوري في حال الكسر أثناء النقل، ومعاينة كاملة قبل الدفع.
+        </p>
+      </div>
+    </div>
+    <a href="{{ url_for('storefront.track_order') }}"
+       class="bg-surface-container-lowest text-secondary hover:bg-surface-container font-label-md text-label-md font-semibold px-space-lg py-space-xs rounded-lg whitespace-nowrap shadow-sm transition-colors no-underline">
+      تتبع طلب بالرقم
+    </a>
+  </div>
+
+  {% else %}
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-3xl text-center">
+    <div class="text-[64px] opacity-40">🛍️</div>
+    <div class="font-headline-lg text-headline-lg text-on-surface font-bold mt-space-md">لا توجد طلبات بعد</div>
+    <div class="font-body-md text-body-md text-on-surface-variant mb-space-lg">ابدأ التسوق واستمتع بتجربة الفخامة الملكية.</div>
+    <a href="{{ url_for('storefront.home') }}"
+       class="inline-flex items-center gap-space-xs bg-primary-container text-on-primary px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold shadow no-underline">
+      <span class="material-symbols-outlined text-[18px]">storefront</span>
+      <span>ابدأ التسوق</span>
+    </a>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

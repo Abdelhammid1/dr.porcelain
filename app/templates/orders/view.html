@@ -102,12 +102,17 @@
         <div class="mt-space-sm p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed text-body-sm">
           <div class="flex items-start gap-space-xs">
             <span class="material-symbols-outlined text-[18px] mt-0.5">receipt_long</span>
-            <div>
+            <div class="flex-1">
               <strong>فاتورة مرتبطة ✓</strong>
               تم إنشاء
               <a href="{{ url_for('sales.view', invoice_id=order.sales_invoice_id) }}" dir="ltr" class="font-bold underline">{{ order.sales_invoice.doc_number }}</a>
               بإجمالي <strong>{{ order.sales_invoice.total | money }}</strong>.
             </div>
+            <a href="{{ url_for('sales.thermal_receipt', invoice_id=order.sales_invoice_id) }}" target="_blank"
+               class="h-8 px-space-sm rounded-md bg-secondary text-on-secondary hover:bg-secondary/90 font-label-sm text-label-sm font-semibold flex items-center gap-1 shadow-sm shrink-0">
+              <span class="material-symbols-outlined text-[14px]">print</span>
+              <span>إيصال حراري</span>
+            </a>
           </div>
         </div>
         {% endif %}
