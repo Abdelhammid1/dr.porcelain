@@ -5,7 +5,10 @@
 <div class="flex flex-col w-full gap-space-lg">
 
   {# ============ Top Sovereign Operational Header ============ #}
-  <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+  {# NOTE: intentionally NOT `overflow-hidden` — the quick-templates <details>
+     panel below opens absolutely-positioned outside the header and would be
+     clipped if overflow were hidden. #}
+  <div class="relative rounded-xl bg-surface-container-lowest shadow-sm p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
     <div class="flex items-center gap-space-md min-w-0">
       <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0 shadow-md">
         <span class="material-symbols-outlined text-[26px]">menu_book</span>
