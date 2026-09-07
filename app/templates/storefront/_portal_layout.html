@@ -23,13 +23,8 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
 
-    {# ============ Main content (9 cols) ============ #}
-    <div class="lg:col-span-9 space-y-space-lg">
-      {% block portal_content %}{% endblock %}
-    </div>
-
-    {# ============ Right sidebar (3 cols) — matches mockup exactly ============ #}
-    <aside class="lg:col-span-3 space-y-space-md sticky top-32">
+    {# ============ RIGHT SIDEBAR (source-first so it renders on the right in RTL) ============ #}
+    <aside class="lg:col-span-3 space-y-space-md lg:sticky lg:top-32 order-first">
 
       {# Numbered sections navigation — matches mockup: taller rows, prominent circular
          count badges (always dark navy solid with white bold digit on inactive rows;
@@ -47,14 +42,14 @@
         ] %}
           {% set is_active = current == endpoint or (endpoint == 'storefront.account_orders' and current == 'storefront.account_order_view') or (endpoint == 'storefront.account_installments' and current == 'storefront.account_installment_view') %}
           <a href="{{ url_for(endpoint) }}"
-             class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold transition-colors
+             class="flex items-center justify-between px-space-sm py-space-xs rounded-lg font-label-md text-label-md font-semibold transition-colors
                     {% if is_active %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface hover:bg-surface-container-low{% endif %}">
             <div class="flex items-center gap-space-sm">
-              <span class="material-symbols-outlined text-[22px]">{{ icon }}</span>
+              <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
               <span>{{ label }}</span>
             </div>
             {% if badge_num is not none %}
-              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-fiscal-numeric-md text-fiscal-numeric-md font-bold
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full font-label-md text-label-md font-bold
                 {% if is_active %}bg-on-secondary text-secondary{% else %}bg-primary-container text-on-primary{% endif %}">{{ badge_num }}</span>
             {% endif %}
           </a>
@@ -62,17 +57,17 @@
 
         {# Profile & Security stub — no dedicated route yet #}
         <a href="{{ url_for('storefront.account_home') }}"
-           class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold text-on-surface hover:bg-surface-container-low transition-colors">
+           class="flex items-center justify-between px-space-sm py-space-xs rounded-lg font-label-md text-label-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors">
           <div class="flex items-center gap-space-sm">
-            <span class="material-symbols-outlined text-[22px]">verified_user</span>
+            <span class="material-symbols-outlined text-[20px]">verified_user</span>
             <span>الملف الشخصي والأمان</span>
           </div>
           <span class="material-symbols-outlined text-[18px] text-on-surface-variant">chevron_left</span>
         </a>
 
         <a href="{{ url_for('storefront.account_logout') }}"
-           class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg font-label-lg text-label-lg font-semibold text-error hover:bg-error-container/40 transition-colors border-t border-outline-variant/40 mt-space-2xs pt-space-md">
-          <span class="material-symbols-outlined text-[22px]">logout</span>
+           class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg font-label-md text-label-md font-semibold text-error hover:bg-error-container/40 transition-colors border-t border-outline-variant/40 mt-space-2xs pt-space-md">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
           <span>تسجيل الخروج الآمن</span>
         </a>
       </div>
@@ -82,7 +77,7 @@
         <div class="absolute -top-8 -left-8 w-32 h-32 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
         <div class="relative z-10 flex items-start gap-space-sm">
           <span class="w-10 h-10 rounded-lg bg-secondary text-on-secondary flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[22px]">support_agent</span>
+            <span class="material-symbols-outlined text-[20px]">support_agent</span>
           </span>
           <div>
             <h4 class="font-headline-sm text-headline-sm text-on-primary font-bold">المستشار الشخصي المخصص</h4>
@@ -100,6 +95,11 @@
       </div>
 
     </aside>
+
+    {# ============ MAIN CONTENT (source-second so it renders on the left in RTL) ============ #}
+    <div class="lg:col-span-9 space-y-space-lg">
+      {% block portal_content %}{% endblock %}
+    </div>
   </div>
 </div>
 {% endblock %}
