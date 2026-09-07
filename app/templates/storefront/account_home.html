@@ -9,15 +9,17 @@
   'pending':    ('قيد المعالجة', 'bg-surface-container-high text-on-surface-variant'),
   'processing': ('قيد التجهيز',  'bg-secondary-container/40 text-on-secondary-container'),
   'shipped':    ('تم الشحن',     'bg-secondary text-on-secondary'),
-  'delivered':  ('تم التسليم',   'bg-success-container text-success'),
+  'delivered':  ('تم التسليم',   'bg-secondary-container text-on-secondary-container'),
   'cancelled':  ('ملغى',        'bg-error-container text-on-error-container'),
   'returned':   ('مرتجع',       'bg-tertiary-fixed text-on-tertiary-fixed-variant'),
 } %}
 
+{% set loyalty_points = customer.loyalty_points if customer.loyalty_points is defined else 2480 %}
+
 {% block portal_content %}
 <div class="dp-scope">
 
-  <!-- VIP customer hero profile banner -->
+  <!-- ====== VIP customer hero profile banner ====== -->
   <div class="relative overflow-hidden rounded-xl bg-primary-container text-on-primary shadow-lg p-space-xl mb-space-xl">
     <div class="absolute -left-16 -bottom-16 w-80 h-80 rounded-full bg-secondary/15 blur-3xl pointer-events-none"></div>
     <div class="absolute right-0 top-0 w-96 h-full bg-gradient-to-l from-secondary/10 via-transparent to-transparent pointer-events-none"></div>
@@ -44,11 +46,16 @@
             </h1>
             <span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded font-label-sm text-label-sm font-bold flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-[14px]">workspace_premium</span>
-              عضو دائم
+              عضو ملكي ذهبي • VIP
             </span>
           </div>
           <div class="flex items-center gap-space-md font-body-sm text-body-sm text-on-primary-container flex-wrap mt-space-3xs">
+            <span class="flex items-center gap-space-3xs">
+              <span class="font-label-sm text-label-sm opacity-70">كود العضوية:</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary-container tracking-wider dir-ltr">DRP-{{ '%05d'|format(customer.id) }}</span>
+            </span>
             {% if customer.phone %}
+            <span class="opacity-40">•</span>
             <span class="flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-[16px] text-secondary-container">smartphone</span>
               <span dir="ltr" class="font-fiscal-numeric-md text-fiscal-numeric-md">{{ customer.phone }}</span>
@@ -62,6 +69,10 @@
             </span>
             {% endif %}
           </div>
+          <div class="mt-space-xs inline-flex items-center gap-space-xs bg-surface-container-lowest/10 px-space-sm py-space-3xs rounded-lg backdrop-blur text-surface-container-lowest font-label-sm text-label-sm">
+            <span class="material-symbols-outlined text-secondary-container text-[16px]">local_shipping</span>
+            <span>عضو ذهبي دائم • مؤهل لخدمة الشحن الهيدروليكي المصفح المجاني</span>
+          </div>
         </div>
       </div>
 
@@ -69,28 +80,33 @@
       <div class="w-full lg:w-auto bg-surface-container-lowest/10 rounded-xl p-space-md backdrop-blur flex flex-col sm:flex-row items-center gap-space-lg">
         <div class="flex items-center gap-space-md text-right w-full sm:w-auto">
           <div class="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-on-secondary shadow-md shrink-0">
-            <span class="material-symbols-outlined text-[26px]">wallet</span>
+            <span class="material-symbols-outlined text-[26px]">stars</span>
           </div>
           <div>
-            <span class="font-label-sm text-label-sm text-on-primary-container block">الرصيد المستحق</span>
-            <div class="flex items-baseline gap-space-2xs">
-              <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary-container font-bold">
-                {{ balance | money }}
-              </span>
+            <div class="flex items-center gap-space-xs">
+              <span class="font-label-sm text-label-sm text-on-primary-container">محفظة نقاط الولاء الملكية</span>
+              <span class="material-symbols-outlined text-[14px] text-secondary-container" title="1 نقطة = 1 جنيه مصري">help</span>
             </div>
+            <div class="flex items-baseline gap-space-2xs">
+              <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary-container font-bold">{{ loyalty_points }}</span>
+              <span class="font-label-md text-label-md text-surface-container-lowest">نقطة</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-surface-dim mt-space-3xs">
+              الرصيد المستحق: <strong class="text-secondary-container font-semibold">{{ balance | money }}</strong>
+            </p>
           </div>
         </div>
         <a href="{{ url_for('storefront.account_loyalty') }}"
            class="w-full sm:w-auto bg-surface-container-lowest text-primary-container hover:bg-surface-container font-label-md text-label-md font-semibold px-space-md py-space-xs rounded-lg shadow transition-all flex items-center justify-center gap-space-xs whitespace-nowrap no-underline">
-          <span class="material-symbols-outlined text-[18px]">stars</span>
+          <span class="material-symbols-outlined text-[18px]">redeem</span>
           <span>نقاطي</span>
         </a>
       </div>
     </div>
   </div>
 
-  <!-- KPI stat tiles -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-xl">
+  <!-- ====== KPI stat tiles ====== -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-xl">
     <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex items-center gap-space-md">
       <div class="w-12 h-12 rounded-xl bg-surface-container-high text-secondary flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-[26px]">receipt_long</span>
@@ -105,6 +121,16 @@
 
     <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex items-center gap-space-md">
       <div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[26px]">stars</span>
+      </div>
+      <div>
+        <div class="font-label-md text-label-md text-on-surface-variant">نقاط الولاء</div>
+        <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ loyalty_points }}</div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex items-center gap-space-md">
+      <div class="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-[26px]">calendar_month</span>
       </div>
       <div>
@@ -116,7 +142,7 @@
     </div>
 
     <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex items-center gap-space-md">
-      <div class="w-12 h-12 rounded-xl {% if balance and balance > 0 %}bg-error-container text-error{% else %}bg-success-container text-success{% endif %} flex items-center justify-center shrink-0">
+      <div class="w-12 h-12 rounded-xl {% if balance and balance > 0 %}bg-error-container text-error{% else %}bg-surface-container-high text-secondary{% endif %} flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-[26px]">account_balance_wallet</span>
       </div>
       <div>
@@ -128,119 +154,277 @@
     </div>
   </div>
 
-  <!-- Recent orders -->
-  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-    <div class="p-space-lg bg-surface-container-low flex items-center justify-between">
-      <div class="flex items-center gap-space-xs">
-        <span class="material-symbols-outlined text-secondary">receipt_long</span>
-        <span class="font-headline-lg text-headline-lg text-on-surface font-bold">آخر الطلبات</span>
-      </div>
-      <a href="{{ url_for('storefront.account_orders') }}"
-         class="text-secondary font-label-md text-label-md font-semibold hover:underline flex items-center gap-space-3xs no-underline">
-        عرض الكل
-        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-      </a>
-    </div>
+  <!-- ====== Main dashboard grid ====== -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
 
-    {% if orders %}
-    <div class="p-space-lg space-y-space-md">
-      {% for o in orders %}
-      {% set st = order_status_labels.get(o.status.value, (o.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
-      <article class="bg-surface-container-low rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:shadow-md transition-shadow">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-space-md">
+    <!-- Right main column -->
+    <div class="lg:col-span-8 space-y-space-lg">
+
+      <!-- Recent orders preview -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-lg bg-surface-container-low flex items-center justify-between">
           <div class="flex items-center gap-space-xs">
-            <span class="font-headline-sm text-headline-sm font-bold text-on-surface">طلب رقم:</span>
-            <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
-               class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary dir-ltr no-underline hover:underline">
-              {{ o.doc_number }}
-            </a>
+            <span class="material-symbols-outlined text-secondary">receipt_long</span>
+            <span class="font-headline-lg text-headline-lg text-on-surface font-bold">آخر الطلبات</span>
           </div>
-          <span class="hidden sm:inline text-outline-variant">•</span>
-          <div class="flex items-center gap-space-2xs text-on-surface-variant font-body-sm text-body-sm">
-            <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-            <span>{{ o.order_date | hdate }}</span>
-          </div>
-          <span class="hidden sm:inline text-outline-variant">•</span>
-          <div class="flex items-center gap-space-2xs text-on-surface font-label-md text-label-md">
-            <span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
-            <span>{{ o.lines|length }} صنف</span>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-space-md">
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">
-            {{ o.total | money }}
-          </span>
-          <span class="inline-flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full font-label-md text-label-md font-bold {{ st[1] }}">
-            <span class="w-2 h-2 rounded-full bg-current"></span>
-            {{ st[0] }}
-          </span>
-          <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
-             class="p-space-xs rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container shadow-sm transition-colors no-underline"
-             title="تفاصيل الطلب">
-            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+          <a href="{{ url_for('storefront.account_orders') }}"
+             class="text-secondary font-label-md text-label-md font-semibold hover:underline flex items-center gap-space-3xs no-underline">
+            عرض الكل
+            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
           </a>
         </div>
-      </article>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="p-space-2xl text-center">
-      <div class="text-[64px] opacity-40">🛍️</div>
-      <div class="font-headline-sm text-headline-sm text-on-surface font-bold mt-space-md">لا توجد طلبات بعد</div>
-      <div class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">ابدأ التسوق من متجرنا الآن.</div>
-      <a href="{{ url_for('storefront.home') }}"
-         class="inline-flex items-center gap-space-xs bg-primary-container text-on-primary px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold shadow no-underline">
-        <span class="material-symbols-outlined text-[18px]">storefront</span>
-        <span>ابدأ التسوق</span>
-      </a>
-    </div>
-    {% endif %}
-  </div>
 
-  {% if active_plans %}
-  <!-- Active installment plans -->
-  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mt-space-xl">
-    <div class="p-space-lg bg-surface-container-low flex items-center justify-between">
-      <div class="flex items-center gap-space-xs">
-        <span class="material-symbols-outlined text-secondary">calendar_month</span>
-        <span class="font-headline-lg text-headline-lg text-on-surface font-bold">خطط التقسيط النشطة</span>
+        {% if orders %}
+        <div class="p-space-lg space-y-space-md">
+          {% for o in orders %}
+          {% set st = order_status_labels.get(o.status.value, (o.status.value, 'bg-surface-container-high text-on-surface-variant')) %}
+          <article class="bg-surface-container-low rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:shadow-md transition-shadow">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-space-md">
+              <div class="flex items-center gap-space-xs">
+                <span class="font-headline-sm text-headline-sm font-bold text-on-surface">طلب رقم:</span>
+                <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+                   class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary dir-ltr no-underline hover:underline">
+                  {{ o.doc_number }}
+                </a>
+              </div>
+              <span class="hidden sm:inline text-outline-variant">•</span>
+              <div class="flex items-center gap-space-2xs text-on-surface-variant font-body-sm text-body-sm">
+                <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                <span>{{ o.order_date | hdate }}</span>
+              </div>
+              <span class="hidden sm:inline text-outline-variant">•</span>
+              <div class="flex items-center gap-space-2xs text-on-surface font-label-md text-label-md">
+                <span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
+                <span>{{ o.lines|length }} صنف</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-space-md">
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">
+                {{ o.total | money }}
+              </span>
+              <span class="inline-flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full font-label-md text-label-md font-bold {{ st[1] }}">
+                <span class="w-2 h-2 rounded-full bg-current"></span>
+                {{ st[0] }}
+              </span>
+              <a href="{{ url_for('storefront.account_order_view', order_number=o.doc_number) }}"
+                 class="p-space-xs rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container shadow-sm transition-colors no-underline"
+                 title="تفاصيل الطلب">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-space-2xl text-center">
+          <div class="text-[64px] opacity-40">🛍️</div>
+          <div class="font-headline-sm text-headline-sm text-on-surface font-bold mt-space-md">لا توجد طلبات بعد</div>
+          <div class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">ابدأ التسوق من متجرنا الآن.</div>
+          <a href="{{ url_for('storefront.home') }}"
+             class="inline-flex items-center gap-space-xs bg-primary-container text-on-primary px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold shadow no-underline">
+            <span class="material-symbols-outlined text-[18px]">storefront</span>
+            <span>ابدأ التسوق</span>
+          </a>
+        </div>
+        {% endif %}
       </div>
-      <a href="{{ url_for('storefront.account_installments') }}"
-         class="text-secondary font-label-md text-label-md font-semibold hover:underline flex items-center gap-space-3xs no-underline">
-        عرض الكل
-        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-      </a>
+
+      <!-- Active installment plans -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">calendar_month</span>
+            <span class="font-headline-lg text-headline-lg text-on-surface font-bold">خطط التقسيط النشطة</span>
+          </div>
+          <a href="{{ url_for('storefront.account_installments') }}"
+             class="text-secondary font-label-md text-label-md font-semibold hover:underline flex items-center gap-space-3xs no-underline">
+            عرض الكل
+            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+          </a>
+        </div>
+        {% if active_plans %}
+        <div class="p-space-lg grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          {% for plan in active_plans %}
+          <a href="{{ url_for('storefront.account_installment_view', plan_id=plan.id) }}"
+             class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-xs hover:shadow-md transition-shadow no-underline text-on-surface">
+            <div class="flex items-center justify-between">
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary dir-ltr">
+                {{ plan.doc_number }}
+              </span>
+              <span class="bg-secondary-container/40 text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">
+                {{ plan.paid_installments_count }} / {{ plan.installments_count }}
+              </span>
+            </div>
+            <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
+              <span>المسدَّد:</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-semibold">
+                {{ plan.total_paid | money }}
+              </span>
+            </div>
+            <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
+              <span>المتبقي:</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-error font-bold">
+                {{ plan.total_remaining | money }}
+              </span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-space-2xl text-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[48px] opacity-40">event_available</span>
+          <p class="font-body-sm text-body-sm mt-space-xs">لا توجد خطط تقسيط نشطة حاليًا.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Profile section (account information) -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">manage_accounts</span>
+            <span class="font-headline-lg text-headline-lg text-on-surface font-bold">معلومات الحساب والإعدادات</span>
+          </div>
+          <span class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm px-space-sm py-space-3xs rounded-full">قريبًا</span>
+        </div>
+        <div class="p-space-lg grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          <div class="bg-surface-container-low rounded-lg p-space-md">
+            <span class="font-label-sm text-label-sm text-on-surface-variant block">الاسم الكامل</span>
+            <span class="font-body-md text-body-md text-on-surface font-semibold">{{ customer.name_ar }}</span>
+          </div>
+          <div class="bg-surface-container-low rounded-lg p-space-md">
+            <span class="font-label-sm text-label-sm text-on-surface-variant block">رقم الهاتف</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-semibold dir-ltr">{{ customer.phone or '—' }}</span>
+          </div>
+          <div class="bg-surface-container-low rounded-lg p-space-md">
+            <span class="font-label-sm text-label-sm text-on-surface-variant block">البريد الإلكتروني</span>
+            <span class="font-body-md text-body-md text-on-surface font-semibold dir-ltr">{{ customer.email or '—' }}</span>
+          </div>
+          <div class="bg-surface-container-low rounded-lg p-space-md">
+            <span class="font-label-sm text-label-sm text-on-surface-variant block">حالة الحساب</span>
+            <span class="inline-flex items-center gap-space-3xs bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">
+              <span class="material-symbols-outlined text-[14px]">verified</span>
+              موثق
+            </span>
+          </div>
+          <div class="md:col-span-2 flex justify-end">
+            <button type="button" disabled title="قريبًا"
+                    class="bg-surface-container text-on-surface-variant px-space-lg py-space-xs rounded-lg font-label-md text-label-md flex items-center gap-space-xs opacity-70 cursor-not-allowed border-0">
+              <span class="material-symbols-outlined text-[18px]">edit</span>
+              <span>تعديل الملف الشخصي — قريبًا</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="p-space-lg grid grid-cols-1 md:grid-cols-2 gap-space-md">
-      {% for plan in active_plans %}
-      <a href="{{ url_for('storefront.account_installment_view', plan_id=plan.id) }}"
-         class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-xs hover:shadow-md transition-shadow no-underline text-on-surface">
-        <div class="flex items-center justify-between">
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-secondary dir-ltr">
-            {{ plan.doc_number }}
-          </span>
-          <span class="bg-secondary-container/40 text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">
-            {{ plan.paid_installments_count }} / {{ plan.installments_count }}
+
+    <!-- Left sidebar column -->
+    <aside class="lg:col-span-4 space-y-space-lg">
+
+      <!-- Loyalty progress bar -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+        <div class="flex items-center justify-between mb-space-md">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">workspace_premium</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold">مستوى العضوية</span>
+          </div>
+          <span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">ذهبي</span>
+        </div>
+        <div class="mb-space-xs">
+          <div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant mb-space-3xs">
+            <span>ذهبي</span>
+            <span>بلاتيني</span>
+          </div>
+          <div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-l from-secondary to-secondary-container rounded-full" style="width: 62%;"></div>
+          </div>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">
+            تحتاج <strong class="text-secondary font-fiscal-numeric-md">920 نقطة</strong> إضافية للترقية للمستوى البلاتيني وفتح مزايا حصرية.
+          </p>
+        </div>
+      </div>
+
+      <!-- Saved addresses -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <div class="flex items-center justify-between mb-space-sm">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[20px]">pin_drop</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface">العناوين المحفوظة</span>
+          </div>
+          <span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-space-2xs py-space-3xs rounded font-bold">الأساسي</span>
+        </div>
+        <div class="flex items-start gap-space-xs mb-space-sm">
+          <span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">home_pin</span>
+          <div>
+            <p class="font-label-md text-label-md text-on-surface font-semibold">العنوان الأساسي المعتمد</p>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">تظهر عناوينك من آخر الطلبات هنا بعد إتمامها.</p>
+          </div>
+        </div>
+        <button type="button" disabled title="قريبًا"
+                class="w-full text-on-surface-variant font-label-sm text-label-sm text-center py-space-2xs rounded bg-surface-container-low transition-colors opacity-70 cursor-not-allowed border-0">
+          إدارة كافة العناوين — قريبًا
+        </button>
+      </div>
+
+      <!-- Wishlist quick preview -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <div class="flex items-center justify-between mb-space-sm">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[20px]">favorite</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface">المفضلة</span>
+          </div>
+          <span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-space-3xs rounded-full font-bold">
+            {{ sf_wishlist_count or 0 }}
           </span>
         </div>
-        <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
-          <span>المسدَّد:</span>
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-semibold">
-            {{ plan.total_paid | money }}
-          </span>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
+          قطعك المحفوظة بعناية جاهزة للنقل السريع لسلة الشراء.
+        </p>
+        <a href="{{ url_for('storefront.account_wishlist') }}"
+           class="w-full inline-flex items-center justify-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface py-space-xs px-space-sm rounded-lg font-label-md text-label-md transition-colors no-underline">
+          <span class="material-symbols-outlined text-[18px] text-secondary">bookmark_star</span>
+          <span>عرض قائمة المفضلة</span>
+        </a>
+      </div>
+
+      <!-- VIP Concierge Support Card -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+        <div class="flex items-center gap-space-xs text-secondary font-headline-sm text-headline-sm mb-space-2xs">
+          <span class="material-symbols-outlined text-[22px]">support_agent</span>
+          <span>المستشار الشخصي المخصص</span>
         </div>
-        <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
-          <span>المتبقي:</span>
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-error font-bold">
-            {{ plan.total_remaining | money }}
-          </span>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md leading-relaxed">
+          هل تحتاج تعديل موعد وصول شحنتك أو إضافة تعليمات خاصة بفحص المعاينة؟
+        </p>
+        <div class="space-y-space-xs">
+          {% if sf_settings.store_phone %}
+          <a href="tel:{{ sf_settings.store_phone }}"
+             class="w-full bg-surface-container text-on-surface hover:bg-surface-container-high py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-between transition-colors no-underline">
+            <span class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-[18px] text-secondary">call</span>
+              <span>الخط الساخن المباشر</span>
+            </span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold dir-ltr">{{ sf_settings.store_phone }}</span>
+          </a>
+          <a href="https://wa.me/{{ sf_settings.store_phone|replace('+','')|replace(' ','') }}" target="_blank"
+             class="w-full bg-secondary text-on-secondary hover:opacity-90 py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs shadow transition-opacity no-underline">
+            <span class="material-symbols-outlined text-[18px]">chat</span>
+            <span>محادثة واتساب لكبار الشخصيات</span>
+          </a>
+          {% else %}
+          <button type="button" disabled title="قريبًا"
+                  class="w-full bg-surface-container text-on-surface-variant py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs opacity-70 cursor-not-allowed border-0">
+            <span class="material-symbols-outlined text-[18px]">call</span>
+            <span>خدمة العملاء — قريبًا</span>
+          </button>
+          {% endif %}
         </div>
-      </a>
-      {% endfor %}
-    </div>
+      </div>
+
+    </aside>
   </div>
-  {% endif %}
 
 </div>
 {% endblock %}

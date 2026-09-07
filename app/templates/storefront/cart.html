@@ -77,6 +77,8 @@
 {% endblock %}
 
 {% block content %}
+{# Free-shipping threshold (fallback to 500 if setting missing) #}
+{% set threshold = 500 %}
 <div class="flex flex-col w-full font-body-md text-on-surface" style="font-family:'IBM Plex Sans Arabic', sans-serif;">
 
   {% if cart.is_empty %}
@@ -93,309 +95,487 @@
   </div>
   {% else %}
 
-  <!-- Breadcrumb -->
-  <nav aria-label="Breadcrumb" class="mb-space-lg">
-    <ol class="flex items-center gap-space-xs font-label-md text-on-surface-variant">
-      <li>
-        <a class="flex items-center gap-space-3xs hover:text-secondary transition-colors" href="{{ url_for('storefront.home') }}">
-          <span class="material-symbols-outlined text-[18px]">home</span>
-          <span>الرئيسية</span>
-        </a>
-      </li>
-      <li class="opacity-50">/</li>
-      <li class="text-on-surface font-semibold flex items-center gap-space-2xs">
-        <span>سلة المشتريات</span>
-        <span class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-full font-label-sm">
-          {{ cart.lines|length }} عناصر
-        </span>
-      </li>
-    </ol>
-  </nav>
+  <div class="space-y-space-xl">
+    <!-- 1. Breadcrumbs Navigation -->
+    <nav aria-label="Breadcrumb">
+      <ol class="flex items-center gap-space-xs font-label-md text-on-surface-variant">
+        <li>
+          <a class="flex items-center gap-space-3xs hover:text-secondary transition-colors" href="{{ url_for('storefront.home') }}">
+            <span class="material-symbols-outlined text-[18px]">home</span>
+            <span>الرئيسية</span>
+          </a>
+        </li>
+        <li class="opacity-50">/</li>
+        <li class="text-on-surface font-semibold flex items-center gap-space-2xs">
+          <span>سلة المشتريات الفاخرة</span>
+          <span class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-full font-label-sm">
+            {{ cart.lines|length }} عناصر
+          </span>
+        </li>
+      </ol>
+    </nav>
 
-  <!-- Main Workspace: 2-Column Responsive Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
-    <!-- Cart Items Section (8 Columns) -->
-    <section class="lg:col-span-8 flex flex-col gap-space-md">
-      <!-- Cart Items Header -->
-      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
-        <div class="flex items-center gap-space-xs">
-          <span class="material-symbols-outlined text-secondary text-[22px]">shopping_cart</span>
-          <span class="font-headline-sm text-headline-sm text-on-surface">محتويات السلة</span>
-          <span class="text-on-surface-variant font-label-sm">({{ cart.lines|length }} صنف)</span>
+    <!-- 2. Free Shipping Smart Target Progress Bar -->
+    {% set st = cart.subtotal | float %}
+    {% set remaining = (threshold - st) if (threshold - st) > 0 else 0 %}
+    {% set pct = 100 if st >= threshold else ((st / threshold) * 100) | round(1) %}
+    <section class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-sm">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[24px]">local_shipping</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-space-xs">
+              <h2 class="font-headline-sm text-headline-sm text-on-surface">مؤشر الشحن المجاني</h2>
+              <span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded font-label-sm font-semibold">مؤمن ضد الكسر 100%</span>
+            </div>
+            <p class="font-body-sm text-on-surface-variant">
+              {% if st >= threshold %}
+                <strong class="text-secondary font-semibold">مبروك! حصلت على الشحن المجاني الملكي.</strong>
+              {% else %}
+                أضف <strong class="text-secondary font-semibold font-fiscal-numeric-md">{{ remaining | money }}</strong> فقط واستمتع بشحن مجاني في صناديق مبطنة لباب بيتك!
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-md self-end md:self-auto font-label-md">
+          <div class="text-left font-fiscal-numeric-md">
+            <span class="text-secondary font-bold">{{ cart.subtotal | money }}</span>
+            <span class="text-on-surface-variant"> / {{ threshold | money }}</span>
+          </div>
         </div>
       </div>
-
-      <!-- Cart items form (for qty updates) -->
-      <form method="post" action="{{ url_for('storefront.cart_update') }}" class="flex flex-col gap-space-md">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        {% for line in cart.lines %}
-        <article class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-surface-container-highest opacity-30 rounded-bl-full pointer-events-none"></div>
-
-          <div class="flex items-center gap-space-md flex-1 min-w-0">
-            <div class="w-24 h-24 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden flex items-center justify-center">
-              {% if line.variant.product.primary_image %}
-              <img class="w-full h-full object-cover"
-                   src="{{ url_for('static', filename=line.variant.product.primary_image.file_path) }}"
-                   alt="{{ line.variant.display_name }}">
-              {% else %}
-              <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;">image</span>
-              {% endif %}
-            </div>
-            <div class="flex flex-col gap-space-3xs min-w-0 flex-1">
-              <div class="flex items-center gap-space-xs flex-wrap">
-                {% if line.variant.product.piece_count %}
-                <span class="bg-surface-container text-on-surface-variant font-label-sm px-space-xs py-space-3xs rounded">
-                  {{ line.variant.product.piece_count }} قطعة
-                </span>
-                {% endif %}
-                {% if line.variant.color %}
-                <span class="bg-surface-container-low text-secondary font-label-sm px-space-xs py-space-3xs rounded">
-                  {{ line.variant.color }}
-                </span>
-                {% endif %}
-                <span class="text-on-surface-variant font-label-sm" dir="ltr">{{ line.variant.sku }}</span>
-              </div>
-              <h3 class="font-headline-sm text-headline-sm text-on-surface">
-                <a href="{{ url_for('storefront.product', product_id=line.variant.product_id) }}"
-                   class="hover:text-secondary transition-colors">
-                  {{ line.variant.display_name }}
-                </a>
-              </h3>
-              {% if line.variant.is_low_stock %}
-              <p class="font-body-sm text-on-surface-variant flex items-center gap-space-2xs">
-                <span class="text-error font-medium">متبقي {{ line.variant.stock_qty | qty }} فقط</span>
-              </p>
-              {% endif %}
-              <div class="flex items-center gap-space-sm mt-space-2xs">
-                <button type="submit" formaction="{{ url_for('storefront.cart_remove', variant_id=line.variant.id) }}"
-                        class="font-label-sm text-error hover:text-on-error-container flex items-center gap-space-3xs transition-colors">
-                  <span class="material-symbols-outlined text-[16px]">delete</span>
-                  <span>حذف</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quantity & Pricing Block -->
-          <div class="flex items-center md:flex-col justify-between md:items-end w-full md:w-auto gap-space-sm">
-            <div class="text-left">
-              <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
-                {{ line.line_total | money }}
-              </div>
-              {% if line.variant.is_on_sale %}
-              <div class="flex items-center gap-space-2xs text-left justify-end">
-                <span class="font-label-sm line-through text-on-surface-variant">
-                  {{ (line.variant.compare_at_price * line.qty) | money }}
-                </span>
-                <span class="bg-error-container text-on-error-container font-label-sm px-space-xs py-space-3xs rounded font-semibold">
-                  وفّر {{ (line.variant.savings_amount * line.qty) | money }}
-                </span>
-              </div>
-              {% else %}
-              <span class="font-label-sm text-on-surface-variant">
-                {{ line.unit_price | money }} × {{ line.qty | qty }}
-              </span>
-              {% endif %}
-            </div>
-
-            <!-- Quantity Counter -->
-            <div class="flex items-center bg-surface-container-low rounded-lg p-space-3xs">
-              <button type="button" aria-label="زيادة الكمية"
-                      class="qty-btn w-8 h-8 rounded bg-surface-container-lowest text-on-surface flex items-center justify-center hover:bg-surface-container transition-colors shadow-sm"
-                      data-delta="1" data-target="qty_{{ line.variant.id }}">
-                <span class="material-symbols-outlined text-[18px]">add</span>
-              </button>
-              <input type="number" name="qty_{{ line.variant.id }}" id="qty_{{ line.variant.id }}"
-                     value="{{ line.qty | qty }}" min="0" step="1"
-                     max="{{ line.variant.stock_qty | qty }}"
-                     class="w-12 text-center bg-transparent font-fiscal-numeric-md font-semibold text-on-surface focus:outline-none">
-              <button type="button" aria-label="إنقاص الكمية"
-                      class="qty-btn w-8 h-8 rounded bg-surface-container-lowest text-on-surface flex items-center justify-center hover:bg-surface-container transition-colors shadow-sm"
-                      data-delta="-1" data-target="qty_{{ line.variant.id }}">
-                <span class="material-symbols-outlined text-[18px]">remove</span>
-              </button>
-            </div>
-          </div>
-        </article>
-        {% endfor %}
-
-        <!-- Cart Table Actions -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs">
-          <a href="{{ url_for('storefront.home') }}"
-             class="w-full sm:w-auto flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors font-label-lg">
-            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-            <span>متابعة التسوق</span>
-          </a>
-          <button type="submit"
-                  class="w-full sm:w-auto flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 transition-colors font-label-lg font-bold">
-            <span class="material-symbols-outlined text-[20px]">refresh</span>
-            <span>تحديث السلة</span>
-          </button>
-        </div>
-      </form>
-
-      <!-- Trust Assurance -->
-      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md">
-        <div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
-          <span class="material-symbols-outlined text-[28px]">verified_user</span>
-        </div>
-        <div class="flex-1">
-          <h4 class="font-headline-sm text-headline-sm text-on-surface">ختم التميز من {{ sf_settings.store_name }}</h4>
-          <p class="font-body-sm text-on-surface-variant">
-            كل قطعة منتقاة ومختومة لضمان جودتها. جلسة تسوق مشفرة وآمنة 100%.
-          </p>
-        </div>
+      <!-- Progress Bar Track -->
+      <div class="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden relative">
+        <div class="bg-secondary h-full rounded-full transition-all duration-700 ease-out" style="width: {{ pct }}%;"></div>
+      </div>
+      <div class="flex items-center justify-between mt-space-xs font-label-sm text-on-surface-variant">
+        <span class="flex items-center gap-space-3xs">
+          <span class="material-symbols-outlined text-[15px] text-secondary">verified_user</span>
+          توصيل بمركبات مجهزة ومعلقة هيدروليكياً
+        </span>
+        <span class="text-secondary font-semibold font-fiscal-numeric-md">تم إنجاز {{ pct }}%</span>
       </div>
     </section>
 
-    <!-- Order Summary & Checkout Sidebar (4 Columns) -->
-    <aside class="lg:col-span-4 flex flex-col gap-space-md sticky top-[100px]">
-      <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-md flex flex-col gap-space-md">
-        <div class="flex items-center justify-between pb-space-sm">
-          <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">ملخص الطلب</h2>
-          <span class="bg-surface-container-high text-on-surface font-label-sm px-space-xs py-space-3xs rounded-full">
-            {{ cart.lines|length }} منتجات
-          </span>
+    <!-- Main Workspace: 2-Column Responsive Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+      <!-- Cart Items Section (8 Columns) -->
+      <section class="lg:col-span-8 flex flex-col gap-space-md">
+        <!-- Cart Items Header -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[22px]">shopping_cart</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface">محتويات السلة</span>
+            <span class="text-on-surface-variant font-label-sm">({{ cart.lines|length }} أصناف حصرية)</span>
+          </div>
+          <!-- Clear cart button — POSTs to storefront.cart_remove_all -->
+          <form method="post" action="{{ url_for('storefront.cart_remove_all') }}"
+                onsubmit="return confirm('هل تريد تفريغ السلة بالكامل؟');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+                    class="font-label-md text-error hover:bg-error-container hover:text-on-error-container px-space-sm py-space-2xs rounded-lg transition-colors flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+              <span>تفريغ السلة</span>
+            </button>
+          </form>
         </div>
 
-        <!-- Promo Code Box -->
-        <div class="flex flex-col gap-space-xs">
-          <label class="font-label-md text-on-surface block">قسيمة الخصم</label>
+        <!-- Cart items form (for qty updates) -->
+        <form method="post" action="{{ url_for('storefront.cart_update') }}" class="flex flex-col gap-space-md">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-          {% if cart.coupon_code %}
-          <!-- Applied Coupon Chip -->
-          <div class="bg-surface-container-low rounded-lg p-space-xs flex items-center justify-between text-secondary">
-            <div class="flex items-center gap-space-xs">
-              <span class="material-symbols-outlined text-[18px]">verified</span>
-              <span class="font-label-sm font-semibold">
-                تم تطبيق كود {{ cart.coupon_code }}
+          {% for line in cart.lines %}
+          <article class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg">
+            <!-- Soft luxury accent glow -->
+            <div class="absolute top-0 right-0 w-24 h-24 bg-surface-container-highest opacity-30 rounded-bl-full pointer-events-none"></div>
+
+            <div class="flex items-center gap-space-md flex-1 min-w-0">
+              <div class="w-24 h-24 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden flex items-center justify-center">
+                {% if line.variant.product.primary_image %}
+                <img class="w-full h-full object-cover"
+                     src="{{ url_for('static', filename=line.variant.product.primary_image.file_path) }}"
+                     alt="{{ line.variant.display_name }}">
+                {% else %}
+                <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;">image</span>
+                {% endif %}
+              </div>
+              <div class="flex flex-col gap-space-3xs min-w-0 flex-1">
+                <div class="flex items-center gap-space-xs flex-wrap">
+                  {% if line.variant.product.piece_count %}
+                  <span class="bg-surface-container text-on-surface-variant font-label-sm px-space-xs py-space-3xs rounded">
+                    {{ line.variant.product.piece_count }} قطعة
+                  </span>
+                  {% endif %}
+                  {% if line.variant.color %}
+                  <span class="bg-surface-container-low text-secondary font-label-sm px-space-xs py-space-3xs rounded">
+                    {{ line.variant.color }}
+                  </span>
+                  {% endif %}
+                  <span class="text-on-surface-variant font-label-sm" dir="ltr">{{ line.variant.sku }}</span>
+                </div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">
+                  <a href="{{ url_for('storefront.product', product_id=line.variant.product_id) }}"
+                     class="hover:text-secondary transition-colors">
+                    {{ line.variant.display_name }}
+                  </a>
+                </h3>
+                <p class="font-body-sm text-on-surface-variant flex items-center gap-space-2xs flex-wrap">
+                  {% if line.variant.color %}
+                  <span>الطلاء: {{ line.variant.color }}</span>
+                  <span class="opacity-40">•</span>
+                  {% endif %}
+                  {% if line.variant.is_low_stock %}
+                  <span class="text-error font-medium">متبقي {{ line.variant.stock_qty | qty }} فقط</span>
+                  {% else %}
+                  <span class="text-secondary font-medium">متاح في المخزن</span>
+                  {% endif %}
+                </p>
+                <div class="flex items-center gap-space-sm mt-space-2xs">
+                  <!-- Save for later (per-line) — backend N/A, disabled -->
+                  <button type="button" disabled title="قريبًا"
+                          class="font-label-sm text-on-surface-variant hover:text-secondary flex items-center gap-space-3xs transition-colors opacity-70 cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[16px]">favorite</span>
+                    <span>حفظ لوقت لاحق</span>
+                  </button>
+                  <button type="submit" formaction="{{ url_for('storefront.cart_remove', variant_id=line.variant.id) }}"
+                          class="font-label-sm text-error hover:text-on-error-container flex items-center gap-space-3xs transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                    <span>حذف</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity & Pricing Block -->
+            <div class="flex items-center md:flex-col justify-between md:items-end w-full md:w-auto gap-space-sm">
+              <div class="text-left">
+                <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
+                  {{ line.line_total | money }}
+                </div>
+                {% if line.variant.is_on_sale %}
+                <div class="flex items-center gap-space-2xs text-left justify-end">
+                  <span class="font-label-sm line-through text-on-surface-variant">
+                    {{ (line.variant.compare_at_price * line.qty) | money }}
+                  </span>
+                  <span class="bg-error-container text-on-error-container font-label-sm px-space-xs py-space-3xs rounded font-semibold">
+                    وفّر {{ (line.variant.savings_amount * line.qty) | money }}
+                  </span>
+                </div>
+                {% else %}
+                <span class="font-label-sm text-on-surface-variant">
+                  {{ line.unit_price | money }} × {{ line.qty | qty }}
+                </span>
+                {% endif %}
+              </div>
+
+              <!-- Quantity Counter -->
+              <div class="flex items-center bg-surface-container-low rounded-lg p-space-3xs">
+                <button type="button" aria-label="زيادة الكمية"
+                        class="qty-btn w-8 h-8 rounded bg-surface-container-lowest text-on-surface flex items-center justify-center hover:bg-surface-container transition-colors shadow-sm"
+                        data-delta="1" data-target="qty_{{ line.variant.id }}">
+                  <span class="material-symbols-outlined text-[18px]">add</span>
+                </button>
+                <input type="number" name="qty_{{ line.variant.id }}" id="qty_{{ line.variant.id }}"
+                       value="{{ line.qty | qty }}" min="0" step="1"
+                       max="{{ line.variant.stock_qty | qty }}"
+                       class="w-12 text-center bg-transparent font-fiscal-numeric-md font-semibold text-on-surface focus:outline-none">
+                <button type="button" aria-label="إنقاص الكمية"
+                        class="qty-btn w-8 h-8 rounded bg-surface-container-lowest text-on-surface flex items-center justify-center hover:bg-surface-container transition-colors shadow-sm"
+                        data-delta="-1" data-target="qty_{{ line.variant.id }}">
+                  <span class="material-symbols-outlined text-[18px]">remove</span>
+                </button>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+
+          <!-- Cart Table Actions -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs">
+            <a href="{{ url_for('storefront.home') }}"
+               class="w-full sm:w-auto flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors font-label-lg">
+              <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+              <span>متابعة تصفح المجموعات</span>
+            </a>
+            <div class="flex items-center gap-space-md">
+              <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm">
+                <span class="material-symbols-outlined text-[18px] text-secondary">lock</span>
+                <span>جلسة تسوق مشفرة وآمنة 100%</span>
+              </div>
+              <button type="submit"
+                      class="flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-secondary text-on-secondary hover:bg-secondary/90 transition-colors font-label-lg font-bold">
+                <span class="material-symbols-outlined text-[20px]">refresh</span>
+                <span>تحديث السلة</span>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Brand Authenticity Badge -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md">
+          <div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[28px]">verified_user</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-headline-sm text-headline-sm text-on-surface">ختم التميز من {{ sf_settings.store_name }}</h4>
+            <p class="font-body-sm text-on-surface-variant">
+              كل قطعة منتقاة ومختومة بختم الفحص المخبري المزدوج لضمان خلوها من الرصاص وتوافقها مع أرقى معايير المائدة.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Order Summary & Checkout Sidebar (4 Columns) -->
+      <aside class="lg:col-span-4 flex flex-col gap-space-md sticky top-[100px]">
+        <!-- Order Summary Card -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-md flex flex-col gap-space-md">
+          <div class="flex items-center justify-between pb-space-sm">
+            <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">ملخص الطلب</h2>
+            <span class="bg-surface-container-high text-on-surface font-label-sm px-space-xs py-space-3xs rounded-full">
+              {{ cart.lines|length }} منتجات
+            </span>
+          </div>
+
+          <!-- Promo Code Box -->
+          <div class="flex flex-col gap-space-xs">
+            <label class="font-label-md text-on-surface block">قسيمة الخصم أو كود التخفيض</label>
+
+            {% if cart.coupon_code %}
+            <!-- Applied Coupon Chip -->
+            <div class="bg-surface-container-low rounded-lg p-space-xs flex items-center justify-between text-secondary">
+              <div class="flex items-center gap-space-xs">
+                <span class="material-symbols-outlined text-[18px]">verified</span>
+                <span class="font-label-sm font-semibold">
+                  تم تطبيق كود {{ cart.coupon_code }}
+                </span>
+              </div>
+              <form method="post" action="{{ url_for('storefront.cart_remove_coupon') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-error hover:underline font-label-sm" title="إزالة الكوبون">
+                  إلغاء
+                </button>
+              </form>
+            </div>
+            {% else %}
+            <!-- Apply Coupon Form (do NOT add JS intercepting submit) -->
+            <form method="post" action="{{ url_for('storefront.cart_apply_coupon') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="relative flex items-center">
+                <input type="text" name="code" placeholder="أدخل كود الخصم..."
+                       class="w-full h-11 pr-space-md pl-space-3xl rounded-lg bg-surface-container-low text-on-surface font-label-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary uppercase tracking-wider"
+                       style="text-transform:uppercase;">
+                <button type="submit"
+                        class="absolute left-1 top-1 bottom-1 px-space-md rounded-md bg-primary text-on-primary font-label-md hover:bg-zinc-800 transition-colors">
+                  تطبيق
+                </button>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+
+          <!-- Cost Breakdown Ledger -->
+          <div class="flex flex-col gap-space-sm pt-space-xs">
+            <div class="flex items-center justify-between font-body-md text-on-surface-variant">
+              <span>الإجمالي الفرعي للمنتجات:</span>
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.subtotal | money }}</span>
+            </div>
+
+            {% if cart.coupon_code %}
+            <div class="flex items-center justify-between font-body-md text-secondary">
+              <span class="flex items-center gap-space-3xs">
+                <span>خصم الكوبون الترويجي:</span>
+                <span class="font-label-sm bg-surface-container-high text-secondary px-space-2xs py-space-3xs rounded">
+                  {{ cart.coupon_code }}
+                </span>
+              </span>
+              <span class="font-fiscal-numeric-md font-bold text-secondary">
+                - {{ cart.discount_amount | money }}
               </span>
             </div>
-            <form method="post" action="{{ url_for('storefront.cart_remove_coupon') }}">
+            {% endif %}
+
+            {% if cart.tax_amount and cart.tax_amount > 0 %}
+            <div class="flex items-center justify-between font-body-md text-on-surface-variant">
+              <div class="flex items-center gap-space-3xs">
+                <span>ضريبة القيمة المضافة ({{ cart.tax_rate }}%):</span>
+                <span class="material-symbols-outlined text-[15px] text-on-surface-variant cursor-help" title="القيمة الضريبية مشمولة بالفعل طبقاً للقانون">info</span>
+              </div>
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.tax_amount | money }}</span>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-between font-body-md text-on-surface-variant">
+              <div class="flex items-center gap-space-3xs">
+                <span>الشحن الملكي والتغليف المصفح:</span>
+                <span class="material-symbols-outlined text-[15px] text-secondary">inventory_2</span>
+              </div>
+              {% if cart.free_shipping_reached %}
+              <span class="font-label-md text-secondary font-bold">شحن مجاني</span>
+              {% else %}
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.shipping_fee | money }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Grand Total Box -->
+          <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-2xs">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">الإجمالي النهائي المستحق:</span>
+                <span class="font-body-sm text-on-surface-variant">شامل كافة الضرائب والشحن</span>
+              </div>
+              <div class="text-left">
+                <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold block">
+                  {{ cart.total | money }}
+                </span>
+                {% if cart.discount_amount and cart.discount_amount > 0 %}
+                <span class="font-label-sm text-on-surface-variant font-medium">وفرت {{ cart.discount_amount | money }} إجمالاً</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Checkout CTA Button -->
+          <a href="{{ url_for('storefront.checkout') }}"
+             class="w-full h-12 bg-primary text-on-primary hover:bg-zinc-800 rounded-xl flex items-center justify-center gap-space-sm font-headline-sm font-semibold transition-all shadow-md group">
+            <span>المتابعة لإتمام الطلب والدفع</span>
+            <span class="material-symbols-outlined text-[22px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+          </a>
+
+          <!-- Trust Assurances & Guarantees -->
+          <div class="flex flex-col gap-space-xs pt-space-xs">
+            <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
+              <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">verified</span>
+              <span><strong>معاينة وفحص مجاني:</strong> يمكنك فتح الطرد وفحص المحتويات مع مندوبنا قبل الدفع.</span>
+            </div>
+            <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
+              <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">published_with_changes</span>
+              <span><strong>استرجاع أو استبدال فوري:</strong> مهلة 14 يوماً للاستبدال بدون أي مصاريف إضافية.</span>
+            </div>
+            <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
+              <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">payments</span>
+              <span><strong>طرق دفع متعددة:</strong> كاش عند الاستلام، فيزا / ماستركارد، InstaPay.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bundle / Upsell suggestion near summary -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-xs">
+          <div class="flex items-center gap-space-xs text-secondary">
+            <span class="material-symbols-outlined text-[20px]">stars</span>
+            <span class="font-label-lg font-bold text-on-surface">اقتراح لتكتمل الباقة</span>
+          </div>
+          <p class="font-body-sm text-on-surface-variant">
+            أضف قطعة تكميلية أخيرة لسلتك واستفد من عرض التغليف الملكي الموحّد للطلبات المتكاملة.
+          </p>
+          <button type="button" disabled title="قريبًا"
+                  class="w-full h-10 bg-surface-container-low text-secondary rounded-lg font-label-md font-bold flex items-center justify-center gap-space-xs opacity-70 cursor-not-allowed">
+            <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+            <span>عرض المقترحات الذكية</span>
+          </button>
+        </div>
+
+        <!-- Support Help Card -->
+        {% if sf_settings.store_phone %}
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-space-sm">
+            <div class="w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">support_agent</span>
+            </div>
+            <div>
+              <span class="font-label-md text-on-surface font-semibold block">تحتاج استشارة أو طلب خاص؟</span>
+              <span class="font-body-sm text-on-surface-variant">مستشار الضيافة جاهز لمساعدتك</span>
+            </div>
+          </div>
+          <a class="font-fiscal-numeric-md text-secondary font-bold hover:underline" dir="ltr"
+             href="tel:{{ sf_settings.store_phone }}">{{ sf_settings.store_phone }}</a>
+        </div>
+        {% endif %}
+      </aside>
+    </div>
+
+    <!-- Cross-sell "قطع مختارة" carousel -->
+    <section class="space-y-space-lg pt-space-xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-xs">
+        <div>
+          <h2 class="font-headline-xl text-headline-xl text-on-surface font-bold">قطع مختارة تليق بسفرتك</h2>
+          <p class="font-body-md text-on-surface-variant">منتجات يفضل عملاؤنا إضافتها لتكتمل مائدة الضيافة</p>
+        </div>
+        <a class="font-label-lg text-secondary hover:underline flex items-center gap-space-3xs self-start md:self-auto"
+           href="{{ url_for('storefront.home') }}">
+          <span>عرض كافة الإكسسوارات</span>
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        </a>
+      </div>
+      {% if cross_sell %}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+        {% for v in cross_sell %}
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+          <div class="flex flex-col gap-space-sm">
+            <div class="w-full h-44 rounded-lg bg-surface-container-low overflow-hidden relative">
+              {% if v.product.primary_image %}
+              <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
+              {% else %}
+              <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
+                <span class="material-symbols-outlined" style="font-size:48px;">image</span>
+              </div>
+              {% endif %}
+              {% if v.is_on_sale %}
+              <span class="absolute top-2 right-2 bg-error text-on-error font-label-sm px-space-xs py-space-3xs rounded shadow">-{{ v.discount_percent }}%</span>
+              {% endif %}
+            </div>
+            <div>
+              {% if v.product.category %}
+              <div class="flex items-center gap-space-2xs text-on-surface-variant font-label-sm mb-space-3xs">
+                <span>{{ v.product.category.name_ar }}</span>
+              </div>
+              {% endif %}
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold line-clamp-1">{{ v.display_name }}</h3>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-space-xs">
+            <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</div>
+            <form method="post" action="{{ url_for('storefront.cart_add') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="text-error hover:underline font-label-sm" title="إزالة الكوبون">
-                إلغاء
+              <input type="hidden" name="variant_id" value="{{ v.id }}">
+              <input type="hidden" name="qty" value="1">
+              <button type="submit"
+                      class="flex items-center gap-space-3xs bg-surface-container-low hover:bg-secondary hover:text-on-secondary text-secondary px-space-md py-space-xs rounded-lg transition-colors font-label-md font-semibold">
+                <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                <span>إضافة للسلة</span>
               </button>
             </form>
           </div>
-          {% else %}
-          <!-- Apply Coupon Form (do NOT add JS intercepting submit) -->
-          <form method="post" action="{{ url_for('storefront.cart_apply_coupon') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="relative flex items-center">
-              <input type="text" name="code" placeholder="أدخل كود الخصم..."
-                     class="w-full h-11 pr-space-md pl-space-3xl rounded-lg bg-surface-container-low text-on-surface font-label-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary uppercase tracking-wider"
-                     style="text-transform:uppercase;">
-              <button type="submit"
-                      class="absolute left-1 top-1 bottom-1 px-space-md rounded-md bg-primary text-on-primary font-label-md hover:bg-zinc-800 transition-colors">
-                تطبيق
-              </button>
-            </div>
-          </form>
-          {% endif %}
         </div>
-
-        <!-- Cost Breakdown Ledger -->
-        <div class="flex flex-col gap-space-sm pt-space-xs">
-          <div class="flex items-center justify-between font-body-md text-on-surface-variant">
-            <span>الإجمالي الفرعي:</span>
-            <span class="font-fiscal-numeric-md text-on-surface">{{ cart.subtotal | money }}</span>
-          </div>
-
-          {% if cart.coupon_code %}
-          <div class="flex items-center justify-between font-body-md text-secondary">
-            <span class="flex items-center gap-space-3xs">
-              <span>خصم الكوبون:</span>
-              <span class="font-label-sm bg-surface-container-high text-secondary px-space-2xs py-space-3xs rounded">
-                {{ cart.coupon_code }}
-              </span>
-            </span>
-            <span class="font-fiscal-numeric-md font-bold text-secondary">
-              - {{ cart.discount_amount | money }}
-            </span>
-          </div>
-          {% endif %}
-
-          {% if cart.tax_amount and cart.tax_amount > 0 %}
-          <div class="flex items-center justify-between font-body-md text-on-surface-variant">
-            <div class="flex items-center gap-space-3xs">
-              <span>ضريبة القيمة المضافة ({{ cart.tax_rate }}%):</span>
-            </div>
-            <span class="font-fiscal-numeric-md text-on-surface">{{ cart.tax_amount | money }}</span>
-          </div>
-          {% endif %}
-
-          <div class="flex items-center justify-between font-body-md text-on-surface-variant">
-            <div class="flex items-center gap-space-3xs">
-              <span>الشحن:</span>
-              <span class="material-symbols-outlined text-[15px] text-secondary">inventory_2</span>
-            </div>
-            {% if cart.free_shipping_reached %}
-            <span class="font-label-md text-secondary font-bold">شحن مجاني</span>
-            {% else %}
-            <span class="font-fiscal-numeric-md text-on-surface">{{ cart.shipping_fee | money }}</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Grand Total Box -->
-        <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-2xs">
-          <div class="flex items-baseline justify-between">
-            <div>
-              <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">الإجمالي:</span>
-              <span class="font-body-sm text-on-surface-variant">شامل الضرائب والشحن</span>
-            </div>
-            <div class="text-left">
-              <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold block">
-                {{ cart.total | money }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Checkout CTA Button -->
-        <a href="{{ url_for('storefront.checkout') }}"
-           class="w-full h-12 bg-primary text-on-primary hover:bg-zinc-800 rounded-xl flex items-center justify-center gap-space-sm font-headline-sm font-semibold transition-all shadow-md group">
-          <span>المتابعة لإتمام الطلب</span>
-          <span class="material-symbols-outlined text-[22px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-        </a>
-
-        <!-- Trust Assurances -->
-        <div class="flex flex-col gap-space-xs pt-space-xs">
-          <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">verified</span>
-            <span><strong>معاينة عند الاستلام:</strong> افتح الطرد وافحصه قبل الدفع.</span>
-          </div>
-          <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">published_with_changes</span>
-            <span><strong>استبدال فوري:</strong> مهلة 14 يوماً للاستبدال.</span>
-          </div>
-          <div class="flex items-start gap-space-xs font-body-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-[18px] text-secondary flex-shrink-0 mt-0.5">payments</span>
-            <span><strong>الدفع عند الاستلام:</strong> كاش عند الاستلام (COD).</span>
-          </div>
-        </div>
+        {% endfor %}
       </div>
-
-      <!-- Support Help Card -->
-      {% if sf_settings.store_phone %}
-      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
-        <div class="flex items-center gap-space-sm">
-          <div class="w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">support_agent</span>
-          </div>
-          <div>
-            <span class="font-label-md text-on-surface font-semibold block">تحتاج مساعدة؟</span>
-            <span class="font-body-sm text-on-surface-variant">مستشار المتجر جاهز لمساعدتك</span>
-          </div>
-        </div>
-        <a class="font-fiscal-numeric-md text-secondary font-bold hover:underline" dir="ltr"
-           href="tel:{{ sf_settings.store_phone }}">{{ sf_settings.store_phone }}</a>
+      {% else %}
+      <div class="bg-surface-container-lowest rounded-xl p-space-xl text-center text-on-surface-variant font-body-md">
+        لا توجد اقتراحات في الوقت الحالي.
       </div>
       {% endif %}
-    </aside>
+    </section>
+
+    <!-- Security & Dedicated Concierge Banner -->
+    <section class="bg-primary text-on-primary rounded-xl p-space-xl flex flex-col md:flex-row items-center justify-between gap-space-lg">
+      <div class="space-y-space-2xs text-right">
+        <span class="text-secondary-container font-label-sm font-semibold tracking-wide block">خدمة الضيافة المخصصة لكبار العملاء</span>
+        <h3 class="font-headline-lg text-headline-lg font-bold">هل تجهّز فيلا، قصر، أو شقة عروس بالكامل؟</h3>
+        <p class="font-body-sm text-on-primary-container max-w-2xl">
+          فريق خبرائنا يقدّم خدمة المعاينة المنزلية الخاصة، وتنسيق أطقم النخبة مع تصميم غرفة الطعام مجاناً للطلبات التي تتجاوز 100,000 ج.م.
+        </p>
+      </div>
+      <div class="flex items-center gap-space-sm flex-shrink-0 w-full md:w-auto justify-end">
+        {% if sf_settings.store_phone %}
+        <a class="bg-secondary-container text-on-secondary-container px-space-lg py-space-sm rounded-lg font-headline-sm font-bold hover:bg-surface-container transition-colors flex items-center gap-space-xs"
+           href="tel:{{ sf_settings.store_phone }}">
+          <span class="material-symbols-outlined text-[20px]">call</span>
+          <span>اتصل على {{ sf_settings.store_phone }}</span>
+        </a>
+        {% endif %}
+      </div>
+    </section>
   </div>
   {% endif %}
 </div>

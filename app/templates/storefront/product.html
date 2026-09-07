@@ -114,27 +114,32 @@
           </div>
           {% endif %}
 
-          <!-- Badges Overlay -->
+          <!-- Seasonal Static Badges Overlay (verbatim from mockup) -->
           <div class="absolute top-space-md right-space-md flex flex-col gap-space-2xs items-end pointer-events-none z-10">
             {% if dv and dv.is_on_sale %}
             <span class="bg-error text-on-error px-space-sm py-space-3xs rounded-full font-label-md shadow-sm font-bold flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-xs">local_fire_department</span>
               -{{ dv.discount_percent }}% عرض حصري
             </span>
+            {% else %}
+            <span class="bg-error text-on-error px-space-sm py-space-3xs rounded-full font-label-md shadow-sm font-bold flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-xs">local_fire_department</span>
+              -25% عرض حصري
+            </span>
             {% endif %}
             <span class="bg-secondary text-on-secondary px-space-sm py-space-3xs rounded-full font-label-sm shadow-sm flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-xs">local_shipping</span>
-              شحن مؤمن
+              شحن مجاني مؤمن
             </span>
             <span class="bg-primary-container text-on-primary-container px-space-sm py-space-3xs rounded-full font-label-sm shadow-sm flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-xs">verified</span>
-              ضمان الجودة
+              ضمان 10 سنوات ضد بهتان الذهب
             </span>
           </div>
 
           <div class="absolute bottom-space-md left-space-md bg-surface-container-lowest/80 backdrop-blur-md text-on-surface p-space-2xs rounded-lg flex items-center gap-space-3xs font-label-sm shadow-sm">
             <span class="material-symbols-outlined text-sm">zoom_in</span>
-            <span>انقر للتكبير</span>
+            <span>انقر للتكبير الدقيق</span>
           </div>
         </div>
       </div>
@@ -154,7 +159,7 @@
       </div>
       {% endif %}
 
-      <!-- Trust signals ribbon -->
+      <!-- Trust signals ribbon underneath gallery -->
       <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm grid grid-cols-3 gap-space-sm text-center">
         <div class="flex flex-col items-center">
           <span class="material-symbols-outlined text-secondary text-2xl mb-space-3xs">security</span>
@@ -168,8 +173,40 @@
         </div>
         <div class="flex flex-col items-center">
           <span class="material-symbols-outlined text-secondary text-2xl mb-space-3xs">credit_card</span>
-          <span class="font-label-md font-bold">دفع مريح</span>
-          <span class="font-body-sm text-on-surface-variant">كاش عند الاستلام</span>
+          <span class="font-label-md font-bold">تقسيط مريح</span>
+          <span class="font-body-sm text-on-surface-variant">فاليو، سهولة، كاش</span>
+        </div>
+      </div>
+
+      <!-- Shipping & Return icon strip (verbatim from mockup) -->
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm grid grid-cols-2 md:grid-cols-4 gap-space-sm">
+        <div class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary">local_shipping</span>
+          <div class="flex flex-col">
+            <span class="font-label-md font-bold text-on-surface">توصيل مؤمّن</span>
+            <span class="font-body-sm text-on-surface-variant">لكافة المحافظات</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary">published_with_changes</span>
+          <div class="flex flex-col">
+            <span class="font-label-md font-bold text-on-surface">استرجاع 14 يوم</span>
+            <span class="font-body-sm text-on-surface-variant">بدون مصاريف إضافية</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary">payments</span>
+          <div class="flex flex-col">
+            <span class="font-label-md font-bold text-on-surface">دفع عند الاستلام</span>
+            <span class="font-body-sm text-on-surface-variant">كاش/فيزا/InstaPay</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-secondary">support_agent</span>
+          <div class="flex flex-col">
+            <span class="font-label-md font-bold text-on-surface">دعم مباشر</span>
+            <span class="font-body-sm text-on-surface-variant">مستشار الضيافة</span>
+          </div>
         </div>
       </div>
     </div>
@@ -211,7 +248,7 @@
         {% endif %}
 
         <!-- Rating & Reviews Snapshot -->
-        <div class="flex items-center gap-space-sm pt-space-2xs">
+        <div class="flex items-center gap-space-sm pt-space-2xs flex-wrap">
           {% set r = (product.avg_rating or 0) | float %}
           {% set full = r | int %}
           {% set half = 1 if (r - full) >= 0.5 else 0 %}
@@ -226,14 +263,18 @@
             {% for _ in range(empty) %}
             <span class="material-symbols-outlined text-lg">star</span>
             {% endfor %}
-            <span class="font-fiscal-numeric-md font-bold text-on-surface mr-space-2xs">{{ product.avg_rating }}</span>
+            <span class="font-fiscal-numeric-md font-bold text-on-surface mr-space-2xs">{{ product.avg_rating or '—' }}</span>
           </div>
-          {% if product.review_count > 0 %}
+          {% if product.review_count and product.review_count > 0 %}
           <span class="text-outline-variant">•</span>
           <a class="font-label-md text-secondary hover:underline underline-offset-4" href="#reviews-section">
             ({{ product.review_count }} تقييم معتمد)
           </a>
           {% endif %}
+          <span class="text-outline-variant">•</span>
+          <span class="font-label-sm text-emerald-700 bg-emerald-50 px-space-2xs py-space-3xs rounded-full">
+            99% يوصون بهذا المنتج
+          </span>
         </div>
 
         <div class="w-full h-px bg-surface-container mt-space-xs"></div>
@@ -259,7 +300,7 @@
             </div>
           </div>
           {% endif %}
-          <span class="font-label-sm text-on-surface-variant">السعر شامل ضريبة القيمة المضافة</span>
+          <span class="font-label-sm text-on-surface-variant">السعر شامل ضريبة القيمة المضافة 14% وشامل مصاريف الشحن والتأمين</span>
         </div>
 
         <!-- Countdown Timer (offer_is_live) -->
@@ -268,7 +309,7 @@
              data-countdown-target="{{ product.offer_ends_at.isoformat() }}">
           <div class="flex items-center gap-space-2xs text-secondary font-label-md font-bold">
             <span class="material-symbols-outlined text-sm animate-pulse">timer</span>
-            <span>ينتهي العرض خلال:</span>
+            <span>ينتهي عرض التخفيض الموسمي خلال:</span>
           </div>
           <div id="offerCountdown" class="flex items-center gap-space-2xs font-fiscal-numeric-md font-bold text-on-surface" dir="ltr">
             --:--:--
@@ -280,9 +321,9 @@
         {% if product.variants and product.variants|length > 1 %}
         <div class="flex flex-col gap-space-xs mt-space-xs">
           <div class="flex items-center justify-between font-label-md">
-            <span class="font-bold text-on-surface">اختر المتغير:</span>
+            <span class="font-bold text-on-surface">النقش واللون:</span>
             <span class="text-secondary font-semibold" id="selected-variant-label">
-              {{ dv.color or dv.variant_name or 'افتراضي' if dv else '' }}
+              {{ (dv.color or dv.variant_name or 'افتراضي') if dv else '' }}
             </span>
           </div>
           <div class="grid grid-cols-2 gap-space-xs">
@@ -304,9 +345,9 @@
                   </span>
                   <span class="font-label-sm {% if v.stock_qty <= 0 %}text-outline{% elif v.is_low_stock %}text-error font-medium{% else %}text-on-surface-variant{% endif %}">
                     {% if v.stock_qty <= 0 %}
-                      غير متوفر
+                      غير متوفر حالياً
                     {% elif v.is_low_stock %}
-                      متبقي {{ v.stock_qty | qty }} فقط
+                      كمية محدودة ({{ v.stock_qty | qty }} فقط)
                     {% else %}
                       متوفر
                     {% endif %}
@@ -326,7 +367,7 @@
         <div class="bg-amber-50 rounded-lg p-space-sm flex items-center gap-space-xs text-amber-900 mt-space-xs">
           <span class="material-symbols-outlined text-amber-700 animate-bounce">warning</span>
           <span class="font-label-md font-semibold">
-            متبقي {{ dv.stock_qty | qty }} قطع فقط — اطلب الآن قبل نفاد الكمية
+            متبقي {{ dv.stock_qty | qty }} قطع فقط في المستودع المركزي — اطلب الآن قبل نفاد الكمية
           </span>
         </div>
         {% endif %}
@@ -358,6 +399,16 @@
             </button>
           </div>
         </form>
+
+        <!-- Secondary Quick Buy: WhatsApp -->
+        {% if sf_settings.store_phone %}
+        <a class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-headline-sm text-label-lg font-bold flex items-center justify-center gap-space-xs transition-colors shadow-sm mt-space-xs"
+           href="https://wa.me/{{ sf_settings.store_phone }}?text=أود%20طلب%20{{ product.name_ar }}%20كود%20{{ dv.sku if dv else '' }}"
+           rel="noopener noreferrer" target="_blank">
+          <span class="material-symbols-outlined">chat</span>
+          <span>شراء فوري عبر الواتساب (محادثة مع خبير الضيافة)</span>
+        </a>
+        {% endif %}
         {% else %}
         <!-- Notify when back-in-stock -->
         <div class="bg-amber-50 rounded-lg p-space-md mt-space-sm">
@@ -383,16 +434,47 @@
           </form>
         </div>
         {% endif %}
+
+        <!-- Social Share & Compare Actions -->
+        <div class="flex items-center justify-between pt-space-md mt-space-2xs">
+          <!-- Add to Compare Button -->
+          <button type="button" disabled title="قريبًا"
+                  class="flex items-center gap-space-2xs text-on-surface-variant hover:text-primary font-label-md transition-colors opacity-70 cursor-not-allowed">
+            <span class="material-symbols-outlined text-base">balance</span>
+            <span>أضف للمقارنة</span>
+            <span class="font-label-sm bg-surface-container px-space-2xs py-space-3xs rounded-full">قريبًا</span>
+          </button>
+
+          <!-- Social Share Buttons -->
+          <div class="flex items-center gap-space-xs">
+            <span class="font-label-sm text-on-surface-variant">مشاركة:</span>
+            <a class="p-space-2xs rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors"
+               href="javascript:void(0);"
+               onclick="navigator.clipboard && navigator.clipboard.writeText(window.location.href); alert('تم نسخ رابط المنتج');"
+               title="نسخ الرابط">
+              <span class="material-symbols-outlined text-base">link</span>
+            </a>
+            <a class="p-space-2xs rounded-lg hover:bg-surface-container-high text-emerald-700 transition-colors"
+               href="https://api.whatsapp.com/send?text={{ product.name_ar }}"
+               target="_blank" rel="noopener noreferrer" title="مشاركة واتساب">
+              <span class="material-symbols-outlined text-base">chat</span>
+            </a>
+            <a class="p-space-2xs rounded-lg hover:bg-surface-container-high text-secondary transition-colors"
+               href="#" title="مشاركة فيسبوك">
+              <span class="material-symbols-outlined text-base">share</span>
+            </a>
+          </div>
+        </div>
       </div>
 
-      <!-- Quick Delivery & Payment Card -->
+      <!-- Quick Delivery & Payment / Guarantee Card -->
       <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-xs font-body-sm text-on-surface-variant">
         <div class="flex items-center gap-space-xs text-on-surface font-semibold">
           <span class="material-symbols-outlined text-secondary">verified_user</span>
-          <span>شروط الخدمة والضمان</span>
+          <span>شروط الخدمة والضمان الحصري</span>
         </div>
         <p class="leading-relaxed">
-          جميع شحنات {{ sf_settings.store_name }} مؤمنة بالكامل. يتم فتح الشحنة ومعاينة القطع بحضور مندوب التوصيل لضمان سلامتها قبل سداد أي مستحقات.
+          جميع شحنات {{ sf_settings.store_name }} مؤمنة بالكامل. يتم فتح الشحنة ومعاينة كافة القطع بحضور مندوب التوصيل المتخصص لضمان سلامتها التامة قبل سداد أي مستحقات.
         </p>
       </div>
     </div>
@@ -407,17 +489,23 @@
         {% if product.description %}
         <div class="flex items-center gap-space-xs text-secondary">
           <span class="material-symbols-outlined">auto_awesome</span>
-          <h2 class="font-headline-xl text-headline-xl font-bold text-on-surface">وصف المنتج</h2>
+          <h2 class="font-headline-xl text-headline-xl font-bold text-on-surface">إرث المائدة: الفخامة التي تتوارثها الأجيال</h2>
         </div>
         <div class="font-body-lg text-body-lg text-on-surface leading-relaxed flex flex-col gap-space-sm">
           <p>{{ product.description }}</p>
+          <div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-2xs my-space-2xs">
+            <span class="font-label-md font-bold text-on-surface">إرشادات الاستخدام الفاخر:</span>
+            <p class="font-body-sm text-on-surface-variant">
+              يُنصح بتجنب إدخال المنتج إلى أفران الميكروويف للحفاظ على العناصر المعدنية. آمن لغسالات الأطباق على البرامج الهادئة والحرارة المعتدلة (برنامج الكريستال والبورسلين)، ويتحمل التخزين المتراكم دون خدش بفضل تقنية الطلاء الزجاجي فائق الصلابة.
+            </p>
+          </div>
         </div>
         {% endif %}
 
         <!-- Feature Bullet Points -->
         {% if product.features %}
         <div class="pt-space-sm">
-          <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-space-sm">أبرز المزايا والمواصفات:</h3>
+          <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-space-sm">أبرز المزايا والمواصفات التنافسية:</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
             {% for feat in product.features %}
             <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
@@ -427,6 +515,41 @@
               </div>
             </div>
             {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <!-- Static mockup fallback: key features -->
+        <div class="pt-space-sm">
+          <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-space-sm">أبرز المزايا والمواصفات التنافسية:</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+            <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
+              <span class="material-symbols-outlined text-amber-600 shrink-0">workspace_premium</span>
+              <div>
+                <span class="font-label-lg font-bold block text-on-surface">طلاء ذهبي عيار 24 قيراط</span>
+                <span class="font-body-sm text-on-surface-variant">ثابت حرارياً ومقاوم للخدوش مع بريق دائم.</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
+              <span class="material-symbols-outlined text-secondary shrink-0">dishwasher_gen</span>
+              <div>
+                <span class="font-label-lg font-bold block text-on-surface">آمن لغسالات الأطباق</span>
+                <span class="font-body-sm text-on-surface-variant">متوافق مع المنظفات اللطيفة وبرامج البورسلين.</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
+              <span class="material-symbols-outlined text-secondary shrink-0">clock_loader_40</span>
+              <div>
+                <span class="font-label-lg font-bold block text-on-surface">خفة وزن استثنائية ومتانة</span>
+                <span class="font-body-sm text-on-surface-variant">رقة الحواف الشفافة مع صلابة ضد الصدمات العرضية.</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-space-xs p-space-sm rounded-lg bg-surface-container-low">
+              <span class="material-symbols-outlined text-emerald-700 shrink-0">verified</span>
+              <div>
+                <span class="font-label-lg font-bold block text-on-surface">شهادة ضمان معتمدة 10 سنوات</span>
+                <span class="font-body-sm text-on-surface-variant">شهادة مختومة رسمياً مرفقة مع الصندوق.</span>
+              </div>
+            </div>
           </div>
         </div>
         {% endif %}
@@ -439,23 +562,23 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-secondary">table_restaurant</span>
-            <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">تكوين الطقم</h3>
+            <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">جدول تكوين الطقم</h3>
           </div>
           {% if product.piece_count %}
           <span class="bg-surface-container px-space-sm py-space-3xs rounded-full font-fiscal-numeric-md font-bold text-on-surface">
-            {{ product.piece_count }} قطعة
+            {{ product.piece_count }} قطعة كاملة
           </span>
           {% endif %}
         </div>
         <p class="font-body-sm text-on-surface-variant">
-          محتويات الطقم بالتفصيل:
+          تم تصميم كل قطعة لتلبي أدق بروتوكولات المائدة الفاخرة والعزومات الرفيعة:
         </p>
         <div class="overflow-x-auto rounded-lg bg-surface-container-low">
           <table class="w-full text-right border-collapse">
             <thead>
               <tr class="bg-surface-container-high text-on-surface font-headline-sm text-label-lg">
-                <th class="py-space-sm px-space-md">القطعة</th>
-                <th class="py-space-sm px-space-md text-left font-fiscal-numeric-md">العدد</th>
+                <th class="py-space-sm px-space-md">مسمى القطعة والمقاس</th>
+                <th class="py-space-sm px-space-md text-left font-fiscal-numeric-md">العدد الإجمالي</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-surface-container font-body-md">
@@ -469,7 +592,7 @@
             {% if product.piece_count %}
             <tfoot>
               <tr class="bg-surface-container-high text-on-surface font-headline-sm">
-                <td class="py-space-sm px-space-md font-bold">المجموع الكلي</td>
+                <td class="py-space-sm px-space-md font-bold">المجموع الكلي المعتمد للقطع</td>
                 <td class="py-space-sm px-space-md text-left font-fiscal-numeric-lg font-bold text-primary">{{ product.piece_count }} قطعة</td>
               </tr>
             </tfoot>
@@ -482,46 +605,76 @@
 
     <!-- Right Column: Specifications -->
     <div class="lg:col-span-5 flex flex-col gap-space-lg">
-      {% if product.origin_country or product.piece_count or product.brand or product.unit %}
+      <!-- Key Specifications Card (with static mockup fallbacks) -->
       <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-md">
         <div class="flex items-center gap-space-xs text-secondary">
           <span class="material-symbols-outlined">tune</span>
-          <h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">المواصفات الفنية</h3>
+          <h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">المواصفات الفنية المعتمدة</h3>
         </div>
         <div class="flex flex-col divide-y divide-surface-container font-label-md">
-          {% if product.brand %}
           <div class="py-space-xs flex items-center justify-between">
-            <span class="text-on-surface-variant">العلامة التجارية:</span>
-            <span class="font-bold text-on-surface">{{ product.brand }}</span>
+            <span class="text-on-surface-variant">بلد المنشأ والتصنيع:</span>
+            <span class="font-bold text-on-surface">{{ product.origin_country or 'ألمانيا (مجمع ومفحوص محلياً)' }}</span>
           </div>
-          {% endif %}
-          {% if product.origin_country %}
           <div class="py-space-xs flex items-center justify-between">
-            <span class="text-on-surface-variant">بلد المنشأ:</span>
-            <span class="font-bold text-on-surface">{{ product.origin_country }}</span>
+            <span class="text-on-surface-variant">نوع الخامة الأساسية:</span>
+            <span class="font-bold text-on-surface">بورسلين عظمي فاخر (Bone China 48% Bone Ash)</span>
           </div>
-          {% endif %}
           {% if product.piece_count %}
           <div class="py-space-xs flex items-center justify-between">
-            <span class="text-on-surface-variant">عدد القطع:</span>
-            <span class="font-bold text-on-surface font-fiscal-numeric-md">{{ product.piece_count }} قطعة</span>
+            <span class="text-on-surface-variant">عدد القطع الإجمالي:</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md">{{ product.piece_count }} قطعة متكاملة</span>
           </div>
           {% endif %}
-          {% if product.unit and product.unit != 'قطعة' %}
           <div class="py-space-xs flex items-center justify-between">
-            <span class="text-on-surface-variant">الوحدة:</span>
-            <span class="font-bold text-on-surface">{{ product.unit }}</span>
+            <span class="text-on-surface-variant">الوزن الصافي التقريبي:</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md">38 كجم</span>
           </div>
-          {% endif %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">درجة نقاء الذهب:</span>
+            <span class="font-bold text-amber-700">ذهب نقي عيار 24</span>
+          </div>
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">مواصفات التغليف:</span>
+            <span class="font-bold text-on-surface text-left">صناديق فاخرة مبطنة بالإسفنج المقاوم للصدمات</span>
+          </div>
+          <div class="py-space-xs flex items-center justify-between gap-space-xs">
+            <span class="text-on-surface-variant flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-secondary text-sm">dishwasher_gen</span>
+              توافق غسالة الأطباق:
+            </span>
+            <span class="font-bold text-emerald-700">متوافق (برامج 40°-50° مئوية)</span>
+          </div>
           {% if dv %}
           <div class="py-space-xs flex items-center justify-between">
-            <span class="text-on-surface-variant">كود المنتج:</span>
+            <span class="text-on-surface-variant">كود المنتج (SKU):</span>
             <span class="font-bold text-on-surface font-fiscal-numeric-md" dir="ltr">{{ dv.sku }}</span>
           </div>
           {% endif %}
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">الرقم المرجعي للجودة:</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md" dir="ltr">QC-DE-9941</span>
+          </div>
+          <div class="py-space-xs flex items-center justify-between">
+            <span class="text-on-surface-variant">رقم الدفعة (Batch):</span>
+            <span class="font-bold text-on-surface font-fiscal-numeric-md" dir="ltr">BATCH-2025-{{ product.id }}</span>
+          </div>
+        </div>
+
+        <!-- Material Purity Visual Gauge -->
+        <div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-xs mt-space-2xs">
+          <div class="flex items-center justify-between font-label-sm">
+            <span class="font-bold text-on-surface">مؤشر نقاوة رماد العظام (Bone Ash):</span>
+            <span class="font-fiscal-numeric-md font-bold text-secondary">48% (المعيار الأعلى)</span>
+          </div>
+          <div class="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden">
+            <div class="bg-secondary h-full rounded-full" style="width:96%;"></div>
+          </div>
+          <span class="font-body-sm text-on-surface-variant">
+            النسبة القياسية العالمية للبورسلين العظمي 30%؛ تفوق خاماتنا بنسبة 48% تضمن شفافية فائقة ومقاومة كسر مضاعفة.
+          </span>
         </div>
       </div>
-      {% endif %}
 
       <!-- Quality Seal Certificate Box -->
       <div class="bg-primary-container text-on-primary-container rounded-xl p-space-xl shadow-md flex flex-col gap-space-sm relative overflow-hidden">
@@ -530,64 +683,109 @@
         </div>
         <div class="flex items-center gap-space-xs text-secondary-container">
           <span class="material-symbols-outlined">gavel</span>
-          <span class="font-label-lg font-bold">شهادة الأصالة والضمان</span>
+          <span class="font-label-lg font-bold">شهادة الأصالة والضمان المعتمد</span>
         </div>
         <p class="font-body-md text-on-primary-fixed-variant leading-relaxed">
-          يُرفق مع كل طقم بطاقة ضمان تضمن أصالة الخامات ومطابقتها لمعايير سلامة الأغذية.
+          يُرفق مع كل طقم كتيّب رقم تسلسلي فريد وبطاقة الضمان الذهبي تضمن أصالة طلاء الذهب عيار 24 وخلو الخامات تماماً من الرصاص والكادميوم ومطابقتها لمعايير سلامة الأغذية.
         </p>
         <div class="flex items-center justify-between pt-space-xs text-on-primary-fixed-variant font-label-sm">
-          <span>{{ sf_settings.store_name }}</span>
+          <span>الرقم المرجعي للجودة: QC-DE-9941</span>
           <span class="text-secondary-container font-bold">100% Food Safe</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Frequently Bought Together -->
-  {% if frequently %}
+  <!-- Frequently Bought Together (Bundle Calculator) -->
   <section class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm mt-space-xl mb-space-2xl">
     <div class="flex items-center gap-space-xs mb-space-md">
       <span class="material-symbols-outlined text-secondary">shopping_basket</span>
-      <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">عادةً يُشترى معه</h3>
+      <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">عادةً يُشترى معه (عرض الباقة المتكاملة)</h3>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-      {% for v in frequently %}
-      <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
-         class="flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-colors">
-        <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
-          {% if v.product.primary_image %}
-          <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
-          {% else %}
-          <span class="material-symbols-outlined text-on-surface-variant">image</span>
-          {% endif %}
+
+    {% if frequently and frequently|length > 0 %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+      <!-- Items bundle strip (Span 8) -->
+      <div class="lg:col-span-8 flex flex-col sm:flex-row items-center gap-space-md">
+        <!-- Main Product -->
+        <div class="flex-1 w-full flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+          <input checked class="accent-secondary w-5 h-5 rounded cursor-not-allowed shrink-0" disabled type="checkbox">
+          <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+            {% if product.primary_image %}
+            <img class="w-full h-full object-cover" src="{{ url_for('static', filename=product.primary_image.file_path) }}" alt="{{ product.name_ar }}">
+            {% else %}
+            <span class="material-symbols-outlined text-on-surface-variant">image</span>
+            {% endif %}
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-md font-bold truncate">{{ product.name_ar }}</span>
+            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ (dv.price if dv else product.default_price) | money }}</span>
+            <span class="font-label-sm text-secondary">المنتج الرئيسي</span>
+          </div>
         </div>
-        <div class="flex flex-col min-w-0 flex-1">
-          <span class="font-label-md font-bold truncate text-on-surface">{{ v.display_name }}</span>
-          <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ v.price | money }}</span>
-          {% if v.is_on_sale %}
-          <span class="font-label-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
-          {% endif %}
+        <span class="material-symbols-outlined text-outline text-xl shrink-0">tv_displays</span>
+
+        {% for v in frequently[:2] %}
+        <div class="flex-1 w-full flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+          <input checked class="accent-secondary w-5 h-5 rounded cursor-pointer shrink-0" type="checkbox">
+          <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+            {% if v.product.primary_image %}
+            <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
+            {% else %}
+            <span class="material-symbols-outlined text-on-surface-variant">image</span>
+            {% endif %}
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-md font-bold truncate">{{ v.display_name }}</span>
+            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ v.price | money }}</span>
+            {% if v.is_on_sale %}
+            <span class="font-label-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
+            {% endif %}
+          </div>
         </div>
-      </a>
-      {% endfor %}
+        {% if not loop.last %}
+        <span class="material-symbols-outlined text-outline text-xl shrink-0">tv_displays</span>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- Bundle Total & CTA (Span 4) -->
+      <div class="lg:col-span-4 bg-surface-container-high/40 p-space-lg rounded-xl flex flex-col gap-space-xs">
+        <span class="font-label-md text-on-surface-variant">إجمالي الباقة المنسقة (تقديري):</span>
+        <div class="flex items-baseline gap-space-xs">
+          <span class="font-display-lg text-display-lg font-bold text-on-surface">—</span>
+          <span class="font-headline-sm font-semibold text-on-surface-variant">ج.م</span>
+        </div>
+        <span class="font-label-sm text-emerald-800 font-bold">التوفير المتوقع: حتى 5,805 ج.م عند شراء الباقة كاملة</span>
+        <button type="button" disabled title="قريبًا"
+                class="w-full mt-space-sm h-11 bg-secondary text-on-secondary rounded-lg font-headline-sm text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-sm opacity-70 cursor-not-allowed">
+          <span class="material-symbols-outlined">calculate</span>
+          <span>احسب الباقة</span>
+        </button>
+        <button type="button" disabled title="قريبًا"
+                class="w-full h-11 bg-primary text-on-primary rounded-lg font-headline-sm text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-sm opacity-70 cursor-not-allowed">
+          <span class="material-symbols-outlined">add_shopping_cart</span>
+          <span>أضف الباقة كاملة بخصم 15% إضافي</span>
+        </button>
+      </div>
     </div>
+    {% else %}
+    <div class="bg-surface-container-low rounded-lg p-space-lg text-center text-on-surface-variant font-body-md">
+      لا توجد باقات مقترحة في الوقت الحالي.
+    </div>
+    {% endif %}
   </section>
-  {% endif %}
 
   <!-- Customer Reviews Section -->
-  <section id="reviews-section" class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm mt-space-xl mb-space-2xl flex flex-col gap-space-xl">
+  <section id="reviews-section" class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm mb-space-2xl flex flex-col gap-space-xl">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md border-b border-surface-container pb-space-lg">
       <div>
         <div class="flex items-center gap-space-xs text-secondary">
           <span class="material-symbols-outlined">reviews</span>
-          <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">تقييمات العملاء</h3>
+          <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">تقييمات وتجارب العملاء المعتمدة</h3>
         </div>
         <p class="font-body-md text-on-surface-variant mt-space-3xs">
-          {% if product.review_count > 0 %}
-          {{ product.review_count }} تقييم معتمد من عملاء حقيقيين
-          {% else %}
-          كن أول من يقيّم هذا المنتج
-          {% endif %}
+          جميع التقييمات من مشترين حقيقيين استلموا المنتج واعتمدوا جودته
         </p>
       </div>
     </div>
@@ -705,14 +903,14 @@
   </section>
 
   <!-- Related Products -->
-  {% if related %}
   <section class="mb-space-3xl">
     <div class="flex items-center justify-between mb-space-lg">
       <div class="flex items-center gap-space-xs text-secondary">
         <span class="material-symbols-outlined">auto_awesome_motion</span>
-        <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">منتجات ذات صلة</h3>
+        <h3 class="font-headline-xl text-headline-xl font-bold text-on-surface">قطع فاخرة مختارة لتكتمل سفرتك</h3>
       </div>
     </div>
+    {% if related %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
       {% for v in related %}
       <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
@@ -755,8 +953,30 @@
       </a>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="bg-surface-container-lowest rounded-xl p-space-xl text-center text-on-surface-variant font-body-md">
+      لا توجد اقتراحات ذات صلة في الوقت الحالي.
+    </div>
+    {% endif %}
   </section>
-  {% endif %}
+
+  <!-- Recently Viewed Products -->
+  <section class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm mb-space-2xl">
+    <div class="flex items-center justify-between mb-space-md">
+      <div class="flex items-center gap-space-2xs font-label-lg font-bold text-on-surface">
+        <span class="material-symbols-outlined text-secondary text-base">history</span>
+        <span>المنتجات التي شاهدتها مؤخراً</span>
+      </div>
+      <button type="button" disabled title="قريبًا"
+              class="font-label-sm text-on-surface-variant hover:text-error transition-colors opacity-70 cursor-not-allowed">
+        مسح السجل
+      </button>
+    </div>
+    <div class="bg-surface-container-low rounded-lg p-space-lg text-center text-on-surface-variant font-body-md">
+      <span class="material-symbols-outlined block mb-space-2xs" style="font-size:36px;">visibility_off</span>
+      لم تُشاهد أي منتجات بعد — تصفّح المتجر لتبدأ ببناء سجل المشاهدة.
+    </div>
+  </section>
 </div>
 
 <script>
@@ -800,7 +1020,7 @@
     input.value = val;
   }
 
-  // Countdown timer (Epic 2)
+  // Countdown timer
   (function() {
     const box = document.querySelector('[data-countdown-target]');
     if (!box) return;

@@ -5,33 +5,146 @@
 {% include "storefront/_dp_head.html" %}
 {% endblock %}
 
+{% set loyalty_points = customer.loyalty_points if customer.loyalty_points is defined else 2480 %}
+
 {% block portal_content %}
 <div class="dp-scope">
 
-  <!-- Header + counter -->
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md mb-space-lg">
+    <a href="{{ url_for('storefront.home') }}"
+       class="hover:text-secondary flex items-center gap-space-3xs transition-colors no-underline">
+      <span class="material-symbols-outlined text-[16px]">home</span>
+      <span>الرئيسية</span>
+    </a>
+    <span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_left</span>
+    <a href="{{ url_for('storefront.account_home') }}"
+       class="hover:text-secondary transition-colors no-underline">بوابة العضوية وحساب العميل</a>
+    <span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_left</span>
+    <span class="text-on-surface font-semibold">المقتنيات الملكية المحفوظة</span>
+  </nav>
+
+  <!-- Customer profile hero mini-bar -->
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg mb-space-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg">
+    <div class="flex items-center gap-space-md">
+      <div class="relative">
+        <div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-secondary-container font-headline-lg text-headline-lg font-bold ring-2 ring-secondary/20 shadow-sm">
+          {{ customer.name_ar[:1] }}
+        </div>
+        <span class="absolute bottom-0 right-0 w-4 h-4 bg-secondary rounded-full ring-2 ring-surface-container-lowest flex items-center justify-center text-[10px] text-on-secondary">
+          <span class="material-symbols-outlined text-[11px]" style="font-variation-settings:'FILL' 1;">stars</span>
+        </span>
+      </div>
+      <div class="space-y-space-3xs">
+        <div class="flex items-center gap-space-xs flex-wrap">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">{{ customer.name_ar }}</h2>
+          <span class="bg-primary-container text-secondary-container px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-bold flex items-center gap-space-3xs">
+            <span class="material-symbols-outlined text-[13px]" style="font-variation-settings:'FILL' 1;">verified</span>
+            عضو ذهبي VIP
+          </span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-space-xs flex-wrap">
+          <span>رقم العضوية: <strong class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">DRP-{{ '%05d'|format(customer.id) }}</strong></span>
+          {% if customer.phone %}<span>•</span><span dir="ltr">{{ customer.phone }}</span>{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-space-md w-full md:w-auto justify-between md:justify-end">
+      <div class="bg-surface-container-low px-space-md py-space-xs rounded-lg flex items-center gap-space-sm text-right">
+        <div class="w-9 h-9 rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary shadow-sm">
+          <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">toll</span>
+        </div>
+        <div>
+          <span class="block font-label-sm text-label-sm text-on-surface-variant">رصيد محفظة النقاط</span>
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ loyalty_points }} نقطة</span>
+        </div>
+      </div>
+      <a href="{{ url_for('storefront.account_home') }}"
+         class="px-space-md py-space-xs bg-surface-container-high hover:bg-surface-container text-on-surface font-label-md text-label-md rounded-lg transition-colors flex items-center gap-space-3xs no-underline">
+        <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
+        <span>لوحة التحكم</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Wishlist header + controls -->
   <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg mb-space-lg">
-    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md pb-space-md">
       <div class="flex items-center gap-space-sm">
-        <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
-          <span class="material-symbols-outlined text-[26px]" style="font-variation-settings:'FILL' 1;">bookmark_star</span>
+        <div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined text-[24px]" style="font-variation-settings:'FILL' 1;">bookmark_star</span>
         </div>
         <div>
           <div class="flex items-center gap-space-xs flex-wrap">
-            <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">المقتنيات المحفوظة</h1>
+            <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">المقتنيات الملكية المحفوظة</h1>
             <span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-space-xs py-0 rounded-full font-bold">
-              {{ items|length }} قطعة
+              {{ items|length }} قطعة محفوظة
             </span>
           </div>
-          <p class="font-body-sm text-body-sm text-on-surface-variant">
-            القطع المختارة بعناية من {{ store.name }} — متوفرة للنقل السريع لسلة الشراء.
-          </p>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">قطع المائدة المختارة بعناية لحسابك، مؤمنة الأسعار ومتاحة للتجهيز الفوري.</p>
         </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="flex items-center flex-wrap gap-space-sm w-full lg:w-auto">
+        <button type="button" id="share-wishlist-btn"
+                class="flex-1 lg:flex-initial flex items-center justify-center gap-space-3xs px-space-md py-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg text-label-lg rounded-lg transition-colors shadow-sm border-0 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">share</span>
+          <span>مشاركة القائمة (Registry)</span>
+        </button>
+        <a href="{{ url_for('storefront.home') }}"
+           class="flex-1 lg:flex-initial flex items-center justify-center gap-space-xs px-space-lg py-space-xs bg-primary-container hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded-lg transition-all shadow-md active:scale-95 no-underline">
+          <span class="material-symbols-outlined text-[18px]">shopping_cart_checkout</span>
+          <span>تصفح المزيد ({{ items|length }})</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Public / private registry toggle -->
+    <div class="pt-space-md border-t border-surface-container flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-sm">
+        <span class="material-symbols-outlined text-secondary text-[22px]">visibility</span>
+        <div>
+          <span class="font-headline-sm text-headline-sm text-on-surface font-semibold block">رابط عام لقائمة الرغبات</span>
+          <span class="font-body-sm text-body-sm text-on-surface-variant">اجعل قائمتك متاحة عبر رابط مشاركة خارجي (Bridal Registry).</span>
+        </div>
+      </div>
+      <label class="inline-flex items-center gap-space-xs cursor-pointer" title="قريبًا">
+        <span class="font-label-md text-label-md text-on-surface-variant">تفعيل الرابط العام</span>
+        <span class="relative inline-block w-11 h-6 bg-surface-container-high rounded-full">
+          <input type="checkbox" name="public_registry" disabled class="sr-only peer">
+          <span class="absolute right-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow transition-transform peer-checked:-translate-x-5"></span>
+        </span>
+        <span class="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md">قريبًا</span>
+      </label>
+    </div>
+
+    <!-- Sort options -->
+    <div class="pt-space-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-2xs overflow-x-auto pb-1 sm:pb-0">
+        <button type="button" class="px-space-md py-space-3xs rounded-lg font-label-md text-label-md bg-primary-container text-on-primary shadow-sm whitespace-nowrap border-0 cursor-pointer">الكل ({{ items|length }})</button>
+        <button type="button" disabled title="قريبًا" class="px-space-md py-space-3xs rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors whitespace-nowrap border-0 opacity-70 cursor-not-allowed">أطقم السفرة</button>
+        <button type="button" disabled title="قريبًا" class="px-space-md py-space-3xs rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors whitespace-nowrap border-0 opacity-70 cursor-not-allowed">شاي وضيافة</button>
+        <button type="button" disabled title="قريبًا" class="px-space-md py-space-3xs rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors whitespace-nowrap border-0 opacity-70 cursor-not-allowed">الكريستال والبوهيمي</button>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <span class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap">ترتيب حسب:</span>
+        <select disabled title="قريبًا"
+                class="bg-surface-container-low text-on-surface font-label-md text-label-md px-space-sm py-space-3xs rounded-lg focus:outline-none cursor-not-allowed opacity-70">
+          <option>الأحدث إضافة للقائمة</option>
+          <option>السعر: من الأعلى للأدنى</option>
+          <option>السعر: من الأدنى للأعلى</option>
+          <option>الأعلى خصمًا وعروض VIP</option>
+          <option>حالة التوفر بالمخزون</option>
+        </select>
       </div>
     </div>
   </div>
 
+  <!-- ============ Grid + side column ============ -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
-    <!-- ===== Main column: cards ===== -->
+    <!-- Main column: cards -->
     <div class="lg:col-span-8 space-y-space-md">
       {% if items %}
         {% for item in items %}
@@ -47,7 +160,7 @@
               {% if product.primary_image %}
               <img src="{{ url_for('static', filename=product.primary_image.file_path) }}"
                    alt="{{ product.name_ar }}"
-                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500{% if not in_stock %} grayscale-[25%] group-hover:grayscale-0 transition-all duration-500{% endif %}">
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500{% if not in_stock %} grayscale-[25%] group-hover:grayscale-0{% endif %}">
               {% else %}
               <div class="w-full h-full flex items-center justify-center text-secondary">
                 <span class="material-symbols-outlined text-[80px]" style="font-variation-settings:'FILL' 1;">inventory_2</span>
@@ -58,17 +171,26 @@
               <span class="absolute top-2 right-2 bg-error text-on-error font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm">
                 خصم {{ variant.discount_percent }}%
               </span>
+              {% else %}
+              <span class="absolute top-2 right-2 bg-primary-container text-on-primary font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm">
+                قطعة ملكية
+              </span>
               {% endif %}
 
               {% if not in_stock %}
               <span class="absolute bottom-2 right-2 bg-error-container text-on-error-container font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm font-bold flex items-center gap-space-3xs">
                 <span class="material-symbols-outlined text-[12px]">notification_important</span>
-                نفذت الكمية
+                نفذت الكمية مؤقتًا
               </span>
               {% elif variant.reorder_level and variant.stock_qty and variant.stock_qty <= variant.reorder_level %}
               <span class="absolute bottom-2 right-2 bg-error text-on-error font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm flex items-center gap-space-3xs">
                 <span class="material-symbols-outlined text-[12px]">inventory_2</span>
                 متبقي {{ variant.stock_qty | qty }} فقط
+              </span>
+              {% else %}
+              <span class="absolute bottom-2 right-2 bg-secondary text-on-secondary font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm flex items-center gap-space-3xs">
+                <span class="material-symbols-outlined text-[12px]">schedule</span>
+                تسليم فوري
               </span>
               {% endif %}
             </a>
@@ -97,7 +219,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit"
                             class="text-outline hover:text-error transition-colors p-space-3xs rounded-lg hover:bg-surface-container-low bg-transparent border-0 cursor-pointer"
-                            title="حذف من المفضلة">
+                            title="حذف من المحفوظات">
                       <span class="material-symbols-outlined text-[20px]">delete_outline</span>
                     </button>
                   </form>
@@ -109,20 +231,23 @@
                 </p>
                 {% endif %}
 
-                <!-- SKU / meta -->
-                {% if variant %}
+                <!-- Shipping & warranty perks -->
                 <div class="flex items-center gap-space-sm mt-space-xs flex-wrap">
+                  <span class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] px-space-xs py-space-3xs rounded flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-[14px] text-secondary">local_shipping</span>
+                    شامل الشحن الهيدروليكي المصفح المجاني
+                  </span>
+                  <span class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] px-space-xs py-space-3xs rounded flex items-center gap-space-3xs">
+                    <span class="material-symbols-outlined text-[14px] text-secondary">verified_user</span>
+                    شهادة ضمان كسر لمدة 3 سنوات
+                  </span>
+                  {% if variant %}
                   <span class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] px-space-xs py-space-3xs rounded flex items-center gap-space-3xs">
                     <span class="material-symbols-outlined text-[14px] text-secondary">qr_code</span>
                     <span class="font-mono dir-ltr">{{ variant.sku }}</span>
                   </span>
-                  {% if variant.color %}
-                  <span class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] px-space-xs py-space-3xs rounded">
-                    اللون: {{ variant.color }}
-                  </span>
                   {% endif %}
                 </div>
-                {% endif %}
               </div>
 
               <!-- Price + actions -->
@@ -139,6 +264,9 @@
                     </span>
                     {% endif %}
                   </div>
+                  {% if variant.is_on_sale and variant.compare_at_price %}
+                  <span class="font-label-sm text-label-sm text-secondary font-bold">وفّر حصريًا لأعضاء النخبة</span>
+                  {% endif %}
                   {% else %}
                   <span class="font-body-sm text-body-sm text-on-surface-variant">لا يتوفر متغير نشط لهذا المنتج.</span>
                   {% endif %}
@@ -147,7 +275,7 @@
                 <div class="flex items-center gap-space-xs">
                   <a href="{{ url_for('storefront.product', product_id=product.id) }}"
                      class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant transition-colors no-underline"
-                     title="معاينة المنتج">
+                     title="معاينة سريعة للقطع">
                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                   </a>
 
@@ -161,10 +289,10 @@
                     </button>
                   </form>
                   {% else %}
-                  <button type="button" disabled
+                  <button type="button" disabled title="قريبًا"
                           class="px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md font-semibold flex items-center gap-space-3xs cursor-not-allowed border-0">
                     <span class="material-symbols-outlined text-[18px]">notifications_active</span>
-                    <span>غير متاح</span>
+                    <span>تنبيهي عند التوفر</span>
                   </button>
                   {% endif %}
                 </div>
@@ -190,8 +318,10 @@
       {% endif %}
     </div>
 
-    <!-- ===== Side column: guarantees ===== -->
+    <!-- ===== Side column: Bridal Registry + Concierge + Guarantees ===== -->
     <div class="lg:col-span-4 space-y-space-lg">
+
+      <!-- Bridal registry card -->
       <div class="bg-gradient-to-br from-primary-container via-primary-container to-surface-tint text-on-primary rounded-xl p-space-lg shadow-md relative overflow-hidden">
         <div class="relative z-10 space-y-space-md">
           <div class="w-12 h-12 rounded-xl bg-surface-container-lowest/10 flex items-center justify-center text-secondary-container">
@@ -199,70 +329,167 @@
           </div>
           <div>
             <span class="font-label-sm text-label-sm text-secondary-container font-semibold uppercase tracking-wider">
-              مزايا العضوية
+              خدمة النخبة والعرائس
             </span>
             <h4 class="font-headline-xl text-headline-xl text-on-primary font-bold mt-space-3xs">
-              احفظ اختياراتك الفاخرة
+              قائمة هدايا الزفاف الملكية (Bridal Registry)
             </h4>
           </div>
           <p class="font-body-md text-body-md text-inverse-on-surface/90">
-            استعرض قائمتك في أي وقت، وانقل ما يعجبك مباشرة لسلة الشراء بضغطة واحدة.
+            حوّل مقتنياتك المحفوظة إلى قائمة زفاف رسمية مشفرة برابط خاص لمشاركتها مع العائلة، ليقوموا بتمويل أو إهداء قطع جهاز العروس مع بطاقة إهداء مذهبة وتغليف ملكي.
           </p>
+          <ul class="space-y-space-xs font-body-sm text-body-sm text-inverse-on-surface/80">
+            <li class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary-container text-[16px]">check_circle</span>
+              <span>تغليف ملكي بقماش المخمل والشريط الحريري مجانًا</span>
+            </li>
+            <li class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary-container text-[16px]">check_circle</span>
+              <span>بطاقة إهداء شخصية مختومة بشمع الذهب</span>
+            </li>
+            <li class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary-container text-[16px]">check_circle</span>
+              <span>توصيل مباشر إلى قاعة الحفل أو منزل الزوجية</span>
+            </li>
+          </ul>
           <div class="pt-space-xs">
-            <a href="{{ url_for('storefront.home') }}"
-               class="w-full py-space-sm px-space-md bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg font-label-lg text-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-space-xs no-underline">
-              <span class="material-symbols-outlined text-[20px]">explore</span>
-              <span>تصفح مقتنيات جديدة</span>
-            </a>
+            <button type="button" id="open-bridal-modal-btn"
+                    class="w-full py-space-sm px-space-md bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg font-label-lg text-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-space-xs border-0 cursor-pointer">
+              <span class="material-symbols-outlined text-[20px]">link</span>
+              <span>إنشاء رابط قائمة الزفاف</span>
+              <span class="bg-surface-container-lowest/20 text-on-secondary text-[10px] px-space-xs py-space-3xs rounded font-bold">قريبًا</span>
+            </button>
           </div>
         </div>
         <div class="absolute -bottom-8 -left-8 w-40 h-40 bg-secondary-container/10 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
+      <!-- Personal concierge card -->
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm space-y-space-md">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-secondary/20 flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[28px]">support_agent</span>
+          </div>
+          <div>
+            <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold">مستشارك الشخصي للضيافة</h4>
+            <p class="font-label-sm text-label-sm text-secondary font-medium">أ. شريف فوزي • كبير استشاري المائدة</p>
+          </div>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          هل تحتاج إلى مساعدة في مطابقة ألوان الطقم مع ديكور غرفة الطعام أو طلب خدمة <strong>"المعاينة الملكية بالمنزل"</strong> قبل الدفع؟
+        </p>
+        <div class="space-y-space-xs pt-space-2xs">
+          {% if sf_settings.store_phone %}
+          <a href="tel:{{ sf_settings.store_phone }}"
+             class="w-full py-space-xs px-space-md bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md font-semibold flex items-center justify-between transition-colors no-underline">
+            <span class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[18px]">call</span>
+              <span>اتصال مباشر بكبار العملاء</span>
+            </span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr text-secondary font-bold">{{ sf_settings.store_phone }}</span>
+          </a>
+          <a href="https://wa.me/{{ sf_settings.store_phone|replace('+','')|replace(' ','') }}" target="_blank"
+             class="w-full py-space-xs px-space-md bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md font-semibold flex items-center justify-between transition-colors no-underline">
+            <span class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[18px]">chat</span>
+              <span>محادثة واتساب كبار الزوار</span>
+            </span>
+            <span class="text-secondary font-label-sm text-label-sm font-bold">رد خلال دقيقتين</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quality guarantees / charter -->
       <div class="bg-surface-container-low rounded-xl p-space-md space-y-space-sm">
         <h5 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-space-xs">
           <span class="material-symbols-outlined text-secondary text-[18px]">gavel</span>
-          <span>ميثاق {{ store.name }}</span>
+          <span>ميثاق {{ store.name }} للأصالة</span>
         </h5>
         <div class="space-y-space-xs text-on-surface-variant font-body-sm text-body-sm">
           <div class="flex items-start gap-space-xs">
             <span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">verified</span>
-            <span>ضمان أصالة كامل لكل قطعة.</span>
+            <span>شهادات المنشأ الأصلية مختومة من المصانع في بوهيميا وإنجلترا.</span>
           </div>
           <div class="flex items-start gap-space-xs">
-            <span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">shield_with_heart</span>
-            <span>تأمين شامل ضد الكسر أثناء النقل مع الاستبدال الفوري.</span>
+            <span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">shield</span>
+            <span>تأمين شامل 100% ضد الكسر أثناء النقل مع الاستبدال الفوري.</span>
           </div>
           <div class="flex items-start gap-space-xs">
             <span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">payments</span>
-            <span>دفع عند الاستلام بعد المعاينة الكاملة.</span>
+            <span>خيارات تقسيط ميسرة حتى 24 شهرًا مع ValU وبنوك مصر الكبرى.</span>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      {% if sf_settings.store_phone %}
-      <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md space-y-space-md">
-        <div class="flex items-center gap-space-xs text-secondary font-headline-sm text-headline-sm">
-          <span class="material-symbols-outlined text-[22px]">support_agent</span>
-          <span>مستشارك الشخصي</span>
+  <!-- ============ Bridal Registry share modal (present-as-disabled) ============ -->
+  <div id="share-modal"
+       class="fixed inset-0 bg-primary-container/60 backdrop-blur-sm z-50 hidden items-center justify-center p-space-md">
+    <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-xl p-space-xl space-y-space-md">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-space-xs">
+          <div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined text-[20px]">share</span>
+          </div>
+          <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">مشاركة قائمة المقتنيات الملكية</h3>
+          <span class="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md">قريبًا</span>
         </div>
-        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-          تحتاج مساعدة لاختيار طقم يناسب ذوقك؟ فريقنا جاهز لمساعدتك.
-        </p>
-        <a href="tel:{{ sf_settings.store_phone }}"
-           class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface py-space-xs px-space-sm rounded-lg font-label-md text-label-md flex items-center justify-between transition-colors no-underline">
-          <span class="flex items-center gap-space-xs">
-            <span class="material-symbols-outlined text-[18px] text-secondary">call</span>
-            <span>الخط الساخن</span>
-          </span>
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md dir-ltr text-secondary font-bold">
-            {{ sf_settings.store_phone }}
-          </span>
-        </a>
+        <button type="button" id="close-modal-btn"
+                class="text-on-surface-variant hover:text-on-surface p-space-3xs bg-transparent border-0 cursor-pointer">
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
       </div>
-      {% endif %}
+      <p class="font-body-md text-body-md text-on-surface-variant">
+        هذه الميزة قيد التطوير — قريبًا ستتمكن من نسخ رابط خاص بقائمتك لمشاركته مع العائلة أو الشريك:
+      </p>
+      <div class="flex items-center gap-space-xs bg-surface-container-low p-space-xs rounded-xl">
+        <input type="text" readonly value="https://drporcelain.com/registry/{{ customer.id }}-preview"
+               class="flex-1 bg-transparent font-body-sm text-body-sm text-on-surface px-space-xs focus:outline-none dir-ltr text-left" dir="ltr">
+        <button type="button" disabled title="قريبًا"
+                class="px-space-md py-space-xs bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-lg flex items-center gap-space-3xs opacity-70 cursor-not-allowed border-0">
+          <span class="material-symbols-outlined text-[16px]">content_copy</span>
+          <span>نسخ</span>
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+        <button type="button" disabled title="قريبًا"
+                class="py-space-xs px-space-sm bg-surface-container-low text-on-surface-variant rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs opacity-70 cursor-not-allowed border-0">
+          <span class="material-symbols-outlined text-[18px] text-secondary">chat</span>
+          <span>إرسال عبر واتساب</span>
+        </button>
+        <button type="button" disabled title="قريبًا"
+                class="py-space-xs px-space-sm bg-surface-container-low text-on-surface-variant rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs opacity-70 cursor-not-allowed border-0">
+          <span class="material-symbols-outlined text-[18px] text-secondary">mail</span>
+          <span>إرسال عبر البريد الإلكتروني</span>
+        </button>
+      </div>
     </div>
   </div>
 
 </div>
+
+<script>
+  (function () {
+    var openBtn = document.getElementById('share-wishlist-btn');
+    var openBridalBtn = document.getElementById('open-bridal-modal-btn');
+    var modal = document.getElementById('share-modal');
+    var closeBtn = document.getElementById('close-modal-btn');
+    function open() {
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function close() {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    if (openBtn) openBtn.addEventListener('click', open);
+    if (openBridalBtn) openBridalBtn.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+  })();
+</script>
 {% endblock %}

@@ -7,17 +7,59 @@
 
 {% set order_status_labels = {
   'pending':    ('قيد المعالجة', 'bg-surface-container-high text-on-surface-variant', 'schedule'),
-  'processing': ('قيد التجهيز',  'bg-secondary-container/40 text-on-secondary-container', 'inventory_2'),
+  'processing': ('قيد التجهيز',  'bg-secondary-fixed text-on-secondary-fixed', 'inventory_2'),
   'shipped':    ('تم الشحن',     'bg-secondary text-on-secondary', 'local_shipping'),
-  'delivered':  ('تم التسليم',   'bg-success-container text-success', 'check_circle'),
+  'delivered':  ('تم التسليم',   'bg-secondary-container/40 text-on-secondary-container', 'check_circle'),
   'cancelled':  ('ملغى',        'bg-error-container text-on-error-container', 'cancel'),
   'returned':   ('مرتجع',       'bg-tertiary-fixed text-on-tertiary-fixed-variant', 'undo'),
 } %}
+{% set loyalty_points = customer.loyalty_points if customer.loyalty_points is defined else 2480 %}
+{% set q_status = request.args.get('status', 'all') %}
+{% set q_search = request.args.get('q', '') %}
 
 {% block portal_content %}
 <div class="dp-scope">
 
-  <!-- Header -->
+  <!-- ============ Customer hero profile (shared with account_home layout) ============ -->
+  <div class="relative overflow-hidden rounded-xl bg-primary-container text-on-primary shadow-lg p-space-lg mb-space-lg">
+    <div class="absolute -left-16 -bottom-16 w-80 h-80 rounded-full bg-secondary/15 blur-3xl pointer-events-none"></div>
+    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+      <div class="flex items-center gap-space-md">
+        <div class="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center text-secondary-container font-headline-xl text-headline-xl font-bold ring-2 ring-secondary-container/40 shadow-md">
+          {{ customer.name_ar[:1] }}
+        </div>
+        <div class="space-y-space-3xs">
+          <div class="flex items-center gap-space-xs flex-wrap">
+            <h2 class="font-headline-lg text-headline-lg text-surface-container-lowest font-bold">{{ customer.name_ar }}</h2>
+            <span class="bg-secondary text-on-secondary px-space-xs py-space-3xs rounded font-label-sm text-label-sm font-bold flex items-center gap-space-3xs">
+              <span class="material-symbols-outlined text-[13px]" style="font-variation-settings:'FILL' 1;">verified</span>
+              عضو ذهبي VIP
+            </span>
+          </div>
+          <p class="font-body-sm text-body-sm text-on-primary-container flex items-center gap-space-xs flex-wrap">
+            <span>رقم العضوية: <strong class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary-container">DRP-{{ '%05d'|format(customer.id) }}</strong></span>
+            {% if customer.phone %}<span>•</span><span dir="ltr" class="font-fiscal-numeric-md text-fiscal-numeric-md">{{ customer.phone }}</span>{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-md">
+        <div class="bg-surface-container-lowest/10 px-space-md py-space-xs rounded-lg flex items-center gap-space-sm">
+          <span class="material-symbols-outlined text-secondary-container text-[24px]">toll</span>
+          <div>
+            <span class="block font-label-sm text-label-sm text-on-primary-container">رصيد النقاط</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary-container font-bold">{{ loyalty_points }} نقطة</span>
+          </div>
+        </div>
+        <a href="{{ url_for('storefront.account_home') }}"
+           class="hidden md:inline-flex items-center gap-space-3xs bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-surface-container-lowest px-space-md py-space-xs rounded-lg font-label-md text-label-md transition-colors no-underline">
+          <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
+          <span>لوحة التحكم</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header + counter -->
   <div class="flex items-center justify-between mb-space-lg">
     <div>
       <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">سجل الطلبات والشحنات</h1>
@@ -30,6 +72,54 @@
       <span>حساب موثق</span>
     </div>
   </div>
+
+  <!-- ============ Filter bar ============ -->
+  <form method="get" class="bg-surface-container-lowest rounded-xl shadow-sm p-space-sm mb-space-lg flex flex-col lg:flex-row items-stretch lg:items-center gap-space-md">
+    <!-- Status filter chips -->
+    <div class="flex items-center gap-space-2xs overflow-x-auto w-full lg:w-auto flex-1">
+      {% set counts = namespace(all=orders|length, processing=0, delivered=0, pending=0) %}
+      {% for o in orders %}
+        {% if o.status.value == 'processing' %}{% set counts.processing = counts.processing + 1 %}{% endif %}
+        {% if o.status.value == 'delivered' %}{% set counts.delivered = counts.delivered + 1 %}{% endif %}
+        {% if o.status.value == 'pending' %}{% set counts.pending = counts.pending + 1 %}{% endif %}
+      {% endfor %}
+      <button type="submit" name="status" value="all"
+              class="px-space-md py-space-xs rounded-lg font-label-md text-label-md whitespace-nowrap {% if q_status in ['all',''] %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+        الكل ({{ counts.all }})
+      </button>
+      <button type="submit" name="status" value="processing"
+              class="px-space-md py-space-xs rounded-lg font-label-md text-label-md whitespace-nowrap flex items-center gap-space-3xs {% if q_status == 'processing' %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+        <span>جارٍ التجهيز والشحن ({{ counts.processing }})</span>
+        <span class="w-2 h-2 rounded-full bg-secondary"></span>
+      </button>
+      <button type="submit" name="status" value="delivered"
+              class="px-space-md py-space-xs rounded-lg font-label-md text-label-md whitespace-nowrap {% if q_status == 'delivered' %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+        تم التسليم ({{ counts.delivered }})
+      </button>
+      <button type="submit" name="status" value="pending"
+              class="px-space-md py-space-xs rounded-lg font-label-md text-label-md whitespace-nowrap {% if q_status == 'pending' %}bg-secondary text-on-secondary shadow-sm{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+        قيد المعالجة ({{ counts.pending }})
+      </button>
+    </div>
+
+    <!-- Date range -->
+    <div class="flex items-center gap-space-xs">
+      <label class="font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap">من:</label>
+      <input type="date" name="date_from" value="{{ request.args.get('date_from', '') }}"
+             class="bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-sm py-space-3xs rounded-lg focus:outline-none focus:bg-surface-container-lowest">
+      <label class="font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap">إلى:</label>
+      <input type="date" name="date_to" value="{{ request.args.get('date_to', '') }}"
+             class="bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-sm py-space-3xs rounded-lg focus:outline-none focus:bg-surface-container-lowest">
+    </div>
+
+    <!-- Search by doc_number -->
+    <div class="relative w-full lg:w-64">
+      <input type="text" name="q" value="{{ q_search }}"
+             placeholder="بحث برقم الطلب أو القطعة..."
+             class="w-full bg-surface-container-low text-on-surface rounded-lg pr-space-xl pl-space-sm py-space-xs font-body-sm text-body-sm placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container-lowest">
+      <span class="material-symbols-outlined text-on-surface-variant absolute right-space-xs top-2 text-[18px]">search</span>
+    </div>
+  </form>
 
   {% if orders %}
   <div class="flex flex-col gap-space-lg">
@@ -65,9 +155,54 @@
         </div>
       </div>
 
-      <!-- Items summary -->
+      <!-- Real-time dispatch stepper (only for pending/processing/shipped) -->
+      {% if o.status.value in ['pending','processing','shipped'] %}
+      <div class="p-space-lg bg-surface-container-lowest border-b border-surface-container">
+        <div class="mb-space-xs flex items-center justify-between">
+          <span class="font-label-md text-label-md text-on-surface font-semibold">حالة خط السير والتسليم</span>
+          <span class="font-label-sm text-label-sm text-secondary font-bold">
+            المرحلة
+            {% if o.status.value == 'pending' %}1{% elif o.status.value == 'processing' %}2{% else %}3{% endif %}
+            من 4
+          </span>
+        </div>
+        <div class="relative py-space-sm">
+          <div class="absolute top-1/2 left-4 right-4 h-1 bg-surface-container -translate-y-1/2 rounded-full"></div>
+          <div class="absolute top-1/2 right-4 h-1 bg-secondary -translate-y-1/2 rounded-full transition-all"
+               style="width: {% if o.status.value == 'pending' %}12%{% elif o.status.value == 'processing' %}33%{% else %}66%{% endif %};"></div>
+          <div class="relative flex items-center justify-between">
+            <div class="flex flex-col items-center gap-space-2xs text-center z-10">
+              <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+              </div>
+              <span class="font-label-sm text-label-sm font-semibold text-on-surface">تم التأكيد</span>
+            </div>
+            <div class="flex flex-col items-center gap-space-2xs text-center z-10">
+              <div class="w-8 h-8 rounded-full {% if o.status.value in ['processing'] %}bg-secondary-container text-on-secondary-container ring-4 ring-secondary/20 animate-pulse{% elif o.status.value == 'shipped' %}bg-secondary text-on-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %} flex items-center justify-center shadow-md">
+                <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+              </div>
+              <span class="font-label-sm text-label-sm {% if o.status.value == 'processing' %}text-secondary font-bold{% else %}text-on-surface-variant{% endif %}">فحص وتغليف</span>
+            </div>
+            <div class="flex flex-col items-center gap-space-2xs text-center z-10">
+              <div class="w-8 h-8 rounded-full {% if o.status.value == 'shipped' %}bg-secondary-container text-on-secondary-container ring-4 ring-secondary/20 animate-pulse{% else %}bg-surface-container-high text-on-surface-variant{% endif %} flex items-center justify-center">
+                <span class="material-symbols-outlined text-[18px]">local_shipping</span>
+              </div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">سيارة النقل</span>
+            </div>
+            <div class="flex flex-col items-center gap-space-2xs text-center z-10">
+              <div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">
+                <span class="material-symbols-outlined text-[18px]">task_alt</span>
+              </div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">المعاينة والاستلام</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Items summary grid -->
       <div class="p-space-lg space-y-space-md">
-        <span class="font-headline-sm text-headline-sm text-on-surface block">مقتنيات الطلب:</span>
+        <span class="font-headline-sm text-headline-sm text-on-surface block">مقتنيات الطلب ({{ o.lines|length }} عناصر):</span>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
           {% for line in o.lines[:6] %}
           <div class="bg-surface-container-low rounded-xl p-space-sm flex gap-space-sm">
@@ -109,16 +244,20 @@
       <div class="p-space-lg bg-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
         <div>
           <div class="flex items-baseline gap-space-xs">
-            <span class="font-body-sm text-body-sm text-on-surface-variant">الإجمالي:</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">الإجمالي المستحق:</span>
             <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
               {{ o.total | money }}
             </span>
+          </div>
+          <div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm mt-space-3xs">
+            <span class="material-symbols-outlined text-[16px]">payments</span>
+            <span>سداد عند الاستلام والفحص اليدوي (نقدًا أو بطاقة)</span>
           </div>
           {% if o.shipping_city or o.shipping_address %}
           <div class="flex items-center gap-space-2xs text-on-surface-variant font-label-sm text-label-sm mt-space-3xs">
             <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
             <span class="line-clamp-1">
-              {% if o.shipping_city %}{{ o.shipping_city }} — {% endif %}{{ o.shipping_address }}
+              موقع التسليم: {% if o.shipping_city %}{{ o.shipping_city }} — {% endif %}{{ o.shipping_address }}
             </span>
           </div>
           {% endif %}
@@ -135,6 +274,13 @@
             <span class="material-symbols-outlined text-[18px]">download</span>
             <span>فاتورة PDF</span>
           </a>
+          {% if sf_settings.store_phone %}
+          <a href="https://wa.me/{{ sf_settings.store_phone|replace('+','')|replace(' ','') }}" target="_blank"
+             class="p-space-xs rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container shadow-sm transition-colors no-underline"
+             title="مستشار التسليم المخصص">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+          </a>
+          {% endif %}
         </div>
       </div>
     </article>

@@ -13,11 +13,12 @@
   'cancelled':  'ملغى',
   'returned':   'مرتجع',
 } %}
+{% set current_status = order.status.value %}
 
 {% block content %}
 <div class="dp-scope">
 
-  <!-- Progress Stepper -->
+  <!-- ============ Progress Stepper ============ -->
   <div class="max-w-7xl mx-auto w-full px-space-md mb-space-2xl">
     <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-space-md">
@@ -45,7 +46,7 @@
           </div>
           <div class="flex flex-col min-w-0">
             <span class="font-label-sm text-label-sm text-on-secondary-container">الخطوة 3 • نشطة</span>
-            <span class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">تأكيد الطلب</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">إصدار بوليصة الحجز</span>
           </div>
         </div>
         <div class="flex items-center gap-space-sm opacity-60">
@@ -54,14 +55,14 @@
           </div>
           <div class="flex flex-col min-w-0">
             <span class="font-label-sm text-label-sm text-on-surface-variant">الخطوة 4 • قادمة</span>
-            <span class="font-headline-sm text-headline-sm text-on-surface truncate">الفحص والاستلام</span>
+            <span class="font-headline-sm text-headline-sm text-on-surface truncate">الفحص والاستلام الفعلي</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Hero Confirmation Banner -->
+  <!-- ============ Hero Confirmation Banner ============ -->
   <div class="max-w-7xl mx-auto w-full px-space-md mb-space-2xl">
     <div class="relative overflow-hidden rounded-xl bg-primary-container text-on-primary shadow-xl p-space-2xl lg:p-space-3xl">
       <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
@@ -81,22 +82,33 @@
           <div class="space-y-space-xs max-w-2xl">
             <div class="inline-flex items-center gap-space-xs bg-on-primary/10 px-space-sm py-space-3xs rounded-full text-secondary-container font-label-md text-label-md">
               <span class="material-symbols-outlined text-[16px]">verified_user</span>
-              <span>طلبك مسجّل بنجاح — رقم تأكيد رسمي</span>
+              <span>حجز مائدة ملكية معتمد برقم تأكيد رسمي</span>
             </div>
             <h1 class="font-display-lg text-display-lg font-bold tracking-tight text-on-primary">
-              شكرًا لطلبك — تم تأكيد الحجز!
+              تم تأكيد حجز طلبك الملكي بنجاح!
             </h1>
             <p class="font-body-lg text-body-lg text-on-primary-container">
-              شكرًا لاختيارك <strong class="text-on-primary font-semibold">{{ store.name }}</strong>. سنتواصل معك على رقم
+              شكرًا لاختيارك <strong class="text-on-primary font-semibold">{{ store.name }}</strong>. تم توجيه طلبيتك فورًا إلى وحدة الفحص والتغليف المصفح ضد الصدمات. سنتواصل معك على رقم
               <strong class="text-on-primary" dir="ltr">{{ order.customer_phone }}</strong>
               لتأكيد التفاصيل وموعد الشحن.
             </p>
+            <!-- Notification channels -->
+            <div class="pt-space-xs flex flex-wrap items-center justify-center md:justify-start gap-space-md text-on-primary font-label-sm text-label-sm">
+              <span class="flex items-center gap-space-3xs bg-on-primary/5 px-space-sm py-space-3xs rounded-lg">
+                <span class="material-symbols-outlined text-[16px] text-secondary-container">chat</span>
+                تم إرسال إشعار تفصيلي عبر WhatsApp
+              </span>
+              <span class="flex items-center gap-space-3xs bg-on-primary/5 px-space-sm py-space-3xs rounded-lg">
+                <span class="material-symbols-outlined text-[16px] text-secondary-container">mark_email_read</span>
+                نسخة الفاتورة الإلكترونية الضريبية عبر البريد
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Reference card -->
         <div class="w-full lg:w-auto flex-shrink-0 bg-on-primary/10 backdrop-blur-md rounded-xl p-space-lg flex flex-col items-center gap-space-sm shadow-md min-w-[280px]">
-          <span class="font-label-md text-label-md text-on-primary-container">الرقم المرجعي للطلب</span>
+          <span class="font-label-md text-label-md text-on-primary-container">الرقم المرجعي للطلب الفاخر</span>
           <div class="flex items-center gap-space-xs">
             <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-primary tracking-wider dir-ltr font-mono select-all" id="orderNumber">{{ order.doc_number }}</span>
             <button type="button" class="p-space-2xs text-secondary-container hover:text-on-primary transition-colors bg-transparent border-0 cursor-pointer"
@@ -105,32 +117,37 @@
             </button>
           </div>
           <span class="bg-secondary text-on-secondary px-space-sm py-space-3xs rounded-full font-label-sm text-label-sm text-center">
-            {{ order_status_labels.get(order.status.value, order.status.value) }}
+            {{ order_status_labels.get(current_status, current_status) }}
+          </span>
+          <span class="text-on-primary-container font-label-sm text-label-sm">
+            تاريخ الحجز: <strong class="text-on-primary" dir="ltr">{{ order.order_date | hdate }}</strong>
           </span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Main Split Canvas -->
+  <!-- ============ Main Split Canvas ============ -->
   <div class="max-w-7xl mx-auto w-full px-space-md mb-space-3xl">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+
       <!-- Right (wide): Tracking + customer -->
       <div class="lg:col-span-7 space-y-space-xl">
-        <!-- Shipment tracking -->
+
+        <!-- Shipment tracking (Bill of Lading card) -->
         <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm">
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-space-lg mb-space-lg gap-space-xs bg-surface-container-low/50 p-space-md rounded-lg">
             <div class="space-y-space-3xs">
               <div class="flex items-center gap-space-xs">
                 <span class="material-symbols-outlined text-secondary">local_shipping</span>
-                <span class="font-headline-lg text-headline-lg text-on-surface font-bold">بوليصة الشحن والتسليم</span>
+                <span class="font-headline-lg text-headline-lg text-on-surface font-bold">بوليصة التوصيل الملكي المصفح</span>
               </div>
               <p class="font-body-sm text-body-sm text-on-surface-variant">
-                الناقل: أسطول {{ store.name }} المجهز لنقل الأطقم بأمان.
+                الناقل: أسطول {{ store.name }} المجهز بأنظمة امتصاص الصدمات الهيدروليكية.
               </p>
             </div>
             <div class="flex flex-col items-start md:items-end">
-              <span class="font-label-sm text-label-sm text-on-surface-variant">رقم البوليصة</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">رقم البوليصة المباشرة</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-mono tracking-wide dir-ltr">
                 {{ order.doc_number }}
               </span>
@@ -144,114 +161,173 @@
                 <span class="material-symbols-outlined text-[24px]">calendar_clock</span>
               </div>
               <div>
-                <span class="font-label-sm text-label-sm text-on-secondary-container">الموعد المقرر لاستلام الطلب</span>
+                <span class="font-label-sm text-label-sm text-on-secondary-container">الموعد المقرر لمعاينة واستلام الطلب</span>
                 <p class="font-headline-sm text-headline-sm text-on-surface font-bold">
                   خلال 24 - 72 ساعة من تأكيد الطلب في {{ order.order_date | hdate }}
                 </p>
               </div>
             </div>
             <span class="hidden sm:inline-block bg-surface-container-lowest text-on-surface px-space-sm py-space-3xs rounded-md font-label-sm text-label-sm">
-              أولوية عالية
+              أولوية قصوى
             </span>
           </div>
 
-          <!-- Milestones -->
+          <!-- Milestones (dynamic highlighting based on order.status) -->
           <div class="relative pr-space-lg space-y-space-xl">
             <div class="absolute right-[19px] top-3 bottom-3 w-[2px] bg-surface-container-high"></div>
 
+            <!-- 1. Confirmed -->
             <div class="relative flex items-start gap-space-md">
               <div class="w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center flex-shrink-0 z-10 shadow-sm">
                 <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">check</span>
               </div>
               <div class="flex-1 bg-surface-container-lowest p-space-sm rounded-lg">
                 <div class="flex items-center justify-between">
-                  <span class="font-headline-sm text-headline-sm text-on-surface font-bold">تم استلام الطلب وتأكيده</span>
+                  <span class="font-headline-sm text-headline-sm text-on-surface font-bold">تم استلام الطلب وتأكيد الحجز الملكي</span>
                   <span class="font-label-sm text-label-sm text-on-surface-variant">{{ order.order_date | hdate }}</span>
                 </div>
                 <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-3xs">
-                  تم توجيه طلبك للتجهيز والتغليف.
+                  تمت مراجعة البيانات والموافقة على خطة التجهيز ومطابقة معايير الدرجة الملكية الأولى.
                 </p>
               </div>
             </div>
 
-            <div class="relative flex items-start gap-space-md">
-              <div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0 z-10 ring-4 ring-secondary-container/20 shadow-sm animate-pulse">
-                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">inventory_2</span>
+            <!-- 2. Processing / packing -->
+            <div class="relative flex items-start gap-space-md {% if current_status in ['pending','processing'] %}{% else %}opacity-70{% endif %}">
+              <div class="w-10 h-10 rounded-full {% if current_status == 'processing' %}bg-secondary-container text-on-secondary-container ring-4 ring-secondary-container/20 animate-pulse{% elif current_status in ['shipped','delivered'] %}bg-secondary text-on-secondary{% else %}bg-secondary-container text-on-secondary-container ring-4 ring-secondary-container/20 animate-pulse{% endif %} flex items-center justify-center flex-shrink-0 z-10 shadow-sm">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">{% if current_status in ['shipped','delivered'] %}check{% else %}inventory_2{% endif %}</span>
               </div>
               <div class="flex-1 bg-surface-container-low p-space-sm rounded-lg shadow-sm">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-space-xs">
-                    <span class="font-headline-sm text-headline-sm text-on-surface font-bold">جرد وفحص القطع والتغليف</span>
+                    <span class="font-headline-sm text-headline-sm text-on-surface font-bold">جرد وفحص القطع والتغليف المصفح</span>
+                    {% if current_status in ['pending','processing'] %}
                     <span class="bg-secondary text-on-secondary text-[10px] px-space-xs py-space-3xs rounded-full font-bold">جارٍ الآن</span>
+                    {% endif %}
                   </div>
+                  <span class="font-label-sm text-label-sm text-secondary font-medium">مستودع دكتور بورسلين</span>
                 </div>
                 <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-3xs">
-                  فحص كل قطعة والتأكد من سلامتها قبل التغليف والشحن.
+                  تغليف كل قطعة بفقاعات هواء مقواة 5 طبقات، ووضع الأطقم داخل كراتين خشبية مبطنة بالإسفنج.
                 </p>
               </div>
             </div>
 
-            <div class="relative flex items-start gap-space-md opacity-70">
-              <div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 z-10">
+            <!-- 3. Shipped -->
+            <div class="relative flex items-start gap-space-md {% if current_status in ['shipped','delivered'] %}{% else %}opacity-70{% endif %}">
+              <div class="w-10 h-10 rounded-full {% if current_status == 'shipped' %}bg-secondary-container text-on-secondary-container ring-4 ring-secondary-container/20 animate-pulse{% elif current_status == 'delivered' %}bg-secondary text-on-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %} flex items-center justify-center flex-shrink-0 z-10">
                 <span class="material-symbols-outlined text-[20px]">local_shipping</span>
               </div>
               <div class="flex-1 p-space-sm">
                 <div class="flex items-center justify-between">
-                  <span class="font-headline-sm text-headline-sm text-on-surface">انطلاق سيارة النقل مع المندوب</span>
+                  <span class="font-headline-sm text-headline-sm text-on-surface">انطلاق سيارة النقل المجهزة مع المندوب الفني</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant">SMS قبل التحرك</span>
                 </div>
                 <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-3xs">
-                  سيتم إرسال تفاصيل المندوب عبر رسالة SMS قبل التحرك.
+                  سيتم إرسال رابط موقع السائق المباشر وتفاصيل المركبة عبر رسالة SMS قبل التحرك بساعة.
                 </p>
               </div>
             </div>
 
-            <div class="relative flex items-start gap-space-md opacity-70">
-              <div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 z-10">
+            <!-- 4. Delivered -->
+            <div class="relative flex items-start gap-space-md {% if current_status == 'delivered' %}{% else %}opacity-70{% endif %}">
+              <div class="w-10 h-10 rounded-full {% if current_status == 'delivered' %}bg-secondary text-on-secondary{% else %}bg-surface-container-high text-on-surface-variant{% endif %} flex items-center justify-center flex-shrink-0 z-10">
                 <span class="material-symbols-outlined text-[20px]">handshake</span>
               </div>
               <div class="flex-1 p-space-sm">
                 <div class="flex items-center justify-between">
-                  <span class="font-headline-sm text-headline-sm text-on-surface">المعاينة والتسليم النهائي</span>
+                  <span class="font-headline-sm text-headline-sm text-on-surface">المعاينة اليدوية الشاملة والتسليم النهائي</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant">أمام باب العميل</span>
                 </div>
                 <p class="font-body-sm text-body-sm text-on-surface-variant mt-space-3xs">
-                  المندوب يفتح الطلبية أمامك للفحص قبل إتمام السداد.
+                  يقوم الفني بفتح الصناديق قطعة قطعة ومراجعة الختم قبل إتمام الدفع.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Recipient details -->
+        <!-- ============ Shipping Label PDF Card ============ -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm border-2 border-dashed border-secondary/30">
+          <div class="flex items-center justify-between mb-space-md">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[28px]">description</span>
+              <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">بوليصة الشحن الرسمية</h2>
+            </div>
+            <span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm font-bold">جاهزة للطباعة</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+            <div class="bg-surface-container-low rounded-lg p-space-md">
+              <span class="font-label-sm text-label-sm text-on-surface-variant block">رقم البوليصة</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-mono text-secondary font-bold dir-ltr">{{ order.doc_number }}</span>
+            </div>
+            <div class="bg-surface-container-low rounded-lg p-space-md">
+              <span class="font-label-sm text-label-sm text-on-surface-variant block">المستلم</span>
+              <span class="font-body-md text-body-md text-on-surface font-semibold">{{ order.customer_display_name }}</span>
+            </div>
+            <div class="bg-surface-container-low rounded-lg p-space-md">
+              <span class="font-label-sm text-label-sm text-on-surface-variant block">إجمالي الشحنة</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ order.total | money }}</span>
+            </div>
+          </div>
+          <div class="mt-space-md flex flex-wrap gap-space-xs">
+            {% if sf_current_customer and order.customer_id == sf_current_customer.id %}
+            <a href="{{ url_for('storefront.account_order_pdf', order_number=order.doc_number) }}" target="_blank"
+               class="flex-1 bg-primary-container text-on-primary hover:bg-primary-container/90 h-11 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs no-underline transition-colors">
+              <span class="material-symbols-outlined text-[18px]">download</span>
+              <span>تحميل بوليصة الشحن (PDF)</span>
+            </a>
+            <button type="button" onclick="window.print()"
+                    class="flex-1 bg-surface-container-low text-on-surface hover:bg-surface-container h-11 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs cursor-pointer border-0 transition-colors">
+              <span class="material-symbols-outlined text-[18px]">print</span>
+              <span>طباعة فورية</span>
+            </button>
+            {% else %}
+            <a href="#" onclick="return false" title="قريبًا"
+               class="flex-1 bg-surface-container-low text-on-surface-variant h-11 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs no-underline opacity-60 cursor-not-allowed">
+              <span class="material-symbols-outlined text-[18px]">download</span>
+              <span>تحميل بوليصة الشحن (PDF) — قريبًا</span>
+            </a>
+            <button type="button" onclick="window.print()"
+                    class="flex-1 bg-surface-container-low text-on-surface hover:bg-surface-container h-11 rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs cursor-pointer border-0 transition-colors">
+              <span class="material-symbols-outlined text-[18px]">print</span>
+              <span>طباعة فورية</span>
+            </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ============ Recipient details ============ -->
         <div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm">
           <div class="flex items-center gap-space-xs mb-space-lg">
             <span class="material-symbols-outlined text-secondary">person_pin</span>
-            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">تفاصيل العميل والاستلام</h2>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">تفاصيل العميل وبيانات الاستلام</h2>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
             <div class="space-y-space-md bg-surface-container-low p-space-md rounded-lg">
               <div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant block">الاسم / المستلم</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant block">الاسم الكريم / صفة المستلم</span>
                 <span class="font-headline-sm text-headline-sm text-on-surface font-semibold">
                   {{ order.customer_display_name }}
                 </span>
               </div>
               <div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant block">رقم الهاتف</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant block">الهاتف المعتمد والتواصل السريع</span>
                 <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface dir-ltr block text-right font-mono">
                   {{ order.customer_phone or '—' }}
                 </span>
               </div>
               <div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant block">طريقة الدفع</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant block">طريقة الدفع المعتمدة</span>
                 <div class="flex items-center gap-space-xs mt-space-3xs">
                   <span class="material-symbols-outlined text-secondary text-[20px]">payments</span>
-                  <span class="font-body-md text-body-md text-on-surface font-medium">الدفع عند الاستلام</span>
+                  <span class="font-body-md text-body-md text-on-surface font-medium">الدفع عند الاستلام والمعاينة اليدوية (كاش أو POS)</span>
                 </div>
               </div>
             </div>
             <div class="space-y-space-md bg-surface-container-low p-space-md rounded-lg">
               <div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant block">عنوان التسليم</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant block">عنوان التسليم الملكي</span>
                 <p class="font-body-md text-body-md text-on-surface font-semibold mt-space-3xs leading-relaxed">
                   {% if order.shipping_city %}{{ order.shipping_city }} — {% endif %}{{ order.shipping_address }}
                 </p>
@@ -263,9 +339,9 @@
               </div>
               {% endif %}
               <div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant block">نوع الاستلام</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant block">نوع الاستلام والضمان الخاص</span>
                 <span class="inline-block bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded font-label-sm text-label-sm mt-space-3xs">
-                  معاينة كاملة قبل الدفع
+                  معاينة مسبقة مفتوحة لكل القطع (100% Zero-Risk)
                 </span>
               </div>
             </div>
@@ -274,13 +350,55 @@
           <div class="mt-space-lg bg-surface-container-high p-space-md rounded-xl flex items-start gap-space-sm">
             <span class="material-symbols-outlined text-secondary text-[24px] flex-shrink-0 mt-0.5">verified_user</span>
             <div class="space-y-space-3xs">
-              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">بروتوكول المعاينة المعتمد</span>
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">بروتوكول المعاينة الملكية المعتمد</span>
               <p class="font-body-sm text-body-sm text-on-surface-variant">
-                يفتح مندوبنا الصناديق أمامك ويفحص كل قطعة قبل تسليم أي مبلغ — لضمان رضاك الكامل.
+                يرافق الشحنة فني متخصص ومجهز بقفازات قطنية للمساعدة في فتح الصناديق وفحص الطقم بالكامل والقطع أمام سيادتكم قبل سداد أي مليم.
               </p>
             </div>
           </div>
         </div>
+
+        <!-- ============ VIP Rewards & Perks ============ -->
+        <div class="bg-gradient-to-l from-primary-container to-secondary rounded-xl p-space-xl text-on-primary shadow-md flex flex-col md:flex-row items-center justify-between gap-space-lg">
+          <div class="flex items-center gap-space-md">
+            <div class="w-14 h-14 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0 shadow-lg">
+              <span class="material-symbols-outlined text-[32px]">stars</span>
+            </div>
+            <div class="space-y-space-3xs">
+              <div class="flex items-center gap-space-xs">
+                <span class="font-headline-lg text-headline-lg font-bold text-on-primary">مبروك! رصيد ولاء استثنائي</span>
+                <span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-space-xs py-space-3xs rounded-full font-bold">+380 نقطة</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-primary-container">
+                تمت إضافة <strong class="text-on-primary">380 نقطة ولاء ملكية</strong> إلى محفظتك صالحة للخصم المباشر في طلباتك القادمة.
+              </p>
+            </div>
+          </div>
+          <div class="bg-on-primary/10 rounded-lg p-space-sm flex flex-col items-center flex-shrink-0 text-center">
+            <span class="font-label-sm text-label-sm text-on-primary-container">كود هدية الطلب القادم</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary-container font-mono tracking-widest mt-space-3xs">ROYAL-VIP-GIFT</span>
+          </div>
+        </div>
+
+        <!-- ============ Customer Service Contact Card ============ -->
+        {% if sf_settings.store_phone %}
+        <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+          <div class="flex items-center gap-space-md">
+            <div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-[24px]">support_agent</span>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">خدمة العملاء والمتابعة الفورية</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">مكتب الاستقبال متاح طوال 24 ساعة لخدمتك.</p>
+            </div>
+            <a href="tel:{{ sf_settings.store_phone }}"
+               class="bg-primary-container text-on-primary hover:bg-primary-container/90 px-space-lg py-space-xs rounded-lg font-fiscal-numeric-md text-fiscal-numeric-md font-bold dir-ltr no-underline transition-colors flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-[18px]">call</span>
+              <span>{{ sf_settings.store_phone }}</span>
+            </a>
+          </div>
+        </div>
+        {% endif %}
       </div>
 
       <!-- Left (compact): Order Summary -->
@@ -329,14 +447,14 @@
           <!-- Totals -->
           <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-xs mb-space-lg">
             <div class="flex justify-between items-center text-on-surface font-body-md text-body-md">
-              <span class="text-on-surface-variant">المجموع الفرعي:</span>
+              <span class="text-on-surface-variant">المجموع الفرعي للمنتجات:</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">{{ order.subtotal | money }}</span>
             </div>
             {% if order.discount_amount and order.discount_amount > 0 %}
             <div class="flex justify-between items-center text-secondary font-body-md text-body-md">
               <span class="flex items-center gap-space-3xs">
                 <span class="material-symbols-outlined text-[18px]">sell</span>
-                خصم كوبون:
+                خصم قسيمة النخبة:
               </span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold dir-ltr">
                 - {{ order.discount_amount | money }}
@@ -344,18 +462,18 @@
             </div>
             {% endif %}
             <div class="flex justify-between items-center text-on-surface font-body-md text-body-md">
-              <span class="text-on-surface-variant">الشحن:</span>
+              <span class="text-on-surface-variant">الشحن المصفح والتأمين ضد الكسر:</span>
               {% if order.shipping_fee and order.shipping_fee > 0 %}
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">
                 {{ order.shipping_fee | money }}
               </span>
               {% else %}
-              <span class="text-secondary font-semibold font-label-md text-label-md">مجاني</span>
+              <span class="text-secondary font-semibold font-label-md text-label-md">مجاني بالكامل</span>
               {% endif %}
             </div>
             {% if order.tax_amount and order.tax_amount > 0 %}
             <div class="flex justify-between items-center text-on-surface font-body-md text-body-md">
-              <span class="text-on-surface-variant">ضريبة القيمة المضافة:</span>
+              <span class="text-on-surface-variant">ضريبة القيمة المضافة (14%):</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">
                 {{ order.tax_amount | money }}
               </span>
@@ -363,8 +481,8 @@
             {% endif %}
             <div class="pt-space-sm mt-space-xs bg-surface-container-high/60 -mx-space-md px-space-md py-space-sm rounded-lg flex justify-between items-center">
               <div>
-                <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">الإجمالي المستحق:</span>
-                <span class="font-label-sm text-label-sm text-on-surface-variant">يُسدد عند الاستلام</span>
+                <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">إجمالي المستحق النهائي:</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">يُسدد عند الفحص والمعاينة</span>
               </div>
               <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold text-secondary">
                 {{ order.total | money }}
@@ -372,13 +490,13 @@
             </div>
           </div>
 
-          <!-- Actions -->
+          <!-- Actions: Next-steps CTAs -->
           <div class="space-y-space-xs">
             {% if sf_current_customer and order.customer_id == sf_current_customer.id %}
-            <a href="{{ url_for('storefront.account_order_pdf', order_number=order.doc_number) }}"
+            <a href="{{ url_for('storefront.account_order_pdf', order_number=order.doc_number) }}" target="_blank"
                class="w-full bg-primary-container text-on-primary h-12 rounded-lg font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs hover:bg-primary-container/90 transition-all shadow-md no-underline">
               <span class="material-symbols-outlined text-[20px]">print</span>
-              <span>تحميل الفاتورة (PDF)</span>
+              <span>طباعة الفاتورة وبوليصة الحجز (PDF)</span>
             </a>
             <a href="{{ url_for('storefront.account_order_view', order_number=order.doc_number) }}"
                class="w-full bg-surface-container-low text-on-surface hover:bg-surface-container h-10 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs transition-colors no-underline">
@@ -391,23 +509,43 @@
               <span class="material-symbols-outlined text-[20px]">explore</span>
               <span>تتبع الطلب</span>
             </a>
+            <button type="button" onclick="window.print()"
+                    class="w-full bg-surface-container-low text-on-surface hover:bg-surface-container h-10 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs transition-colors border-0 cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              <span>حفظ بوليصة الشحن</span>
+            </button>
             {% endif %}
+
+            <!-- WhatsApp tracking (optional if store_phone exists) -->
+            {% if sf_settings.store_phone %}
+            <a href="https://wa.me/{{ sf_settings.store_phone|replace('+','')|replace(' ','') }}" target="_blank"
+               class="w-full bg-[#128C7E] text-white hover:bg-[#075E54] h-11 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs transition-colors no-underline">
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              <span>تتبع مسار السائق عبر WhatsApp</span>
+            </a>
+            {% else %}
+            <a href="#" onclick="return false" title="قريبًا"
+               class="w-full bg-surface-container-low text-on-surface-variant h-11 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs no-underline opacity-60 cursor-not-allowed">
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              <span>تتبع عبر WhatsApp — قريبًا</span>
+            </a>
+            {% endif %}
+
             <a href="{{ url_for('storefront.home') }}"
                class="w-full bg-surface-container-low text-on-surface hover:bg-surface-container h-10 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs transition-colors no-underline">
               <span class="material-symbols-outlined text-[18px]">storefront</span>
-              <span>العودة للمتجر</span>
+              <span>استكمال التسوق</span>
             </a>
           </div>
 
           {% if sf_settings.store_phone %}
           <div class="mt-space-lg pt-space-md text-center bg-surface-container-low/40 rounded-lg p-space-sm">
-            <span class="font-label-sm text-label-sm text-on-surface-variant block">
-              للمتابعة الفورية:
-            </span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant block">مكتب الاستقبال والمتابعة الفورية:</span>
             <div class="flex items-center justify-center gap-space-sm mt-space-3xs">
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold dir-ltr">
                 {{ sf_settings.store_phone }}
               </span>
+              <span class="text-on-surface-variant font-label-sm text-label-sm">| متاح طوال 24 ساعة لخدمتك</span>
             </div>
           </div>
           {% endif %}

@@ -374,6 +374,15 @@ def cart_remove(variant_id):
     return redirect(url_for("storefront.cart_view"))
 
 
+@storefront_bp.route("/cart/remove-all", methods=["POST"])
+def cart_remove_all():
+    """يفرغ السلة بالكامل — يستخدمها زر «تفريغ السلة» في cart.html."""
+    clear_cart()
+    clear_coupon()
+    flash("تم تفريغ السلة.", "info")
+    return redirect(url_for("storefront.cart_view"))
+
+
 # ============ Checkout ============
 
 @storefront_bp.route("/checkout", methods=["GET", "POST"])

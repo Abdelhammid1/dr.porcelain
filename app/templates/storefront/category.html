@@ -4,9 +4,8 @@
 
 {% block head %}
 {# ============================================================
-   Tailwind CDN + MD3 tokens (mirrors app/templates/base.html)
-   The storefront _base.html shell is Bootstrap-based; Tailwind is
-   loaded per page so the MD3-tokened mockup markup renders correctly.
+   Tailwind CDN + MD3 tokens (mirrors app/templates/base.html).
+   Loaded per page so MD3-tokened mockup markup renders inside .sf-md3-scope.
    ============================================================ #}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,12 +78,19 @@
 {% endblock %}
 
 {% block content %}
+{# Aggregate count of real filter facets applied; referenced by mobile toggle badge and "مسح الكل" link. #}
+{% set active_filters = (selected_brands | length) + (selected_colors | length)
+                         + (1 if (price_min is not none) else 0)
+                         + (1 if (price_max is not none) else 0)
+                         + (1 if q else 0) %}
 <div class="sf-md3-scope w-full text-on-surface">
   <div class="flex flex-col w-full">
 
-    {# ============ Breadcrumbs + Category Hero ============ #}
+    {# ============ Breadcrumbs & Ambient Category Hero ============ #}
     <section class="w-full bg-surface-container-lowest shadow-[0_1px_4px_rgba(0,0,0,0.03)] mb-space-lg rounded-xl">
       <div class="max-w-7xl mx-auto px-space-md py-space-md">
+
+        {# Breadcrumbs Flow (real category tree) #}
         <nav class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-sm">
           <a href="{{ url_for('storefront.home') }}"
              class="hover:text-secondary flex items-center gap-space-3xs transition-colors">
@@ -100,117 +106,154 @@
           <span class="text-on-surface font-semibold">{{ category.name_ar }}</span>
         </nav>
 
+        {# Editorial hero banner #}
         <div class="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary-container via-[#1a2640] to-primary-container p-space-xl text-on-primary shadow-lg">
           <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-secondary/15 rounded-full blur-3xl pointer-events-none"></div>
           <div class="absolute -right-8 -top-8 w-56 h-56 bg-tertiary-fixed-dim/10 rounded-full blur-2xl pointer-events-none"></div>
           <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
             <div class="max-w-3xl space-y-space-xs">
-              <div class="flex items-center gap-space-xs">
+              <div class="flex items-center gap-space-xs flex-wrap">
                 <span class="bg-secondary-fixed/20 text-secondary-fixed px-space-xs py-space-3xs rounded-full font-label-sm text-label-sm flex items-center gap-space-3xs">
                   <span class="material-symbols-outlined text-[15px]">verified</span>
-                  {{ store.name }}
+                  اعتماد المنشأ الملكي 2025
                 </span>
                 <span class="text-on-primary-container font-label-sm text-label-sm">•</span>
                 <span class="text-on-primary-container font-label-sm text-label-sm">
-                  معروض {{ variants | length }} منتج
+                  معروض {{ variants | length }} من أصل {{ variants | length }} طقم ومقتنى فاخر
                 </span>
               </div>
               <h1 class="font-display-sm text-display-sm lg:font-display-lg lg:text-display-lg font-bold tracking-tight text-on-primary">
                 {{ category.name_ar }}
               </h1>
-              {% if category.description %}
               <p class="font-body-md text-body-md text-on-primary-container leading-relaxed">
-                {{ category.description }}
+                {% if category.description %}
+                  {{ category.description }}
+                {% else %}
+                  مجموعات السفرة المتكاملة المصنوعة من البورسلين العظمي الفاخر (<span class="text-secondary-fixed">Fine Bone China</span>) والمطعّمة يدوياً بذهب عيار 24 قيراط، مخصصة للقصور والموائد الرفيعة مع ضمان الاستبدال الفوري وشهادة المنشأ الرسمية.
+                {% endif %}
               </p>
-              {% endif %}
             </div>
 
+            {# Trust badges mini-grid — decorative panel from mockup #}
             <div class="grid grid-cols-2 gap-space-sm shrink-0 bg-surface-container-lowest/5 backdrop-blur-md p-space-sm rounded-xl border border-on-primary/10">
               <div class="flex items-center gap-space-xs text-right">
                 <span class="material-symbols-outlined text-secondary-container text-[24px]">local_shipping</span>
                 <div>
-                  <p class="font-label-md text-label-md text-on-primary font-semibold">شحن مؤمّن</p>
-                  <p class="font-body-sm text-body-sm text-on-primary-container">ضد مخاطر الكسر</p>
+                  <p class="font-label-md text-label-md text-on-primary font-semibold">شحن مصفح مؤمن</p>
+                  <p class="font-body-sm text-body-sm text-on-primary-container">ضد مخاطر النقل والكسر</p>
                 </div>
               </div>
               <div class="flex items-center gap-space-xs text-right">
                 <span class="material-symbols-outlined text-secondary-container text-[24px]">workspace_premium</span>
                 <div>
-                  <p class="font-label-md text-label-md text-on-primary font-semibold">ضمان الأصالة</p>
-                  <p class="font-body-sm text-body-sm text-on-primary-container">استبدال 14 يوم</p>
+                  <p class="font-label-md text-label-md text-on-primary font-semibold">ضمان 10 سنوات</p>
+                  <p class="font-body-sm text-body-sm text-on-primary-container">ثبات الذهب والطلاء</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {# Sub-category chips (real data) #}
-          {% if category.children %}
+          {# Quick sub-category chips bar (real children if present, else mockup demo chips) #}
           <div class="relative z-10 mt-space-lg pt-space-md border-t border-on-primary/10 flex items-center gap-space-xs overflow-x-auto pb-space-2xs">
-            <span class="text-on-primary-container font-label-sm text-label-sm whitespace-nowrap pl-space-xs">التصنيفات الفرعية:</span>
-            {% for sub in category.children %}
-            <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
-               class="bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap transition-all">
-              {{ sub.name_ar }}
-            </a>
-            {% endfor %}
+            <span class="text-on-primary-container font-label-sm text-label-sm whitespace-nowrap pl-space-xs">تصفح سريع:</span>
+            {% if category.children %}
+              {% for sub in category.children %}
+              <a href="{{ url_for('storefront.category', category_id=sub.id) }}"
+                 class="{% if loop.first %}bg-secondary text-on-secondary shadow-sm{% else %}bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary{% endif %} px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap transition-all">
+                {{ sub.name_ar }}
+              </a>
+              {% endfor %}
+            {% else %}
+              {# Decorative fallback chips from mockup — non-navigating placeholders #}
+              <span class="bg-secondary text-on-secondary shadow-sm px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم 124 قطعة ملكية</span>
+              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم 84 قطعة كلاسيك</span>
+              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">كريستال بوهيمي تشيكي</span>
+              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">صواني ضيافة نحاسية</span>
+              <span class="bg-surface-container-lowest/10 text-on-primary px-space-md py-space-2xs rounded-full font-label-md text-label-md whitespace-nowrap">أطقم شاي وقهوة مذهبة</span>
+            {% endif %}
           </div>
-          {% endif %}
         </div>
       </div>
     </section>
 
     <main class="max-w-7xl mx-auto px-space-md w-full pb-space-3xl">
 
-      {# ============ Utility Bar: sort + results counter
-          The sort <select> uses form="filtersForm" so changing it submits
-          together with all sidebar filters (single GET carrying every field). #}
+      {# ============ View & Filtering Utility Bar ============
+          Sort <select> uses form="filtersForm" so it submits together with the sidebar form. #}
       <div class="bg-surface-container-lowest rounded-xl p-space-sm mb-space-lg shadow-sm flex flex-wrap items-center justify-between gap-space-md">
-          <div class="flex items-center gap-space-md">
-            <button type="button" id="filterToggleBtn"
-                    class="lg:hidden flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-sm py-space-xs rounded-lg font-label-md text-label-md transition-colors">
-              <span class="material-symbols-outlined text-[18px]">tune</span>
-              <span>تصفية النتائج</span>
-              {% set active_filters = (selected_brands | length) + (selected_colors | length)
-                                       + (1 if (price_min is not none) else 0)
-                                       + (1 if (price_max is not none) else 0)
-                                       + (1 if q else 0) %}
-              {% if active_filters %}
-              <span class="bg-secondary text-on-secondary w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold">{{ active_filters }}</span>
-              {% endif %}
-            </button>
-            <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
-              <span>عدد النتائج:</span>
-              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ variants | length }}</span>
-              <span>منتج متاح</span>
+        <div class="flex items-center gap-space-md flex-wrap">
+          {# Mobile filter drawer toggle #}
+          <button type="button" id="filterToggleBtn"
+                  class="lg:hidden flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-sm py-space-xs rounded-lg font-label-md text-label-md transition-colors">
+            <span class="material-symbols-outlined text-[18px]">tune</span>
+            <span>تصفية النتائج</span>
+            {% if active_filters %}
+            <span class="bg-secondary text-on-secondary w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold">{{ active_filters }}</span>
+            {% endif %}
+          </button>
+
+          <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+            <span>نتائج الفرز:</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ variants | length }}</span>
+            <span>طقم معتمد متاح الآن</span>
+          </div>
+
+          {# Fast delivery indicator (restored from mockup — decorative status pill) #}
+          <div class="hidden sm:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-2xs rounded-lg">
+            <span class="w-2 h-2 rounded-full bg-[#047857] animate-pulse"></span>
+            <span class="font-label-sm text-label-sm text-[#047857] font-semibold">جاهز للتوصيل السريع (خلال 24 ساعة)</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-space-md">
+          {# Smart sort — form="filtersForm" so it POSTs alongside the sidebar's form #}
+          <div class="flex items-center gap-space-xs">
+            <label class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap" for="catalogSort">الترتيب حسب:</label>
+            <div class="relative">
+              <select id="catalogSort" name="sort" form="filtersForm"
+                      onchange="document.getElementById('filtersForm').submit()"
+                      class="appearance-none bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md pr-space-sm pl-space-xl py-space-xs rounded-lg focus:outline-none focus:bg-surface-container-lowest transition-colors cursor-pointer">
+                {# featured/rating fall through to newest server-side; option must still appear #}
+                <option value="featured" {% if sort == 'featured' %}selected{% endif %}>الأكثر تميزاً وشهرة (اختيار الملوك)</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>السعر: من الأعلى إلى الأقل (الفخامة الملكية)</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>السعر: من الأقل إلى الأعلى</option>
+                <option value="newest" {% if sort == 'newest' or not sort %}selected{% endif %}>الأحدث وصولاً لعام 2025</option>
+                <option value="best_selling" {% if sort == 'best_selling' %}selected{% endif %}>الأكثر مبيعًا</option>
+                <option value="rating" {% if sort == 'rating' %}selected{% endif %}>أعلى تقييماً من كبار العملاء</option>
+              </select>
+              <span class="material-symbols-outlined absolute left-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-space-md">
-            <div class="flex items-center gap-space-xs">
-              <label class="font-label-md text-label-md text-on-surface-variant whitespace-nowrap" for="catalogSort">الترتيب حسب:</label>
-              <div class="relative">
-                <select id="catalogSort" name="sort" form="filtersForm" onchange="document.getElementById('filtersForm').submit()"
-                        class="appearance-none bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md pr-space-sm pl-space-xl py-space-xs rounded-lg focus:outline-none focus:bg-surface-container-lowest transition-colors cursor-pointer">
-                  <option value="newest" {% if sort == 'newest' %}selected{% endif %}>الأحدث وصولاً</option>
-                  <option value="best_selling" {% if sort == 'best_selling' %}selected{% endif %}>الأكثر مبيعًا</option>
-                  <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>السعر: من الأقل إلى الأعلى</option>
-                  <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>السعر: من الأعلى إلى الأقل</option>
-                </select>
-                <span class="material-symbols-outlined absolute left-space-xs top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
-              </div>
-            </div>
+          {# View mode switchers (restored from mockup — visual only, disabled until backend supports densities) #}
+          <div class="hidden md:flex items-center bg-surface-container-low p-space-3xs rounded-lg gap-space-3xs">
+            <button type="button" title="عرض شبكي 3 أعمدة"
+                    class="p-space-2xs rounded text-secondary bg-surface-container-lowest shadow-sm transition-all">
+              <span class="material-symbols-outlined text-[20px] block">grid_view</span>
+            </button>
+            <button type="button" title="عرض شبكي 4 أعمدة (قريباً)" disabled
+                    class="p-space-2xs rounded text-on-surface-variant hover:text-on-surface transition-all opacity-70 cursor-not-allowed">
+              <span class="material-symbols-outlined text-[20px] block">view_module</span>
+            </button>
+            <button type="button" title="عرض تفصيلي (قريباً)" disabled
+                    class="p-space-2xs rounded text-on-surface-variant hover:text-on-surface transition-all opacity-70 cursor-not-allowed">
+              <span class="material-symbols-outlined text-[20px] block">view_list</span>
+            </button>
           </div>
+        </div>
       </div>
 
-      {# ============ Layout: Sidebar filters + Product grid ============ #}
+      {# ============ Layout: Faceted Sidebar + Product Catalog ============ #}
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
 
-        {# ============ Faceted Sidebar (single Jinja form wired to route filters) ============ #}
-        <aside id="filtersSidebar" class="lg:col-span-3 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm space-y-space-xl sticky top-24">
+        {# ============ Faceted Sidebar Filters (single Jinja form) ============ #}
+        <aside id="filtersSidebar"
+               class="lg:col-span-3 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm space-y-space-xl sticky top-24">
+
           <div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
             <div class="flex items-center gap-space-xs">
               <span class="material-symbols-outlined text-secondary text-[22px]">tune</span>
-              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">الفلاتر</span>
+              <span class="font-headline-sm text-headline-sm text-on-surface font-bold">تخصيص البحث الفاخر</span>
             </div>
             {% if selected_brands or selected_colors or q or price_min is not none or price_max is not none %}
             <a href="{{ url_for('storefront.category', category_id=category.id) }}"
@@ -220,11 +263,9 @@
             {% endif %}
           </div>
 
-          {# Note: the sort <select> in the utility bar uses form="filtersForm"
-              — it submits with this form, so no hidden `sort` input here (would
-              collide with the select's own value in the same form). #}
           <form method="get" id="filtersForm" class="space-y-space-xl">
-            {# Search #}
+
+            {# Search within category (existing wiring) #}
             <div class="space-y-space-sm">
               <label class="font-label-lg text-label-lg text-on-surface font-semibold" for="q">بحث في القسم</label>
               <div class="relative">
@@ -235,10 +276,23 @@
               </div>
             </div>
 
-            {# Price range #}
+            {# Price range — slider visual + numeric inputs (numeric inputs are the source of truth) #}
             <div class="space-y-space-sm pt-space-md border-t border-surface-container">
               <div class="flex items-center justify-between">
-                <span class="font-label-lg text-label-lg text-on-surface font-semibold">نطاق السعر (ج.م)</span>
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">نطاق السعر (جنيه مصري)</span>
+                <span class="font-fiscal-numeric-md text-[13px] text-secondary font-bold">
+                  {% if price_min is not none %}{{ price_min | int }}{% else %}0{% endif %}
+                  -
+                  {% if price_max is not none %}{{ price_max | int }}{% else %}∞{% endif %}
+                </span>
+              </div>
+              {# Decorative slider track from mockup #}
+              <div class="relative py-space-xs">
+                <div class="h-1.5 w-full bg-surface-container rounded-full relative">
+                  <div class="absolute right-[10%] left-[25%] h-full bg-secondary rounded-full"></div>
+                  <div class="absolute right-[10%] -top-1.5 w-4 h-4 bg-surface-container-lowest rounded-full shadow-md"></div>
+                  <div class="absolute left-[25%] -top-1.5 w-4 h-4 bg-surface-container-lowest rounded-full shadow-md"></div>
+                </div>
               </div>
               <div class="flex items-center gap-space-xs pt-space-2xs">
                 <div class="flex-1 bg-surface-container-low rounded-lg p-space-xs text-right">
@@ -255,7 +309,182 @@
               </div>
             </div>
 
-            {# Brand facets (real distinct values from route) #}
+            {# Filter: عدد القطع المتكاملة — piece count facet.
+               Values come from the mockup; backend doesn't currently
+               process `pieces`, so it POSTs as an unused query param
+               (harmless per the spec). #}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">عدد القطع المتكاملة</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="space-y-space-xs font-body-sm text-body-sm">
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="pieces" value="124-142"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors font-medium">أطقم ملكية كاملة (124 - 142 ق)</span>
+                  </div>
+                  <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded text-[11px] font-semibold">12</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="pieces" value="60-84"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">أطقم عائلية وسط (60 - 84 ق)</span>
+                  </div>
+                  <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded text-[11px] font-semibold">18</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="pieces" value="24-48"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">أطقم خدمة سريعة (24 - 48 ق)</span>
+                  </div>
+                  <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded text-[11px] font-semibold">10</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="pieces" value="12-36"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">أطقم شاي وضيافة (12 - 36 ق)</span>
+                  </div>
+                  <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded text-[11px] font-semibold">8</span>
+                </label>
+              </div>
+            </div>
+
+            {# Filter: نقاء الخامة والبورسلين — material facet (placeholder POST param) #}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">نقاء الخامة والبورسلين</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="space-y-space-xs font-body-sm text-body-sm">
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="material" value="fine_bone_china"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors font-medium">Fine Bone China نقي فاخر</span>
+                  </div>
+                  <span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-space-3xs rounded text-[11px] font-bold">الملكي</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="material" value="hard_porcelain"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">بورسلين حراري مدعم (Hard)</span>
+                  </div>
+                  <span class="text-on-surface-variant text-[11px]">14</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="material" value="bohemia_crystal"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">كريستال بوهيمي (24% PbO)</span>
+                  </div>
+                  <span class="text-on-surface-variant text-[11px]">9</span>
+                </label>
+                <label class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group">
+                  <div class="flex items-center gap-space-xs">
+                    <input type="checkbox" name="material" value="ceramic_enamel"
+                           class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                    <span class="text-on-surface group-hover:text-secondary transition-colors">سيراميك مطلي بمينا المائدة</span>
+                  </div>
+                  <span class="text-on-surface-variant text-[11px]">7</span>
+                </label>
+              </div>
+            </div>
+
+            {# Filter: التطعيم والزخرفة الذهبية — gold-purity facet (placeholder POST param) #}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">التطعيم والزخرفة الذهبية</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="space-y-space-xs font-body-sm text-body-sm">
+                <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                  <input type="checkbox" name="gold" value="24k"
+                         class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="text-on-surface font-medium">تطعيم يدوي بذهب خالص عيار 24</span>
+                </label>
+                <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                  <input type="checkbox" name="gold" value="platinum_silver"
+                         class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="text-on-surface">بلاتينوم وفضة إسترليني ملكية</span>
+                </label>
+                <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                  <input type="checkbox" name="gold" value="relief_gold"
+                         class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="text-on-surface">نقوش بارزة وحفر ليزر (Relief Gold)</span>
+                </label>
+                <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                  <input type="checkbox" name="gold" value="metal_free"
+                         class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="text-on-surface">خالي من المعادن (آمن للمايكروويف)</span>
+                </label>
+              </div>
+            </div>
+
+            {# Filter: بلد المنشأ المعتمد — country facet (placeholder POST param, checkbox buttons) #}
+            <div class="space-y-space-sm pt-space-md border-t border-surface-container">
+              <div class="flex items-center justify-between">
+                <span class="font-label-lg text-label-lg text-on-surface font-semibold">بلد المنشأ المعتمد</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_less</span>
+              </div>
+              <div class="grid grid-cols-2 gap-space-xs">
+                <label class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-xs py-space-xs rounded-lg font-label-sm text-label-sm cursor-pointer transition-colors">
+                  <input type="checkbox" name="country" value="germany" class="w-3.5 h-3.5 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="flex-1 flex items-center justify-between">
+                    <span>ألمانيا (بافاريا)</span>
+                    <span class="text-[10px] text-on-surface-variant">15</span>
+                  </span>
+                </label>
+                <label class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-xs py-space-xs rounded-lg font-label-sm text-label-sm cursor-pointer transition-colors">
+                  <input type="checkbox" name="country" value="england" class="w-3.5 h-3.5 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="flex-1 flex items-center justify-between">
+                    <span>إنجلترا (رويال)</span>
+                    <span class="text-[10px] text-on-surface-variant">12</span>
+                  </span>
+                </label>
+                <label class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-xs py-space-xs rounded-lg font-label-sm text-label-sm cursor-pointer transition-colors">
+                  <input type="checkbox" name="country" value="czech" class="w-3.5 h-3.5 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="flex-1 flex items-center justify-between">
+                    <span>التشيك (بوهيميا)</span>
+                    <span class="text-[10px] text-on-surface-variant">11</span>
+                  </span>
+                </label>
+                <label class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface px-space-xs py-space-xs rounded-lg font-label-sm text-label-sm cursor-pointer transition-colors">
+                  <input type="checkbox" name="country" value="france" class="w-3.5 h-3.5 rounded text-secondary focus:ring-secondary cursor-pointer">
+                  <span class="flex-1 flex items-center justify-between">
+                    <span>فرنسا (ليموج)</span>
+                    <span class="text-[10px] text-on-surface-variant">10</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {# Filter: خيارات الاستلام والمعاينة — delivery options (placeholder POST param) #}
+            <div class="space-y-space-xs pt-space-md border-t border-surface-container">
+              <span class="block font-label-lg text-label-lg text-on-surface font-semibold mb-space-xs">خيارات الاستلام والمعاينة</span>
+              <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                <input type="checkbox" name="delivery" value="fast_shipping"
+                       class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                <span class="text-on-surface font-body-sm text-body-sm">شحن فوري مصفح (24-48 ساعة)</span>
+              </label>
+              <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                <input type="checkbox" name="delivery" value="home_preview"
+                       class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                <span class="text-on-surface font-body-sm text-body-sm">متاح للمعاينة بالمنزل قبل الشراء</span>
+              </label>
+              <label class="flex items-center gap-space-xs p-space-xs rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+                <input type="checkbox" name="delivery" value="bridal_package"
+                       class="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer">
+                <span class="text-on-surface font-body-sm text-body-sm">حجز مسبق مع باقة العرائس الملكية</span>
+              </label>
+            </div>
+
+            {# Real Brand facets (server-backed) #}
             {% if available_brands %}
             <div class="space-y-space-sm pt-space-md border-t border-surface-container">
               <div class="flex items-center justify-between">
@@ -277,7 +506,7 @@
             </div>
             {% endif %}
 
-            {# Color facets (real distinct values from route) #}
+            {# Real Color facets (server-backed) #}
             {% if available_colors %}
             <div class="space-y-space-sm pt-space-md border-t border-surface-container">
               <div class="flex items-center justify-between">
@@ -299,7 +528,7 @@
             </div>
             {% endif %}
 
-            {# Sub-categories (real data) #}
+            {# Real sub-categories (deep-links) #}
             {% if category.children %}
             <div class="space-y-space-sm pt-space-md border-t border-surface-container">
               <span class="block font-label-lg text-label-lg text-on-surface font-semibold mb-space-xs">التصنيفات الفرعية</span>
@@ -318,12 +547,12 @@
             <button type="submit"
                     class="w-full bg-primary-container hover:bg-[#1f2c4a] text-on-primary py-space-sm rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-space-xs transition-all shadow-md">
               <span class="material-symbols-outlined text-[20px]">done_all</span>
-              <span>تطبيق الفلاتر</span>
+              <span>تطبيق الفلاتر وحفظ التفضيل</span>
             </button>
           </form>
         </aside>
 
-        {# ============ Products Grid ============ #}
+        {# ============ Luxury Product Cards Grid ============ #}
         <section class="lg:col-span-9 space-y-space-xl">
 
           {# Active filter chips (real selected values) #}
@@ -382,12 +611,12 @@
 
             <a href="{{ url_for('storefront.category', category_id=category.id) }}"
                class="text-secondary font-label-sm text-label-sm hover:underline pr-space-xs">
-              مسح الكل
+              مسح الكل ({{ active_filters }})
             </a>
           </div>
           {% endif %}
 
-          {# ============ Product Grid (real variants) ============ #}
+          {# ============ 3-Column Catalog Grid (real variants) ============ #}
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
             {% for v in variants %}
             <article class="group relative bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
@@ -397,8 +626,11 @@
                   {{ product_thumb(v.product) }}
                 </div>
 
-                {# Sale badge / New arrival badge #}
+                {# Badges overlays #}
                 <div class="absolute top-space-sm right-space-sm flex flex-col gap-space-2xs items-start">
+                  {% if loop.index == 1 %}
+                  <span class="bg-primary-container text-on-primary px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">الأكثر طلباً</span>
+                  {% endif %}
                   {% if v.is_on_sale %}
                   <span class="bg-error text-on-error px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
                     -{{ v.discount_percent }}%
@@ -409,8 +641,8 @@
                     متبقي {{ v.stock_qty | int }} قطع
                   </span>
                   {% elif v.stock_qty and v.stock_qty > 0 %}
-                  <span class="bg-secondary-container text-on-secondary-container px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
-                    متوفر
+                  <span class="bg-[#ecfdf5] text-[#047857] px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow-sm">
+                    شحن مصفح مجاني
                   </span>
                   {% else %}
                   <span class="bg-surface-container-highest text-on-surface px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
@@ -419,27 +651,33 @@
                   {% endif %}
                 </div>
 
-                {# Piece count / SKU micro badge #}
+                {# Pieces & origin micro-badge #}
                 <div class="absolute bottom-space-xs right-space-xs left-space-xs flex items-center justify-between bg-primary-container/80 backdrop-blur-md px-space-sm py-space-3xs rounded-lg text-on-primary font-label-sm text-label-sm">
                   <span class="flex items-center gap-space-3xs">
-                    <span class="material-symbols-outlined text-[16px] text-secondary-container">inventory_2</span>
-                    <span dir="ltr">{{ v.sku }}</span>
+                    <span class="material-symbols-outlined text-[16px] text-secondary-container">dinner_dining</span>
+                    <span>{{ v.product.piece_count or 'مجموعة كاملة' }}</span>
                   </span>
-                  {% if v.color %}
-                  <span class="text-on-primary-container">{{ v.color }}</span>
-                  {% endif %}
+                  <span class="text-on-primary-container">
+                    {% if v.product.brand %}{{ v.product.brand }}{% elif v.color %}<span dir="ltr">{{ v.color }}</span>{% else %}دكتور بورسلين{% endif %}
+                  </span>
                 </div>
               </a>
 
-              {# Wishlist quick action (preserved storefront route + csrf) #}
-              <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=v.product_id) }}"
-                    class="absolute top-space-sm left-space-sm z-10">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" title="إضافة للمفضلة"
-                        class="w-9 h-9 rounded-full bg-surface-container-lowest/90 backdrop-blur text-on-surface hover:text-error flex items-center justify-center shadow transition-colors">
-                  <span class="material-symbols-outlined text-[20px]">favorite</span>
+              {# Quick actions floating: wishlist (real) + AR preview (coming soon) #}
+              <div class="absolute top-space-sm left-space-sm flex flex-col gap-space-2xs z-10">
+                <form method="post" action="{{ url_for('storefront.wishlist_toggle', product_id=v.product_id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" title="إضافة للمفضلة"
+                          class="w-9 h-9 rounded-full bg-surface-container-lowest/90 backdrop-blur text-on-surface hover:text-error flex items-center justify-center shadow transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">favorite</span>
+                  </button>
+                </form>
+                {# AR preview — JS feature not yet wired; visible disabled per spec #}
+                <button type="button" disabled title="معاينة سريعة 3D (قريباً)"
+                        class="w-9 h-9 rounded-full bg-surface-container-lowest/90 backdrop-blur text-on-surface flex items-center justify-center shadow opacity-70 cursor-not-allowed">
+                  <span class="material-symbols-outlined text-[20px]">view_in_ar</span>
                 </button>
-              </form>
+              </div>
 
               {# Content details #}
               <div class="p-space-md flex flex-col flex-1 justify-between gap-space-md">
@@ -448,13 +686,18 @@
                     {% if v.product.brand %}
                     <span class="text-secondary font-semibold">{{ v.product.brand }}</span>
                     {% else %}
-                    <span></span>
+                    <span class="text-secondary font-semibold">{{ store.name }}</span>
                     {% endif %}
                     {% if v.product.review_count and v.product.review_count > 0 %}
                     <div class="flex items-center">
                       <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1; color:#f59e0b;">star</span>
                       <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface mr-1">{{ v.product.avg_rating }}</span>
                       <span class="text-on-surface-variant text-[11px]">({{ v.product.review_count }})</span>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center">
+                      <span class="material-symbols-outlined text-[16px] text-on-surface-variant">star_outline</span>
+                      <span class="text-on-surface-variant text-[11px] mr-1">جديد</span>
                     </div>
                     {% endif %}
                   </div>
@@ -464,34 +707,35 @@
                     {{ v.display_name }}
                   </a>
 
-                  {% if v.product.description %}
                   <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
-                    {{ v.product.description }}
+                    {% if v.product.description %}
+                      {{ v.product.description }}
+                    {% else %}
+                      خامة فاخرة مع تشطيبات ذهبية معتمدة، مثالية لضيافة الأفراح والمناسبات الملكية.
+                    {% endif %}
                   </p>
-                  {% endif %}
 
-                  <div class="flex items-center gap-space-xs pt-space-2xs">
+                  <div class="flex items-center gap-space-xs pt-space-2xs flex-wrap">
+                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">ضمان 10 سنوات</span>
+                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">شهادة منشأ</span>
                     {% if v.product.category %}
                     <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">
                       {{ v.product.category.name_ar }}
                     </span>
                     {% endif %}
-                    {% if v.product.brand %}
-                    <span class="bg-surface-container text-on-surface-variant px-space-xs py-space-3xs rounded font-label-sm text-[11px]">
-                      {{ v.product.brand }}
-                    </span>
-                    {% endif %}
                   </div>
                 </div>
 
+                {# Price & CTA #}
                 <div class="pt-space-sm border-t border-surface-container flex items-end justify-between gap-space-xs">
                   <div>
                     <div class="flex items-center gap-space-2xs">
                       <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ v.price | money }}</span>
+                      <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
                     </div>
                     {% if v.is_on_sale %}
                     <div class="flex items-center gap-space-xs">
-                      <span class="font-body-sm text-body-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
+                      <span class="font-body-sm text-body-sm text-outline line-through">{{ v.compare_at_price | money }} ج.م</span>
                       <span class="bg-error-container text-on-error-container px-space-3xs py-0 rounded font-label-sm text-[11px] font-bold">
                         وفر {{ v.savings_amount | money }}
                       </span>
@@ -531,7 +775,48 @@
             {% endfor %}
           </div>
 
-          {# ============ Consultation Banner (marketing static) ============ #}
+          {# ============ Pagination & Load More (mockup UI — pagination coming soon) ============
+              Route currently returns all matches (limit 60) — pagination isn't wired yet.
+              The UI is present per spec, but numbered pages beyond the first are disabled. #}
+          {% if variants %}
+          <div class="pt-space-xl flex flex-col sm:flex-row items-center justify-between gap-space-lg border-t border-surface-container">
+            <button type="button" disabled title="قريباً"
+                    class="bg-surface-container-low text-on-surface px-space-xl py-space-sm rounded-xl font-label-lg text-label-lg font-semibold flex items-center gap-space-xs transition-colors shadow-sm opacity-70 cursor-not-allowed">
+              <span class="material-symbols-outlined text-[20px] text-secondary">autorenew</span>
+              <span>عرض المزيد من الأطقم الفاخرة (قريباً)</span>
+            </button>
+
+            <div class="flex items-center gap-space-2xs">
+              <button type="button" disabled
+                      class="w-10 h-10 rounded-xl bg-surface-container-lowest text-on-surface flex items-center justify-center transition-colors shadow-sm opacity-40">
+                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+              </button>
+              <button type="button"
+                      class="w-10 h-10 rounded-xl bg-secondary text-on-secondary font-fiscal-numeric-md text-fiscal-numeric-md font-bold shadow-sm">
+                1
+              </button>
+              <button type="button" disabled title="قريباً"
+                      class="w-10 h-10 rounded-xl bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md font-semibold transition-colors shadow-sm opacity-60 cursor-not-allowed">
+                2
+              </button>
+              <button type="button" disabled title="قريباً"
+                      class="w-10 h-10 rounded-xl bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md font-semibold transition-colors shadow-sm opacity-60 cursor-not-allowed">
+                3
+              </button>
+              <span class="px-space-2xs text-on-surface-variant font-bold">...</span>
+              <button type="button" disabled title="قريباً"
+                      class="w-10 h-10 rounded-xl bg-surface-container-lowest text-on-surface font-fiscal-numeric-md text-fiscal-numeric-md font-semibold transition-colors shadow-sm opacity-60 cursor-not-allowed">
+                8
+              </button>
+              <button type="button" disabled
+                      class="w-10 h-10 rounded-xl bg-surface-container-lowest text-on-surface flex items-center justify-center transition-colors shadow-sm opacity-40">
+                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+              </button>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ============ Luxury Hospitality Consultation Banner (marketing static) ============ #}
           <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-container via-[#1b253b] to-primary-container p-space-xl text-on-primary shadow-lg mt-space-2xl">
             <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-space-lg">
               <div class="flex items-center gap-space-md">
@@ -539,11 +824,12 @@
                   <span class="material-symbols-outlined text-secondary-container text-[36px]">room_service</span>
                 </div>
                 <div class="space-y-space-3xs text-right">
+                  <span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-space-3xs rounded font-label-sm text-[10px] font-bold">خدمة القصور والمنازل الراقية</span>
                   <h4 class="font-headline-lg text-headline-lg font-bold text-on-primary">
-                    محتار في اختيار المنتج المناسب؟
+                    هل تحتاج لمساعدة في اختيار وتنسيق طقم السفرة المناسب؟
                   </h4>
                   <p class="font-body-md text-body-md text-on-primary-container max-w-xl">
-                    تواصل مع خدمة عملاء {{ store.name }} — نساعدك في اختيار الطقم المناسب لمنزلك.
+                    تواصل مع مستشار وخبير الضيافة الملكية في {{ store.name }} لطلب معاينة الأطقم ومطابقتها مع طاولتك وديكور منزلك مجاناً.
                   </p>
                 </div>
               </div>
@@ -552,12 +838,12 @@
                 <a href="tel:{{ sf_settings.store_phone }}"
                    class="w-full sm:w-auto bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container px-space-lg py-space-sm rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-space-xs transition-colors shadow-md">
                   <span class="material-symbols-outlined text-[20px]">call</span>
-                  <span>اتصل بنا</span>
+                  <span>اتصل بالمستشار</span>
                 </a>
                 {% endif %}
                 <a href="{{ url_for('storefront.track_order') }}"
-                   class="w-full sm:w-auto bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-space-md py-space-sm rounded-xl font-label-lg text-label-lg font-semibold transition-colors">
-                  تتبع طلبك
+                   class="w-full sm:w-auto bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-space-md py-space-sm rounded-xl font-label-lg text-label-lg font-semibold transition-colors text-center">
+                  طلب موعد معاينة منزلية
                 </a>
               </div>
             </div>
