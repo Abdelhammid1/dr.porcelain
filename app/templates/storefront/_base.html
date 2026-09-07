@@ -6,374 +6,262 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}المتجر{% endblock %} — {{ sf_settings.store_name }}</title>
 
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
-        rel="stylesheet">
-
-  {% include "_design_tokens.html" %}
+  {# Tailwind + MD3 tokens + fonts — same config the mockups use #}
+  {% include "storefront/_dp_head.html" %}
 
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: #fafbfc;
-      color: var(--dp-ink-1);
-      margin: 0;
+    /* Match the mockup base layer exactly */
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body {
+        overscroll-behavior: none;
+        font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', sans-serif;
+      }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
     }
-
-    /* Top promo strip */
-    .sf-topstrip {
-      background: linear-gradient(90deg, var(--dp-brand-dark), var(--dp-brand));
-      color: white;
-      text-align: center;
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
+    ::-webkit-scrollbar { display: none; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
     }
-
-    /* Header */
-    .sf-header {
-      background: white;
-      border-bottom: 1px solid var(--dp-line);
-      padding: 14px 0;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .sf-header-inner {
-      max-width: 1300px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 24px;
-      padding: 0 20px;
-    }
-    .sf-logo {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none; color: inherit;
-    }
-    .sf-logo-mark {
-      width: 44px; height: 44px;
-      background: linear-gradient(135deg, var(--dp-brand-dark), var(--dp-brand));
-      border-radius: 12px;
-      display: grid; place-items: center;
-      color: white; font-weight: 800; font-size: 1.05rem;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-    }
-    .sf-logo-name {
-      font-weight: 800; font-size: 1.15rem;
-      line-height: 1.15;
-      color: var(--dp-ink-1);
-    }
-    .sf-logo-sub {
-      font-size: 0.7rem; color: var(--dp-ink-3);
-    }
-
-    .sf-search {
-      position: relative;
-    }
-    .sf-search input {
-      width: 100%;
-      padding: 11px 42px 11px 16px;
-      border: 1px solid var(--dp-line);
-      border-radius: 999px;
-      font-size: 0.9rem;
-      background: var(--dp-surface-soft);
-      font-family: inherit;
-    }
-    .sf-search input:focus {
-      outline: none;
-      border-color: var(--dp-brand);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
-    }
-    .sf-search .bi {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      right: 14px; color: var(--dp-ink-4);
-    }
-
-    .sf-header-actions { display: flex; gap: 12px; align-items: center; }
-    .sf-icon-btn {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      display: grid; place-items: center;
-      background: var(--dp-surface-soft);
-      color: var(--dp-ink-2);
-      text-decoration: none;
-      position: relative;
-      transition: all 0.15s ease;
-    }
-    .sf-icon-btn:hover {
-      background: var(--dp-brand-tint);
-      color: var(--dp-brand-dark);
-    }
-    .sf-cart-badge {
-      position: absolute;
-      top: -4px; left: -4px;
-      background: var(--dp-brand);
-      color: white;
-      font-size: 0.65rem;
-      font-weight: 700;
-      min-width: 18px; height: 18px;
-      border-radius: 999px;
-      padding: 0 4px;
-      display: grid; place-items: center;
-      border: 2px solid white;
-    }
-
-    /* Mega menu / categories */
-    .sf-mega {
-      background: white;
-      border-bottom: 1px solid var(--dp-line);
-    }
-    .sf-mega-inner {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      gap: 4px;
-      overflow-x: auto;
-    }
-    .sf-mega-link {
-      padding: 12px 16px;
-      color: var(--dp-ink-2);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      border-bottom: 2px solid transparent;
-      transition: all 0.15s ease;
-    }
-    .sf-mega-link:hover {
-      color: var(--dp-brand);
-      border-bottom-color: var(--dp-brand);
-    }
-
-    /* Main */
-    .sf-main {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 30px 20px;
-      min-height: 60vh;
-    }
-
-    /* Footer */
-    .sf-footer {
-      background: #0f172a;
-      color: #cbd5e1;
-      padding: 40px 0 20px;
-      margin-top: 60px;
-    }
-    .sf-footer-inner {
-      max-width: 1300px; margin: 0 auto; padding: 0 20px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 30px;
-    }
-    .sf-footer h5 {
-      color: white; font-size: 1rem; font-weight: 700; margin-bottom: 14px;
-    }
-    .sf-footer a { color: #cbd5e1; text-decoration: none; display: block; padding: 4px 0; font-size: 0.9rem; }
-    .sf-footer a:hover { color: white; }
-    .sf-footer-bottom {
-      max-width: 1300px; margin: 30px auto 0; padding: 20px 20px 0;
-      border-top: 1px solid #1e293b;
-      text-align: center; font-size: 0.8rem; color: #94a3b8;
-    }
-
-    /* Product card — used across home/category/related */
-    .sf-product-card {
-      background: white;
-      border: 1px solid var(--dp-line);
-      border-radius: 14px;
-      overflow: hidden;
-      display: flex; flex-direction: column;
-      transition: all 0.15s ease;
-      text-decoration: none;
-      color: inherit;
-    }
-    .sf-product-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--dp-brand);
-      box-shadow: 0 12px 24px rgba(2, 132, 199, 0.12);
-    }
-    .sf-product-image {
-      aspect-ratio: 1;
-      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-      display: grid; place-items: center;
-      font-size: 3rem; color: var(--dp-brand);
-    }
-    .sf-product-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-    .sf-product-name {
-      font-weight: 600; font-size: 0.92rem;
-      color: var(--dp-ink-1);
-      line-height: 1.4;
-      min-height: 2.6em;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .sf-product-cat {
-      font-size: 0.72rem; color: var(--dp-ink-3);
-    }
-    .sf-product-price {
-      color: var(--dp-brand);
-      font-weight: 800; font-size: 1.1rem;
-      margin-top: auto;
-    }
-    .sf-add-btn {
-      background: var(--dp-brand);
-      color: white; border: none;
-      padding: 8px; border-radius: 8px;
-      font-weight: 600; font-size: 0.85rem;
-      cursor: pointer; margin-top: 8px;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-    .sf-add-btn:hover { background: var(--dp-brand-dark); }
-    .sf-add-btn:disabled { background: var(--dp-line-strong); cursor: not-allowed; }
-
-    /* Section header */
-    .sf-section-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin: 40px 0 20px;
-    }
-    .sf-section-header h2 {
-      font-size: 1.4rem; font-weight: 800; color: var(--dp-ink-1);
-      margin: 0;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .sf-section-header h2::before {
-      content: "";
-      width: 4px; height: 24px;
-      background: var(--dp-brand);
-      border-radius: 2px;
-    }
-
-    /* Buttons for the storefront */
-    .sf-btn-primary {
-      background: linear-gradient(135deg, var(--dp-brand-dark), var(--dp-brand));
-      color: white;
-      padding: 10px 22px;
-      border-radius: 10px;
-      font-weight: 700;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      cursor: pointer;
-      font-family: inherit;
-      transition: transform 0.1s;
-    }
-    .sf-btn-primary:hover {
-      color: white;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px -6px rgba(2, 132, 199, 0.4);
-    }
+    /* Hide native details marker (Safari + others) */
+    summary { list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::marker { display: none; }
   </style>
+
   {% block head %}{% endblock %}
 </head>
-<body>
-  <div class="sf-topstrip">
-    <i class="bi bi-truck"></i> {{ sf_settings.announcement }}
+<body class="bg-surface font-body-md text-on-surface antialiased">
+
+{# ============================================================
+   FIXED HEADER — announcement bar + brand/search row
+   Matches the mockup 1:1
+============================================================ #}
+<header class="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+
+  {# ---- Announcement strip (dark navy) ---- #}
+  <div class="bg-primary-container text-on-primary py-space-xs px-space-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between font-label-md text-label-md">
+      <div class="flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-secondary-container text-[18px]">local_shipping</span>
+        <span>{{ sf_settings.announcement or 'شحن مجاني للطلبات أكثر من 500 ج.م' }}</span>
+        <span class="mx-space-xs opacity-40">|</span>
+        <span>استخدم قسيمة: <strong class="text-secondary-container tracking-wider font-label-lg text-label-lg">ROYAL10</strong> لخصم 10%</span>
+      </div>
+      <div class="flex items-center gap-space-md">
+        {% if sf_settings.store_phone %}
+        <div class="flex items-center gap-space-3xs text-secondary-container">
+          <span class="material-symbols-outlined text-[16px]">support_agent</span>
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md" dir="ltr">{{ sf_settings.store_phone }}</span>
+        </div>
+        <span class="text-on-primary-container font-label-sm text-label-sm">خدمة عملاء الضيافة الفاخرة</span>
+        {% endif %}
+      </div>
+    </div>
   </div>
 
-  <header class="sf-header">
-    <div class="sf-header-inner">
-      <a href="{{ url_for('storefront.home') }}" class="sf-logo">
-        <div class="sf-logo-mark">د.ب</div>
-        <div>
-          <div class="sf-logo-name">{{ sf_settings.store_name }}</div>
-          <div class="sf-logo-sub">أدوات ومستلزمات المنزل</div>
+  {# ---- Brand / search / actions row ---- #}
+  <div class="h-20 max-w-7xl mx-auto px-space-md flex items-center justify-between gap-space-lg">
+
+    {# Brand block #}
+    <a href="{{ url_for('storefront.home') }}" class="flex items-center gap-space-md group">
+      {% if store.logo_url %}
+      <img src="{{ store.logo_url }}" alt="{{ store.name }}" class="h-10 w-10 rounded-lg object-cover">
+      {% else %}
+      <div class="w-10 h-10 rounded-lg bg-secondary text-on-secondary flex items-center justify-center font-bold text-headline-sm shrink-0">
+        {{ (store.name.split()[0][0] if store.name else 'د') ~ '.' ~ (store.name.split()[1][0] if store.name and store.name.split()|length > 1 else 'ب') }}
+      </div>
+      {% endif %}
+      <div class="flex flex-col">
+        <span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight group-hover:text-secondary transition-colors">{{ store.name }}</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant">عالم المائدة والأواني الملكية</span>
+      </div>
+    </a>
+
+    {# Search #}
+    <form method="get" action="{{ url_for('storefront.search') }}" class="flex-1 max-w-xl">
+      <div class="relative flex items-center">
+        <input name="q" type="text" placeholder="ابحث بالاسم، عدد القطع، أو المجموعة الفاخرة..."
+               class="w-full h-11 pr-space-xl pl-space-3xl rounded-xl bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary">
+        <span class="material-symbols-outlined absolute right-space-sm text-on-surface-variant text-[20px]">search</span>
+        <div class="absolute left-space-xs hidden md:flex items-center gap-space-3xs">
+          <span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm">124 قطعة</span>
+          <span class="bg-surface-container-high text-on-surface-variant px-space-xs py-space-3xs rounded-lg font-label-sm text-label-sm">بوهيمي</span>
+        </div>
+      </div>
+    </form>
+
+    {# Right actions: wishlist / cart / account #}
+    <div class="flex items-center gap-space-md">
+      {% if sf_current_customer %}
+      <a href="{{ url_for('storefront.account_wishlist') }}" class="relative p-space-xs text-on-surface-variant hover:text-secondary transition-colors" title="المفضلة">
+        <span class="material-symbols-outlined text-[24px]">favorite</span>
+        {% if sf_wishlist_count and sf_wishlist_count > 0 %}
+        <span class="absolute top-1 right-1 bg-secondary text-on-secondary font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">{{ sf_wishlist_count }}</span>
+        {% endif %}
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('storefront.cart_view') }}" class="flex items-center gap-space-xs bg-surface-container-low hover:bg-surface-container px-space-sm py-space-xs rounded-xl transition-colors">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined text-secondary text-[24px]">shopping_bag</span>
+          {% if sf_cart_count and sf_cart_count > 0 %}
+          <span class="absolute -top-1 -right-1 bg-error text-on-error font-label-sm text-label-sm rounded-full w-4 h-4 flex items-center justify-center font-bold">{{ sf_cart_count }}</span>
+          {% endif %}
+        </div>
+        <div class="flex flex-col text-right">
+          <span class="font-label-sm text-label-sm text-on-surface-variant">السلة ({{ sf_cart_count or 0 }})</span>
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">اطّلع على المشتريات</span>
         </div>
       </a>
 
-      <form method="get" action="{{ url_for('storefront.search') }}" class="sf-search">
-        <input type="search" name="q" placeholder="ابحث عن منتج..."
-               value="{{ request.args.get('q', '') if request.endpoint == 'storefront.search' else '' }}">
-        <i class="bi bi-search"></i>
-      </form>
-
-      <div class="sf-header-actions">
+      <div class="flex items-center gap-space-xs pr-space-xs">
         {% if sf_current_customer %}
-        <a href="{{ url_for('storefront.account_wishlist') }}" class="sf-icon-btn" title="المفضلة">
-          <i class="bi bi-heart" style="font-size:1.15rem"></i>
-          {% if sf_wishlist_count and sf_wishlist_count > 0 %}
-          <span class="sf-cart-badge">{{ sf_wishlist_count }}</span>
-          {% endif %}
+        <a href="{{ url_for('storefront.account_home') }}" class="flex items-center gap-space-xs group">
+          <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold font-label-md">
+            {{ sf_current_customer.name_ar[0] if sf_current_customer.name_ar else '؟' }}
+          </div>
+          <div class="hidden lg:flex flex-col">
+            <span class="font-label-md text-label-md text-on-surface group-hover:text-secondary transition-colors">حسابي الملكي</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">مرحبًا {{ sf_current_customer.name_ar.split()[0] if sf_current_customer.name_ar else '' }}</span>
+          </div>
         </a>
-        {% endif %}
-        <a href="{{ url_for('storefront.cart_view') }}" class="sf-icon-btn" title="السلة">
-          <i class="bi bi-basket3" style="font-size:1.15rem"></i>
-          {% if sf_cart_count and sf_cart_count > 0 %}
-          <span class="sf-cart-badge">{{ sf_cart_count }}</span>
-          {% endif %}
-        </a>
-        {% if sf_current_customer %}
-          <a href="{{ url_for('storefront.account_home') }}" class="sf-icon-btn"
-             title="حساب {{ sf_current_customer.name_ar }}">
-            <i class="bi bi-person-fill" style="font-size:1.2rem; color:var(--dp-brand);"></i>
-          </a>
         {% else %}
-          <a href="{{ url_for('storefront.account_login') }}" class="sf-icon-btn" title="تسجيل الدخول">
-            <i class="bi bi-person" style="font-size:1.2rem"></i>
-          </a>
+        <a href="{{ url_for('storefront.account_login') }}" class="flex items-center gap-space-xs group">
+          <div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">person</span>
+          </div>
+          <div class="hidden lg:flex flex-col">
+            <span class="font-label-md text-label-md text-on-surface group-hover:text-secondary transition-colors">دخول / تسجيل</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">لبدء رحلة الشراء</span>
+          </div>
+        </a>
         {% endif %}
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
-  {% block mega_menu %}
-  <nav class="sf-mega">
-    <div class="sf-mega-inner">
-      <a href="{{ url_for('storefront.home') }}" class="sf-mega-link">الرئيسية</a>
-      {% for cat in sf_root_categories or [] %}
-        <a href="{{ url_for('storefront.category', category_id=cat.id) }}" class="sf-mega-link">
-          {{ cat.name_ar }}
-        </a>
+{# ============================================================
+   MAIN CONTENT — pt-32 matches the mockup exactly
+============================================================ #}
+<main class="w-full pt-32 bg-surface min-h-screen">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-space-md pt-space-md">
+      {% for category, message in messages %}
+        {% set cls = category if category in ('success','warning','danger','info') else 'info' %}
+        {% set st = {
+          'success': ('bg-secondary-fixed', 'text-on-secondary-fixed', 'check_circle', 'text-secondary'),
+          'warning': ('bg-tertiary-fixed',  'text-on-tertiary-fixed-variant', 'warning', 'text-on-tertiary-container'),
+          'danger':  ('bg-error-container', 'text-on-error-container', 'error', 'text-error'),
+          'info':    ('bg-surface-container-high', 'text-on-surface', 'info', 'text-secondary'),
+        }[cls] %}
+        <div class="mb-space-xs flex items-center gap-space-sm p-space-sm rounded-xl {{ st[0] }} {{ st[1] }} shadow-sm">
+          <span class="material-symbols-outlined text-[22px] {{ st[3] }} shrink-0">{{ st[2] }}</span>
+          <div class="font-body-md text-body-md flex-1">{{ message }}</div>
+        </div>
       {% endfor %}
     </div>
-  </nav>
-  {% endblock %}
+    {% endif %}
+  {% endwith %}
 
-  <main class="sf-main">
-    {% include "partials/flash.html" %}
-    {% block content %}{% endblock %}
-  </main>
+  {% block content %}{% endblock %}
+</main>
 
-  <footer class="sf-footer">
-    <div class="sf-footer-inner">
-      <div>
-        <h5>{{ sf_settings.store_name }}</h5>
-        <p style="font-size:0.85rem; line-height:1.7; color:#94a3b8;">
-          متجرك الأول لأدوات ومستلزمات المنزل — سيراميك وأدوات مطبخ بجودة عالية وأسعار مناسبة.
+{# ============================================================
+   FOOTER — matches the mockup 5-column layout
+============================================================ #}
+<footer class="w-full bg-surface-container-low text-on-surface mt-space-3xl">
+  <div class="max-w-7xl mx-auto px-space-md pt-space-3xl pb-space-xl">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-2xl mb-space-2xl">
+
+      {# ---- Brand column (spans 2 on desktop) ---- #}
+      <div class="lg:col-span-2 space-y-space-md">
+        <div class="flex items-center gap-space-sm">
+          {% if store.logo_url %}
+          <img src="{{ store.logo_url }}" alt="{{ store.name }}" class="h-8 w-8 rounded-md object-cover">
+          {% else %}
+          <div class="w-8 h-8 rounded-md bg-secondary text-on-secondary flex items-center justify-center font-bold text-label-md">
+            {{ (store.name.split()[0][0] if store.name else 'د') ~ '.' ~ (store.name.split()[1][0] if store.name and store.name.split()|length > 1 else 'ب') }}
+          </div>
+          {% endif %}
+          <span class="font-headline-lg text-headline-lg text-on-surface font-bold">{{ store.name }}</span>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-sm">
+          الوجهة الأولى والأعرق لأطقم المائدة والبورسلين الفاخر والكريستال البوهيمي المعتمد. فخامة وأناقة تليق بقصور ومنازل النخبة.
         </p>
+        <div class="flex flex-wrap items-center gap-space-md font-label-md text-label-md text-on-surface">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">verified</span>
+            <span>ضمان أصالة المنتجات 100%</span>
+          </div>
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary">security</span>
+            <span>شحن مؤمن ضد الكسر</span>
+          </div>
+        </div>
       </div>
-      <div>
-        <h5>روابط سريعة</h5>
-        <a href="{{ url_for('storefront.home') }}">الرئيسية</a>
-        <a href="{{ url_for('storefront.cart_view') }}">السلة</a>
-        <a href="{{ url_for('storefront.track_order') }}">تتبع طلبك</a>
-      </div>
-      <div>
-        <h5>تواصل معنا</h5>
-        {% if sf_settings.store_phone %}
-        <a href="tel:{{ sf_settings.store_phone }}" dir="ltr">
-          <i class="bi bi-telephone"></i> {{ sf_settings.store_phone }}
-        </a>
-        {% endif %}
-      </div>
-    </div>
-    <div class="sf-footer-bottom">
-      © {{ sf_settings.store_name }} — جميع الحقوق محفوظة
-    </div>
-  </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  {% block scripts %}{% endblock %}
+      {# ---- Collections column ---- #}
+      <div>
+        <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">مجموعات البورسلين</h4>
+        <ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
+          {% for cat in sf_root_categories[:5] %}
+          <li><a href="{{ url_for('storefront.category', category_id=cat.id) }}" class="hover:text-on-surface transition-colors">{{ cat.name_ar }}</a></li>
+          {% else %}
+          <li><a href="{{ url_for('storefront.home') }}" class="hover:text-on-surface transition-colors">تصفح كل المجموعات</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# ---- Customer service column ---- #}
+      <div>
+        <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">خدمة العملاء والضمان</h4>
+        <ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
+          <li><a href="{{ url_for('storefront.track_order') }}" class="hover:text-on-surface transition-colors">تتبع حالة الطلب</a></li>
+          {% if sf_current_customer %}
+          <li><a href="{{ url_for('storefront.account_orders') }}" class="hover:text-on-surface transition-colors">طلباتي السابقة</a></li>
+          <li><a href="{{ url_for('storefront.account_wishlist') }}" class="hover:text-on-surface transition-colors">قائمة المفضلة</a></li>
+          {% else %}
+          <li><a href="{{ url_for('storefront.account_login') }}" class="hover:text-on-surface transition-colors">تسجيل الدخول</a></li>
+          <li><a href="{{ url_for('storefront.account_register') }}" class="hover:text-on-surface transition-colors">إنشاء حساب جديد</a></li>
+          {% endif %}
+          <li><a href="{{ url_for('storefront.home') }}" class="hover:text-on-surface transition-colors">شهادة الضمان والاستبدال</a></li>
+          <li><a href="{{ url_for('storefront.home') }}" class="hover:text-on-surface transition-colors">الأسئلة المتكررة</a></li>
+        </ul>
+      </div>
+
+      {# ---- Company info column ---- #}
+      <div>
+        <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">بيانات الشركة</h4>
+        <div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+          {% if sf_settings.store_phone %}
+          <p><span class="font-label-md text-label-md text-on-surface">الخط الساخن:</span> <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold" dir="ltr">{{ sf_settings.store_phone }}</span></p>
+          {% endif %}
+          {% if store.commercial_reg %}<p><span class="font-label-md text-label-md text-on-surface">السجل التجاري:</span> {{ store.commercial_reg }}</p>{% endif %}
+          {% if store.tax_number %}<p><span class="font-label-md text-label-md text-on-surface">البطاقة الضريبية:</span> {{ store.tax_number }}</p>{% endif %}
+          {% if store.address %}<p><span class="font-label-md text-label-md text-on-surface">العنوان:</span> {{ store.address }}</p>{% endif %}
+          <p><span class="font-label-md text-label-md text-on-surface">ساعات العمل:</span> يوميًا من 10 ص إلى 11 م</p>
+        </div>
+      </div>
+    </div>
+
+    {# Copyright + payment badges strip #}
+    <div class="pt-space-xl border-t border-outline-variant/40 flex flex-col md:flex-row items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant">
+      <p>© 2026 {{ store.name }} — جميع الحقوق محفوظة.</p>
+      <div class="flex flex-wrap items-center gap-space-sm font-label-sm text-label-sm">
+        <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">دفع عند الاستلام</span>
+        <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">Visa / MasterCard</span>
+        <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ValU / تقسيط</span>
+        <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">ميزة Meeza</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>
