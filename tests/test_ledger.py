@@ -304,9 +304,15 @@ class TestAccountBalance:
         assert cash_account.compute_balance() == cash_before + Decimal("500.000")
         assert sales_revenue_account.compute_balance() == rev_before + Decimal("500.000")
 
-    def test_reversed_entries_excluded_from_balance(
+    def test_reversed_entry_pair_nets_to_zero_in_balance(
         self, cash_account, sales_revenue_account
     ):
+        """قيد أصلي (REVERSED) + قيد عكسه (POSTED) يجب أن يتساويا إلى صفر.
+
+        بمعنى: الرصيد قبل الترحيل = الرصيد بعد ترحيل الأصلي وعكسه.
+        القيد الأصلي بيتحول لـ REVERSED لكن لازم يفضل جزء من الحساب، وإلا
+        هيبقى العكس محسوب لوحده → ازدواج غلط في الأثر (بدل ما يكون الصافي = 0).
+        """
         cash_before = cash_account.compute_balance()
 
         e = post_journal_entry(
@@ -324,8 +330,8 @@ class TestAccountBalance:
 
         reverse_entry(entry_id=e.id, reason="تصحيح", user_id=None)
         _db.session.commit()
-        # الأصلي انتقل REVERSED (يُستبعَد)، قيد العكس POSTED (يُحسَب) → صافي -100 على الرصيد المضاف
-        assert cash_account.compute_balance() == cash_before - Decimal("100")
+        # الأصلي (REVERSED) + العكس (POSTED) = صفر → الرصيد ما اتغيرش أساسًا
+        assert cash_account.compute_balance() == cash_before
 
 
 # ---------- 6) ميزان المراجعة: مدين = دائن دائمًا ----------

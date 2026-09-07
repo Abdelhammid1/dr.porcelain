@@ -37,7 +37,7 @@ def trial_balance(
             func.coalesce(func.sum(JournalLine.credit), 0).label("total_credit"),
         )
         .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
-        .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+        .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
     )
     if date_from is not None:
         query = query.filter(JournalEntry.entry_date >= date_from)

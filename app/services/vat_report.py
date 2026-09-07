@@ -45,7 +45,7 @@ def vat_report(*, date_from: date, date_to: date) -> VATReport:
             )
             .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
             .filter(JournalLine.account_id == acc.id)
-            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
             .filter(JournalEntry.entry_date >= date_from)
             .filter(JournalEntry.entry_date <= date_to)
             .one()

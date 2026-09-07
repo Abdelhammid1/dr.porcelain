@@ -132,7 +132,7 @@ class Account(db.Model, TimestampMixin):
             )
             .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
             .filter(JournalLine.account_id == self.id)
-            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
         )
         if as_of is not None:
             q = q.filter(JournalEntry.entry_date <= as_of)

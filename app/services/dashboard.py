@@ -282,14 +282,14 @@ def get_dashboard_data(*, today: date | None = None) -> DashboardData:
             db.session.query(func.coalesce(func.sum(JournalLine.debit), 0))
             .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
             .filter(JournalLine.account_id == acc.id)
-            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
             .scalar() or 0
         )
         cr = (
             db.session.query(func.coalesce(func.sum(JournalLine.credit), 0))
             .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
             .filter(JournalLine.account_id == acc.id)
-            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
             .scalar() or 0
         )
         total_cash += Decimal(str(dr)) - Decimal(str(cr))

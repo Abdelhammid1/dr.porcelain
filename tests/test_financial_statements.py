@@ -200,3 +200,115 @@ class TestProfitability:
         if row is not None:
             assert row.revenue == Decimal("0")
             assert row.cost == Decimal("0")
+
+
+# ---------- Reversed entries must net to zero ----------
+# سيناريو التذكرة: قيد يدخل الخزينة 200 ثم يُعكس، ثم قيد رأس مال 100,000
+# النتيجة المتوقعة: closing_balance = 100,000 (وليس 100,200)، لأن العكس
+# يجب أن يُلغي القيد الأصلي عبر جمع مدين/دائن الاثنين معًا.
+
+class TestReversedEntriesNetToZero:
+    def test_cash_flow_ignores_reversed_pair_effect(self, env):
+        """Reversal of a cash movement must NOT leak into Cash Flow.
+
+        سيناريو التذكرة: عهدة 200 اتفتحت واتعكست، ثم قيد رأس مال 100,000.
+        النتيجة الصحيحة: التغير الصافي على الخزينة داخل الفترة = 100,000.
+        النتيجة الغلط (البق قبل الفيكس): 100,200 (لأن الأصلي بيُستبعد ويفضل
+        بس قيد العكس محسوب فيتضاعف الأثر بقيمة القيد الأصلي).
+        """
+        from app.extensions import db
+        from app.models.account import Account
+        from app.models.journal import JournalSourceType
+        from app.services.ledger import (
+            LedgerLineDraft,
+            post_journal_entry,
+            reverse_entry,
+        )
+
+        cash = db.session.query(Account).filter_by(code="1010").one()
+        capital = db.session.query(Account).filter_by(code="3100").one()
+
+        # نستعمل فترة بعيدة عن أي بيانات fixture (2099)
+        d1 = date(2099, 6, 1)
+        d2 = date(2099, 6, 2)
+        d3 = date(2099, 6, 3)
+
+        # 1) قيد وهمي: 200 مدين خزينة / 200 دائن رأس مال
+        entry = post_journal_entry(
+            entry_date=d1,
+            source_type=JournalSourceType.MANUAL,
+            source_id=None,
+            memo="عهدة مؤقتة",
+            lines=[
+                LedgerLineDraft(account_id=cash.id, debit=Decimal("200"), credit=Decimal("0")),
+                LedgerLineDraft(account_id=capital.id, debit=Decimal("0"), credit=Decimal("200")),
+            ],
+        )
+        _db.session.commit()
+
+        # 2) عكس القيد
+        reverse_entry(entry_id=entry.id, reason="خطأ إدخال", user_id=None, entry_date=d2)
+        _db.session.commit()
+
+        # 3) قيد رأس مال حقيقي 100,000
+        post_journal_entry(
+            entry_date=d3,
+            source_type=JournalSourceType.MANUAL,
+            source_id=None,
+            memo="رأس المال المدفوع",
+            lines=[
+                LedgerLineDraft(account_id=cash.id, debit=Decimal("100000"), credit=Decimal("0")),
+                LedgerLineDraft(account_id=capital.id, debit=Decimal("0"), credit=Decimal("100000")),
+            ],
+        )
+        _db.session.commit()
+
+        cf = cash_flow(date_from=d1, date_to=date(2099, 6, 30))
+        # الأثر الصافي = closing - opening = 100,000 (وليس 100,200)
+        net_change = cf.closing_balance - cf.opening_balance
+        assert net_change == Decimal("100000.000"), (
+            f"Reversed entry pair leaked into cash flow — expected net change "
+            f"100,000 but got {net_change}. Reversal filter is broken."
+        )
+
+    def test_balance_sheet_ignores_reversed_pair_effect(self, env):
+        """Reversed entry + its reversal must net to zero on balance sheet."""
+        from app.extensions import db
+        from app.models.account import Account
+        from app.models.journal import JournalSourceType
+        from app.services.ledger import (
+            LedgerLineDraft,
+            post_journal_entry,
+            reverse_entry,
+        )
+
+        cash = db.session.query(Account).filter_by(code="1010").one()
+        capital = db.session.query(Account).filter_by(code="3100").one()
+
+        as_of = date(2099, 7, 31)
+        # baseline before any of our postings
+        bs_before = balance_sheet(as_of=as_of)
+        baseline_assets = bs_before.total_assets
+
+        entry = post_journal_entry(
+            entry_date=date(2099, 7, 5),
+            source_type=JournalSourceType.MANUAL,
+            source_id=None,
+            memo="حركة تجريبية",
+            lines=[
+                LedgerLineDraft(account_id=cash.id, debit=Decimal("500"), credit=Decimal("0")),
+                LedgerLineDraft(account_id=capital.id, debit=Decimal("0"), credit=Decimal("500")),
+            ],
+        )
+        _db.session.commit()
+        reverse_entry(entry_id=entry.id, reason="test", user_id=None,
+                      entry_date=date(2099, 7, 5))
+        _db.session.commit()
+
+        bs_after = balance_sheet(as_of=as_of)
+        # الأثر الصافي = 0، فالإجمالي ما اتغيرش
+        assert bs_after.total_assets == baseline_assets, (
+            f"Reversed entry leaked into balance sheet — expected assets "
+            f"unchanged from {baseline_assets} but got {bs_after.total_assets}."
+        )
+        assert bs_after.is_balanced, "Balance sheet is unbalanced after reversal!"

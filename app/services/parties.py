@@ -230,7 +230,7 @@ def party_statement(
             db.session.query(JournalLine, JournalEntry)
             .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
             .filter(JournalLine.account_id == account.id)
-            .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+            .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
             .filter(JournalEntry.entry_date < date_from)
             .all()
         )
@@ -242,7 +242,7 @@ def party_statement(
         db.session.query(JournalLine, JournalEntry)
         .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
         .filter(JournalLine.account_id == account.id)
-        .filter(JournalEntry.status == JournalEntryStatus.POSTED)
+        .filter(JournalEntry.status.in_([JournalEntryStatus.POSTED, JournalEntryStatus.REVERSED]))
         .order_by(JournalEntry.entry_date, JournalEntry.id, JournalLine.id)
     )
     if date_from is not None:
