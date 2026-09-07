@@ -1,353 +1,607 @@
 {% extends "layouts/app.html" %}
 {% block title %}{% if product %}تعديل {{ product.name_ar }}{% else %}منتج جديد{% endif %}{% endblock %}
-{% block page_title %}{% if product %}تعديل منتج{% else %}منتج جديد{% endif %}{% endblock %}
+
+{#
+  Doctor Porcelain — Product form (MD3).
+  Wraps the existing ProductForm + WTForms fields.
+
+  Sections (top → bottom):
+    1) Sovereign header w/ breadcrumb + save/cancel toolbar
+    2) Main form (2-col layout):
+       - Left column: identity, pricing/offer, specs, features (bullets),
+         set composition, and variant grid (create-mode only)
+       - Right column: sticky sidebar w/ status pill, quick tips,
+         and (edit-mode) danger zone
+    3) After the form (edit-mode only):
+       - Product images (upload + gallery + primary/delete controls)
+       - Related products (search + list of manual links)
+#}
+
+{# helper macro — a labelled input row that respects WTForms error styling #}
+{% macro field_input(field, kw={}) -%}
+  <div>
+    <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">
+      {{ field.label.text }}
+      {% if field.flags.required %}<span class="text-error">*</span>{% endif %}
+    </label>
+    {% set base_class = "h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 focus:outline-secondary" %}
+    {% set outline = "outline-error" if field.errors else "outline-outline-variant/60" %}
+    {{ field(class=(base_class ~ ' ' ~ outline), **kw) }}
+    {% for err in field.errors %}
+    <p class="font-label-sm text-label-sm text-error mt-1 flex items-center gap-1">
+      <span class="material-symbols-outlined text-[14px]">error</span>{{ err }}
+    </p>
+    {% endfor %}
+  </div>
+{%- endmacro %}
 
 {% block content %}
-<div class="page-header">
-  <h1>{% if product %}تعديل: {{ product.name_ar }}{% else %}إضافة منتج جديد{% endif %}</h1>
-  <a href="{{ url_for('products.index') }}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-right"></i> رجوع
-  </a>
-</div>
+<div class="flex flex-col gap-space-lg">
 
-<form method="post" novalidate>
-  {{ form.hidden_tag() }}
-
-  <div class="row g-3">
-    <!-- بيانات المنتج -->
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header">بيانات المنتج</div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-8">
-              {{ form.name_ar.label(class="form-label") }}
-              {{ form.name_ar(class="form-control form-control-lg") }}
-              {% for e in form.name_ar.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-4">
-              {{ form.brand.label(class="form-label") }}
-              {{ form.brand(class="form-control") }}
-            </div>
-            <div class="col-md-6">
-              {{ form.category_id.label(class="form-label") }}
-              {{ form.category_id(class="form-select") }}
-              {% for e in form.category_id.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-3">
-              {{ form.unit.label(class="form-label") }}
-              {{ form.unit(class="form-control") }}
-            </div>
-            <div class="col-md-3">
-              {{ form.default_price.label(class="form-label") }}
-              {{ form.default_price(class="form-control", step="0.001") }}
-              {% for e in form.default_price.errors %}<div class="form-text text-danger">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-6">
-              {{ form.tax_rate_override.label(class="form-label") }}
-              {{ form.tax_rate_override(class="form-control", step="0.001", placeholder="اتركه فارغًا لاستخدام الافتراضي") }}
-            </div>
-            <!-- Epic 2 — عرض فقط -->
-            <div class="col-md-6">
-              {{ form.offer_ends_at.label(class="form-label") }}
-              {{ form.offer_ends_at(class="form-control") }}
-              <div class="form-text small text-muted">يظهر عداد تنازلي في صفحة المنتج حتى هذا الوقت.</div>
-            </div>
-            <!-- Epic 3 — مواصفات -->
-            <div class="col-md-6">
-              {{ form.origin_country.label(class="form-label") }}
-              {{ form.origin_country(class="form-control") }}
-            </div>
-            <div class="col-md-6">
-              {{ form.piece_count.label(class="form-label") }}
-              {{ form.piece_count(class="form-control", min="1") }}
-            </div>
-            <div class="col-12">
-              {{ form.description.label(class="form-label") }}
-              {{ form.description(class="form-control") }}
-            </div>
-            {% if product %}
-            <div class="col-12">
-              <div class="form-check">
-                {{ form.is_active(class="form-check-input") }}
-                {{ form.is_active.label(class="form-check-label") }}
-              </div>
-            </div>
-            {% endif %}
-          </div>
-        </div>
+  {# ============ Sovereign header ============ #}
+  <div class="flex items-start justify-between flex-wrap gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md mb-space-3xs">
+        <a href="{{ url_for('products.index') }}" class="hover:underline">المنتجات</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+        <span>{% if product %}تعديل منتج{% else %}منتج جديد{% endif %}</span>
       </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold">
+        {% if product %}تعديل: {{ product.name_ar }}{% else %}إضافة منتج جديد{% endif %}
+      </h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+        {% if product %}
+          عدّل التفاصيل الأساسية، الصور، المتغيرات، والعلاقات — ثم احفظ.
+        {% else %}
+          املأ الحقول الأساسية ثم احفظ لعرض إدارة الصور والعلاقات.
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex items-center gap-space-xs">
+      <a href="{{ url_for('products.index') if not product else url_for('products.view', product_id=product.id) }}"
+         class="h-10 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>{% if product %}رجوع للعرض{% else %}قائمة المنتجات{% endif %}</span>
+      </a>
+      <button type="submit" form="productForm"
+              class="h-10 px-space-lg bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        <span>{% if product %}حفظ التعديلات{% else %}حفظ المنتج{% endif %}</span>
+      </button>
+    </div>
+  </div>
 
-      <!-- Epic 3 — المميزات (bullets) -->
-      <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>المميزات (Bullets)</span>
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeatureRow()">
-            <i class="bi bi-plus"></i> إضافة ميزة
-          </button>
-        </div>
-        <div class="card-body">
-          <div class="text-muted small mb-2">
-            كل ميزة نقطة قصيرة تظهر في قسم "المميزات" على صفحة المنتج.
+  {# ============ Main form (2-col grid) ============ #}
+  <form method="post" id="productForm" novalidate class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    {{ form.hidden_tag() }}
+
+    <div class="lg:col-span-2 flex flex-col gap-space-md">
+
+      {# ---- Card 1 — Identity ---- #}
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="w-8 h-8 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">badge</span>
+          </span>
+          <div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">هوية المنتج</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">الاسم والعلامة والتصنيف — تظهر في المتجر والفواتير</p>
           </div>
-          <div id="featuresList">
+        </header>
+        <div class="p-space-md grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+          <div class="sm:col-span-2">{{ field_input(form.name_ar, {"placeholder": "مثال: طقم سفرة رويال 124 قطعة"}) }}</div>
+          <div>{{ field_input(form.brand, {"placeholder": "مثال: Wilmax"}) }}</div>
+          <div class="sm:col-span-2">{{ field_input(form.category_id) }}</div>
+          <div>{{ field_input(form.unit, {"placeholder": "قطعة"}) }}</div>
+          <div class="sm:col-span-3">
+            <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.description.label.text }}</label>
+            {{ form.description(rows=3, class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary", placeholder="وصف مفصّل يظهر في صفحة المنتج بالمتجر…") }}
+          </div>
+        </div>
+      </section>
+
+      {# ---- Card 2 — Pricing & Offer ---- #}
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">sell</span>
+          </span>
+          <div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">التسعير والعروض</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">السعر الفعلي المُسجَّل في القيد + وقت انتهاء العرض</p>
+          </div>
+        </header>
+        <div class="p-space-md grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+          <div>{{ field_input(form.default_price, {"step": "0.001", "placeholder": "0.000"}) }}</div>
+          <div>{{ field_input(form.tax_rate_override, {"step": "0.001", "placeholder": "افتراضي"}) }}</div>
+          <div>{{ field_input(form.offer_ends_at) }}</div>
+        </div>
+        <div class="mx-space-md mb-space-md p-space-sm rounded-lg bg-secondary-fixed/50 text-on-secondary-fixed flex items-start gap-space-xs">
+          <span class="material-symbols-outlined text-[18px] mt-0.5">info</span>
+          <span class="font-body-sm text-body-sm">
+            <strong>compare_at_price</strong> (السعر قبل الخصم) يُضبط لكل متغير أدناه ولا يؤثر على القيود المحاسبية — للعرض فقط.
+          </span>
+        </div>
+      </section>
+
+      {# ---- Card 3 — Specs ---- #}
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+          <span class="w-8 h-8 rounded-lg bg-surface-container-highest text-secondary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">rule</span>
+          </span>
+          <div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">المواصفات</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">تظهر في قسم "المواصفات" على صفحة المنتج</p>
+          </div>
+        </header>
+        <div class="p-space-md grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+          <div>{{ field_input(form.origin_country, {"placeholder": "مثال: البرتغال"}) }}</div>
+          <div>{{ field_input(form.piece_count, {"min": "1", "placeholder": "مثال: 124"}) }}</div>
+        </div>
+      </section>
+
+      {# ---- Card 4 — Features (bullets) ---- #}
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-8 h-8 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            </span>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">المميزات</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">نقاط قصيرة تظهر أسفل الوصف في المتجر</p>
+            </div>
+          </div>
+          <button type="button" onclick="addFeatureRow()"
+                  class="h-9 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[16px]">add</span><span>إضافة ميزة</span>
+          </button>
+        </header>
+        <div class="p-space-md">
+          <div id="featuresList" class="flex flex-col gap-space-xs">
             {% if product and product.features %}
               {% for feat in product.features %}
-              <div class="input-group mb-2">
-                <input type="text" name="feature_text[]" class="form-control" value="{{ feat.text }}" placeholder="مثال: مقاوم للحرارة">
-                <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()">
-                  <i class="bi bi-x"></i>
+              <div class="flex items-center gap-space-xs">
+                <span class="w-8 h-8 rounded-md bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[14px]">check</span>
+                </span>
+                <input type="text" name="feature_text[]" value="{{ feat.text }}"
+                       placeholder="مثال: مقاوم للحرارة حتى 200 درجة"
+                       class="h-10 flex-1 px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+                <button type="button" onclick="this.closest('div').remove()"
+                        class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[16px]">close</span>
                 </button>
               </div>
               {% endfor %}
             {% endif %}
           </div>
+          {% if not (product and product.features) %}
+          <p id="featuresEmpty" class="text-center py-space-md font-body-sm text-body-sm text-on-surface-variant">
+            لا توجد مميزات مضافة — اضغط «إضافة ميزة» لبدء الإدخال.
+          </p>
+          {% endif %}
         </div>
-      </div>
+      </section>
 
-      <!-- Epic 4 — تكوين الطقم -->
-      <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>تكوين الطقم (اختياري — للمنتجات المُجمَّعة)</span>
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCompositionRow()">
-            <i class="bi bi-plus"></i> إضافة عنصر
-          </button>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-              <thead>
-                <tr>
-                  <th style="width:120px;">الكمية</th>
-                  <th>المحتوى</th>
-                  <th style="width:60px;"></th>
-                </tr>
-              </thead>
-              <tbody id="compositionRows">
-                {% if product and product.composition %}
-                  {% for ln in product.composition %}
-                  <tr>
-                    <td><input type="number" name="composition_qty[]" class="form-control form-control-sm" value="{{ ln.quantity }}" min="1"></td>
-                    <td><input type="text" name="composition_content[]" class="form-control form-control-sm" value="{{ ln.content_name_ar }}"></td>
-                    <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
-                  </tr>
-                  {% endfor %}
-                {% endif %}
-              </tbody>
-            </table>
+      {# ---- Card 5 — Composition ---- #}
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">list_alt</span>
+            </span>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">تكوين الطقم</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">للأطقم المُجمَّعة — سطر لكل نوع قطعة داخل الطقم</p>
+            </div>
           </div>
+          <button type="button" onclick="addCompositionRow()"
+                  class="h-9 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[16px]">add</span><span>إضافة عنصر</span>
+          </button>
+        </header>
+        <div class="p-space-md">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="text-on-surface-variant font-label-sm text-label-sm">
+                <th class="pb-space-2xs w-24">الكمية</th>
+                <th class="pb-space-2xs">المحتوى</th>
+                <th class="pb-space-2xs w-12"></th>
+              </tr>
+            </thead>
+            <tbody id="compositionRows" class="font-body-sm text-body-sm">
+              {% if product and product.composition %}
+                {% for ln in product.composition %}
+                <tr>
+                  <td class="pb-space-xs pl-space-xs">
+                    <input type="number" name="composition_qty[]" value="{{ ln.quantity }}" min="1"
+                           class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+                  </td>
+                  <td class="pb-space-xs pl-space-xs">
+                    <input type="text" name="composition_content[]" value="{{ ln.content_name_ar }}"
+                           placeholder="مثال: طبق تقديم كبير"
+                           class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+                  </td>
+                  <td class="pb-space-xs">
+                    <button type="button" onclick="this.closest('tr').remove()"
+                            class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+                      <span class="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+          {% if not (product and product.composition) %}
+          <p id="compositionEmpty" class="text-center py-space-md font-body-sm text-body-sm text-on-surface-variant">
+            لا يوجد تكوين مسجّل — اترك القسم فارغًا للمنتجات الفردية.
+          </p>
+          {% endif %}
         </div>
-      </div>
+      </section>
 
-      <!-- المتغيرات — عند الإنشاء فقط -->
+      {# ---- Card 6 — Variants (create-mode only; edit-mode uses view.html) ---- #}
       {% if not product %}
-      <div class="card mt-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>المتغيرات (ألوان)</span>
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addVariantRow()">
-            <i class="bi bi-plus"></i> إضافة صف
+      <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+        <header class="p-space-md border-b border-surface-container-low flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">palette</span>
+            </span>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">المتغيرات (ألوان/موديلات)</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">اتركها فارغة لإنشاء متغير افتراضي واحد</p>
+            </div>
+          </div>
+          <button type="button" onclick="addVariantRow()"
+                  class="h-9 px-space-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[16px]">add</span><span>إضافة صف</span>
           </button>
+        </header>
+        <div class="p-space-md">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="text-on-surface-variant font-label-sm text-label-sm">
+                <th class="pb-space-2xs">اللون</th>
+                <th class="pb-space-2xs">السعر</th>
+                <th class="pb-space-2xs">قبل الخصم</th>
+                <th class="pb-space-2xs">حد التنبيه</th>
+                <th class="pb-space-2xs">الباركود</th>
+                <th class="pb-space-2xs w-12"></th>
+              </tr>
+            </thead>
+            <tbody id="variantsBody" class="font-body-sm text-body-sm"></tbody>
+          </table>
+          <p id="variantsEmpty" class="text-center py-space-md font-body-sm text-body-sm text-on-surface-variant">
+            لا توجد صفوف — سيتم إنشاء متغير افتراضي واحد تلقائيًا عند الحفظ.
+          </p>
         </div>
-        <div class="card-body">
-          <div class="text-muted small mb-2">
-            اتركها فارغة لإنشاء متغير افتراضي واحد. أضف صفوفًا للألوان المختلفة.
-            <strong>compare_at_price</strong> عرض فقط (سعر مشطوب) — لا يؤثر على القيد المحاسبي.
-          </div>
-          <div class="table-responsive">
-            <table class="table table-sm align-middle" id="variantsTable">
-              <thead>
-                <tr>
-                  <th>اللون</th>
-                  <th>السعر</th>
-                  <th>سعر قبل الخصم</th>
-                  <th>الحد الأدنى</th>
-                  <th>الباركود (اختياري)</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      </section>
       {% endif %}
     </div>
 
-    <div class="col-lg-4">
-      <div class="card">
-        <div class="card-header">تلميحات</div>
-        <div class="card-body small text-muted">
-          <ul class="mb-0 ps-3">
-            <li>الاسم والتصنيف إجباريان.</li>
-            <li>الأسعار بـ 3 خانات عشرية.</li>
-            <li>الباركود يُولَّد تلقائيًا (EAN-13) لو تُرك فارغًا.</li>
-            <li>الصور والعلاقات تُدار بعد حفظ المنتج.</li>
-          </ul>
+    {# ============ Sidebar ============ #}
+    <aside class="lg:col-span-1 flex flex-col gap-space-md">
+
+      {# Status card #}
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+        <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-sm">حالة النشر</h4>
+        {% if product %}
+        <label class="flex items-center gap-space-sm cursor-pointer p-space-xs rounded-lg hover:bg-surface-container-low">
+          {{ form.is_active(class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary") }}
+          <div class="flex-1 min-w-0">
+            <div class="font-label-md text-label-md text-on-surface font-semibold">نشط — يظهر في المتجر</div>
+            <div class="font-body-sm text-body-sm text-on-surface-variant">إلغاء التفعيل يُخفيه من المتجر والـ POS ولكن يحتفظ بالبيانات كاملة.</div>
+          </div>
+        </label>
+        {% else %}
+        <div class="p-space-sm rounded-lg bg-secondary-fixed/50 text-on-secondary-fixed font-body-sm text-body-sm flex items-start gap-space-xs">
+          <span class="material-symbols-outlined text-[18px] mt-0.5">rocket_launch</span>
+          <span>المنتج سيُنشَأ نشطًا افتراضيًا. تقدر تعطّله لاحقًا من صفحة التعديل.</span>
         </div>
+        {% endif %}
       </div>
-    </div>
-  </div>
 
-  <div class="mt-3 d-flex justify-content-end gap-2">
-    <a href="{{ url_for('products.index') }}" class="btn btn-light">إلغاء</a>
-    {{ form.submit(class="btn btn-primary") }}
-  </div>
-</form>
-
-{# ================================================================
-   Epic 1 — إدارة الصور (بعد حفظ المنتج فقط، لأنه بيتطلب product_id)
-   Epic 5 — إدارة المنتجات ذات الصلة
-================================================================ #}
-{% if product %}
-<div class="card mt-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-images"></i> صور المنتج</span>
-  </div>
-  <div class="card-body">
-    <!-- Upload form (multipart) -->
-    <form method="post" action="{{ url_for('products.images_upload', product_id=product.id) }}"
-          enctype="multipart/form-data" class="d-flex gap-2 align-items-end mb-3">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="flex:1">
-        <label class="form-label">رفع صور (png, jpg, jpeg, webp, gif — حد أقصى 8 ميجا لكل صورة)</label>
-        <input type="file" name="images" class="form-control" multiple accept=".png,.jpg,.jpeg,.webp,.gif">
-      </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-upload"></i> رفع
-      </button>
-    </form>
-
-    {% if product.images %}
-    <div class="row g-2">
-      {% for img in product.images %}
-      <div class="col-md-3 col-sm-4 col-6">
-        <div style="position:relative; aspect-ratio:1; border:2px solid {% if img.is_primary %}var(--dp-brand){% else %}#e5e7eb{% endif %}; border-radius:10px; overflow:hidden;">
-          <img src="{{ url_for('static', filename=img.file_path) }}" alt=""
-               style="width:100%; height:100%; object-fit:cover;">
-          {% if img.is_primary %}
-          <span style="position:absolute; top:6px; inset-inline-start:6px; background:#0ea5e9; color:white;
-                       font-size:0.7rem; padding:2px 8px; border-radius:999px; font-weight:700;">
-            الرئيسية
-          </span>
+      {# Tips card #}
+      <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+        <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-sm flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-[20px] text-secondary">tips_and_updates</span>
+          <span>نصائح سريعة</span>
+        </h4>
+        <ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+          <li class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] text-secondary mt-0.5">check</span><span>الاسم والتصنيف إجباريان.</span></li>
+          <li class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] text-secondary mt-0.5">check</span><span>الأسعار بثلاث خانات عشرية.</span></li>
+          <li class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] text-secondary mt-0.5">check</span><span>الباركود يُولَّد تلقائيًا (EAN-13) لو تُرك فارغًا.</span></li>
+          {% if not product %}
+          <li class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] text-tertiary mt-0.5">upload</span><span>الصور والعلاقات ستظهر بعد الحفظ الأول.</span></li>
           {% endif %}
-        </div>
-        <div class="btn-group btn-group-sm w-100 mt-2">
-          {% if not img.is_primary %}
-          <form method="post" action="{{ url_for('products.images_set_primary', image_id=img.id) }}" class="d-inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-outline-primary btn-sm" title="اجعلها الرئيسية">
-              <i class="bi bi-star"></i>
-            </button>
-          </form>
-          {% endif %}
-          <form method="post" action="{{ url_for('products.images_delete', image_id=img.id) }}" class="d-inline"
-                onsubmit="return confirm('حذف الصورة نهائيًا؟');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-outline-danger btn-sm">
-              <i class="bi bi-trash"></i>
-            </button>
-          </form>
-        </div>
+        </ul>
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-muted small">لا توجد صور بعد. ارفع صورة واحدة على الأقل — الأولى ستُعلَّم رئيسية تلقائيًا.</div>
-    {% endif %}
-  </div>
-</div>
 
-<!-- Epic 5 — منتجات ذات صلة (يدوية) -->
-<div class="card mt-4">
-  <div class="card-header"><i class="bi bi-diagram-3"></i> المنتجات ذات الصلة (Epic 5)</div>
-  <div class="card-body">
-    <div class="text-muted small mb-2">
-      اربط منتجات مشابهة يدويًا. لو لم تضف أي علاقة، الموقع يعرض تلقائيًا منتجات من نفس التصنيف.
-    </div>
-    <form method="post" action="{{ url_for('products.relations_add', product_id=product.id) }}"
-          class="d-flex gap-2 mb-3 align-items-end">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="flex:1">
-        <label class="form-label">ابحث عن منتج</label>
-        <input type="text" id="relationSearch" class="form-control" placeholder="ابحث بالاسم...">
-        <input type="hidden" name="related_product_id" id="relatedProductId">
-        <div id="relationResults" style="border:1px solid #e5e7eb; border-radius:6px; margin-top:4px; max-height:200px; overflow-y:auto; display:none;"></div>
+      {# Danger zone — edit only #}
+      {% if product %}
+      <div class="bg-error-container/40 rounded-xl p-space-md border border-error/20">
+        <h4 class="font-headline-sm text-headline-sm text-on-error-container font-bold mb-space-sm flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-[20px]">warning</span>
+          <span>منطقة الخطر</span>
+        </h4>
+        <p class="font-body-sm text-body-sm text-on-error-container/80 mb-space-sm">
+          الحذف نهائي وينجح فقط لو المنتج ليس له فواتير أو حركات مخزون.
+          للإخفاء عن المتجر بدون فقد بيانات، ألغِ التفعيل من أعلى.
+        </p>
+        <button type="button" onclick="document.getElementById('deleteDlg').showModal()"
+                class="w-full h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+          <span>حذف نهائي…</span>
+        </button>
       </div>
+      {% endif %}
+    </aside>
+  </form>
+
+  {# ============ Post-save sections (edit-mode only) ============ #}
+  {% if product %}
+
+  {# ---- Images ---- #}
+  <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+    <header class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+      <span class="w-8 h-8 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+        <span class="material-symbols-outlined text-[18px]">photo_library</span>
+      </span>
       <div>
-        <label class="form-label">النوع</label>
-        <select name="relation_type" class="form-select">
-          <option value="related">منتج ذو صلة</option>
-          <option value="frequently_bought">يُشترى عادةً معه</option>
-        </select>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">صور المنتج</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">أول صورة تُرفَع تصبح الرئيسية تلقائيًا</p>
       </div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-plus"></i> ربط</button>
-    </form>
+    </header>
 
-    {% if product.relations %}
-    <div class="list-group">
-      {% for rel in product.relations %}
-      <div class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-          <strong>{{ rel.related_product.name_ar if rel.related_product else '(محذوف)' }}</strong>
-          <span class="badge bg-secondary ms-2">
-            {% if rel.relation_type.value == 'related' %}ذو صلة{% else %}يُشترى معه{% endif %}
-          </span>
+    <div class="p-space-md">
+      <form method="post" action="{{ url_for('products.images_upload', product_id=product.id) }}"
+            enctype="multipart/form-data" class="flex items-end gap-space-sm mb-space-md flex-wrap">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="flex-1 min-w-[240px]">
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">
+            رفع صور (png / jpg / jpeg / webp / gif — حد أقصى 8MB لكل صورة)
+          </label>
+          <input type="file" name="images" multiple accept=".png,.jpg,.jpeg,.webp,.gif"
+                 class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary file:me-space-sm file:h-full file:px-space-md file:bg-secondary file:text-on-secondary file:border-0 file:font-label-md file:cursor-pointer">
         </div>
-        <form method="post" action="{{ url_for('products.relations_delete', relation_id=rel.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-sm btn-outline-danger" title="فك الربط"><i class="bi bi-x"></i></button>
-        </form>
+        <button type="submit"
+                class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">upload</span><span>رفع</span>
+        </button>
+      </form>
+
+      {% if product.images %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-space-sm">
+        {% for img in product.images %}
+        <div class="relative rounded-xl overflow-hidden border-2 {% if img.is_primary %}border-secondary{% else %}border-outline-variant/30{% endif %}">
+          <div class="aspect-square bg-surface-container-low">
+            <img src="{{ url_for('static', filename=img.file_path) }}" alt=""
+                 class="w-full h-full object-cover">
+          </div>
+          {% if img.is_primary %}
+          <span class="absolute top-2 start-2 inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-bold shadow-sm">
+            <span class="material-symbols-outlined text-[14px]">star</span>الرئيسية
+          </span>
+          {% endif %}
+          <div class="p-space-2xs flex items-center gap-1 bg-surface-container-lowest/95 backdrop-blur">
+            {% if not img.is_primary %}
+            <form method="post" action="{{ url_for('products.images_set_primary', image_id=img.id) }}" class="flex-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" title="اجعلها الرئيسية"
+                      class="w-full h-8 rounded-md bg-surface-container-low text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed flex items-center justify-center">
+                <span class="material-symbols-outlined text-[16px]">star</span>
+              </button>
+            </form>
+            {% else %}
+            <div class="flex-1"></div>
+            {% endif %}
+            <form method="post" action="{{ url_for('products.images_delete', image_id=img.id) }}"
+                  onsubmit="return confirm('حذف الصورة نهائيًا؟');" class="flex-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" title="حذف"
+                      class="w-full h-8 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      {% else %}
+      <div class="text-center py-space-2xl">
+        <div class="w-16 h-16 mx-auto rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant mb-space-sm">
+          <span class="material-symbols-outlined text-[32px]">photo_camera</span>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface-variant">لا توجد صور بعد.</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">ارفع صورة على الأقل — الأولى تُعلَّم رئيسية تلقائيًا.</p>
+      </div>
+      {% endif %}
     </div>
-    {% else %}
-    <div class="text-muted small">لا توجد علاقات مضافة. المتجر يعرض منتجات نفس التصنيف كـ fallback.</div>
-    {% endif %}
-  </div>
+  </section>
+
+  {# ---- Related products ---- #}
+  <section class="bg-surface-container-lowest rounded-xl shadow-sm">
+    <header class="p-space-md border-b border-surface-container-low flex items-center gap-space-xs">
+      <span class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+        <span class="material-symbols-outlined text-[18px]">hub</span>
+      </span>
+      <div>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">المنتجات ذات الصلة</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">اربط منتجات مشابهة يدويًا — بدونها المتجر يعرض منتجات نفس التصنيف</p>
+      </div>
+    </header>
+
+    <div class="p-space-md">
+      <form method="post" action="{{ url_for('products.relations_add', product_id=product.id) }}"
+            class="flex items-end gap-space-sm mb-space-md flex-wrap">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="flex-1 min-w-[220px] relative">
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">ابحث عن منتج للربط</label>
+          <input type="text" id="relationSearch" autocomplete="off"
+                 placeholder="اكتب حرفين على الأقل…"
+                 class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+          <input type="hidden" name="related_product_id" id="relatedProductId">
+          <div id="relationResults" class="hidden absolute z-30 mt-1 w-full max-h-64 overflow-y-auto bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant/30"></div>
+        </div>
+        <div class="min-w-[160px]">
+          <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">النوع</label>
+          <select name="relation_type"
+                  class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+            <option value="related">منتج ذو صلة</option>
+            <option value="frequently_bought">يُشترى عادةً معه</option>
+          </select>
+        </div>
+        <button type="submit"
+                class="h-10 px-space-md bg-secondary text-on-secondary hover:bg-secondary/90 rounded-lg font-label-md text-label-md font-semibold flex items-center gap-space-xs shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">add_link</span><span>ربط</span>
+        </button>
+      </form>
+
+      {% if product.relations %}
+      <ul class="divide-y divide-surface-container-low">
+        {% for rel in product.relations %}
+        <li class="py-space-xs flex items-center justify-between gap-space-sm">
+          <div class="flex items-center gap-space-xs min-w-0">
+            <span class="w-8 h-8 rounded-md bg-surface-container-low text-secondary flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+            </span>
+            <div class="min-w-0">
+              <div class="font-label-lg text-label-lg text-on-surface font-semibold truncate">
+                {{ rel.related_product.name_ar if rel.related_product else '(محذوف)' }}
+              </div>
+              <div class="font-body-sm text-body-sm text-on-surface-variant">
+                {% if rel.relation_type.value == 'related' %}
+                <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">منتج ذو صلة</span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-space-2xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm">يُشترى معه</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('products.relations_delete', relation_id=rel.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" title="فك الربط"
+                    class="h-8 w-8 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-[16px]">link_off</span>
+            </button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-center py-space-lg font-body-sm text-body-sm text-on-surface-variant">
+        لا توجد علاقات مضافة. المتجر يعرض منتجات نفس التصنيف تلقائيًا.
+      </p>
+      {% endif %}
+    </div>
+  </section>
+
+  {# ---- Delete confirmation dialog ---- #}
+  <dialog id="deleteDlg" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
+    <form method="post" action="{{ url_for('products.delete', product_id=product.id) }}" class="bg-surface-container-lowest p-space-lg">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="flex items-start gap-space-sm">
+        <div class="w-12 h-12 rounded-xl bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[24px]">warning</span>
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">حذف نهائي؟</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+            سيتم محاولة حذف <strong class="text-on-surface">{{ product.name_ar }}</strong> نهائيًا.
+            الحذف ينجح فقط لو <strong>لا توجد فواتير مبيعات أو مشتريات أو طلبات أو حركات مخزون</strong> مرتبطة به.
+            في هذه الحالة استخدم «إيقاف التفعيل» بدلاً من الحذف.
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-space-xs mt-space-lg">
+        <button type="button" onclick="document.getElementById('deleteDlg').close()"
+                class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+        <button type="submit"
+                class="h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+          <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+          <span>حذف نهائي</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  {% endif %}
 </div>
-{% endif %}
 
 <script>
-  {% if not product %}
-  function addVariantRow() {
-    const tbody = document.querySelector('#variantsTable tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input class="form-control form-control-sm" name="variant_color[]" placeholder="مثال: أحمر"></td>
-      <td><input class="form-control form-control-sm" name="variant_price[]" type="number" step="0.001" placeholder="السعر"></td>
-      <td><input class="form-control form-control-sm" name="variant_compare_at_price[]" type="number" step="0.001" placeholder="اختياري"></td>
-      <td><input class="form-control form-control-sm" name="variant_reorder[]" type="number" step="0.001" placeholder="0"></td>
-      <td><input class="form-control form-control-sm" name="variant_barcode[]" placeholder="تلقائي" dir="ltr"></td>
-      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
-    `;
-    tbody.appendChild(tr);
-  }
-  {% endif %}
+  function _hideEmpty(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
 
   function addFeatureRow() {
+    _hideEmpty('featuresEmpty');
     const list = document.getElementById('featuresList');
-    const div = document.createElement('div');
-    div.className = 'input-group mb-2';
-    div.innerHTML = `
-      <input type="text" name="feature_text[]" class="form-control" placeholder="مثال: مقاوم للحرارة">
-      <button type="button" class="btn btn-outline-danger" onclick="this.closest('.input-group').remove()"><i class="bi bi-x"></i></button>
-    `;
-    list.appendChild(div);
+    const wrap = document.createElement('div');
+    wrap.className = 'flex items-center gap-space-xs';
+    wrap.innerHTML = `
+      <span class="w-8 h-8 rounded-md bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[14px]">check</span>
+      </span>
+      <input type="text" name="feature_text[]" placeholder="مثال: مقاوم للحرارة حتى 200 درجة"
+             class="h-10 flex-1 px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      <button type="button" onclick="this.closest('div').remove()"
+              class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>`;
+    list.appendChild(wrap);
+    wrap.querySelector('input').focus();
   }
 
   function addCompositionRow() {
+    _hideEmpty('compositionEmpty');
     const tbody = document.getElementById('compositionRows');
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><input type="number" name="composition_qty[]" class="form-control form-control-sm" value="1" min="1"></td>
-      <td><input type="text" name="composition_content[]" class="form-control form-control-sm" placeholder="مثال: طبق تقديم كبير"></td>
-      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x"></i></button></td>
-    `;
+      <td class="pb-space-xs pl-space-xs">
+        <input type="number" name="composition_qty[]" value="1" min="1"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md">
+      </td>
+      <td class="pb-space-xs pl-space-xs">
+        <input type="text" name="composition_content[]" placeholder="مثال: طبق تقديم كبير"
+               class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary">
+      </td>
+      <td class="pb-space-xs">
+        <button type="button" onclick="this.closest('tr').remove()"
+                class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[16px]">close</span>
+        </button>
+      </td>`;
     tbody.appendChild(tr);
+    tr.querySelector('input[type="text"]').focus();
   }
 
+  {% if not product %}
+  function addVariantRow() {
+    _hideEmpty('variantsEmpty');
+    const tbody = document.getElementById('variantsBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="pb-space-xs pl-space-xs"><input name="variant_color[]" placeholder="مثال: أحمر"
+        class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary"></td>
+      <td class="pb-space-xs pl-space-xs"><input name="variant_price[]" type="number" step="0.001" placeholder="السعر"
+        class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="pb-space-xs pl-space-xs"><input name="variant_compare_at_price[]" type="number" step="0.001" placeholder="اختياري"
+        class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="pb-space-xs pl-space-xs"><input name="variant_reorder[]" type="number" step="0.001" placeholder="0"
+        class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md"></td>
+      <td class="pb-space-xs pl-space-xs"><input name="variant_barcode[]" placeholder="تلقائي" dir="ltr"
+        class="h-10 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary" style="direction:ltr"></td>
+      <td class="pb-space-xs"><button type="button" onclick="this.closest('tr').remove()"
+        class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+        <span class="material-symbols-outlined text-[16px]">close</span></button></td>`;
+    tbody.appendChild(tr);
+    tr.querySelector('input').focus();
+  }
+  {% endif %}
+
   {% if product %}
-  // Epic 5 — بحث منتجات ذات صلة
+  // Related-products live search
   (function() {
     const search = document.getElementById('relationSearch');
     const results = document.getElementById('relationResults');
@@ -357,7 +611,7 @@
     search.addEventListener('input', () => {
       clearTimeout(timer);
       const q = search.value.trim();
-      if (q.length < 2) { results.style.display = 'none'; return; }
+      if (q.length < 2) { results.classList.add('hidden'); return; }
       timer = setTimeout(async () => {
         try {
           const url = '{{ url_for('products.api_search_products') }}?q=' + encodeURIComponent(q) + '&exclude={{ product.id }}';
@@ -365,24 +619,29 @@
           const data = await resp.json();
           results.innerHTML = '';
           if (data.length === 0) {
-            results.innerHTML = '<div class="p-2 text-muted small">لا توجد نتائج</div>';
+            results.innerHTML = '<div class="p-space-sm font-body-sm text-body-sm text-on-surface-variant">لا توجد نتائج</div>';
           } else {
             data.forEach(p => {
-              const item = document.createElement('div');
-              item.className = 'p-2 border-bottom';
-              item.style.cursor = 'pointer';
-              item.textContent = p.name + (p.brand ? ' — ' + p.brand : '');
+              const item = document.createElement('button');
+              item.type = 'button';
+              item.className = 'w-full text-right p-space-sm hover:bg-surface-container-low border-b border-surface-container-low font-label-md text-label-md flex flex-col gap-0.5';
+              item.innerHTML = `<span class="font-semibold">${p.name}</span>${p.brand ? '<span class="font-body-sm text-body-sm text-on-surface-variant">' + p.brand + '</span>' : ''}`;
               item.addEventListener('click', () => {
                 hiddenId.value = p.id;
                 search.value = p.name;
-                results.style.display = 'none';
+                results.classList.add('hidden');
               });
               results.appendChild(item);
             });
           }
-          results.style.display = 'block';
+          results.classList.remove('hidden');
         } catch (e) { /* ignore */ }
       }, 250);
+    });
+    document.addEventListener('click', (e) => {
+      if (!search.contains(e.target) && !results.contains(e.target)) {
+        results.classList.add('hidden');
+      }
     });
   })();
   {% endif %}

@@ -94,6 +94,61 @@ def delete_category(cat_id: int) -> None:
     db.session.flush()
 
 
+def delete_product(product_id: int) -> None:
+    """حذف نهائي لمنتج — يُرفض لو له أي تحركات محاسبية (بيع/شراء/طلب/تسوية).
+
+    للمنتجات الظاهر عليها أي حركة يجب استخدام إيقاف التفعيل (is_active=False)
+    عبر update_product بدلاً من الحذف — الحذف النهائي متاح فقط للمنتجات
+    غير المستخدمة (خطأ إدخال، منتج تجريبي، إلخ).
+    """
+    from app.models.order import OrderLine
+    from app.models.purchases import PurchaseInvoiceLine
+    from app.models.sales import SalesInvoiceLine
+    from app.models.inventory import InventoryMovement
+
+    p = db.session.get(Product, product_id)
+    if p is None:
+        return
+
+    variant_ids = [v.id for v in p.variants]
+    if variant_ids:
+        # فحص المبيعات
+        if db.session.query(SalesInvoiceLine.id).filter(
+            SalesInvoiceLine.variant_id.in_(variant_ids)
+        ).first() is not None:
+            raise ProductError(
+                "لا يمكن حذف المنتج نهائيًا لوجود فواتير مبيعات مرتبطة به. "
+                "استخدم زر «إيقاف التفعيل» بدلاً من الحذف."
+            )
+        # فحص المشتريات
+        if db.session.query(PurchaseInvoiceLine.id).filter(
+            PurchaseInvoiceLine.variant_id.in_(variant_ids)
+        ).first() is not None:
+            raise ProductError(
+                "لا يمكن حذف المنتج نهائيًا لوجود فواتير مشتريات مرتبطة به. "
+                "استخدم زر «إيقاف التفعيل» بدلاً من الحذف."
+            )
+        # فحص طلبات المتجر الإلكتروني
+        if db.session.query(OrderLine.id).filter(
+            OrderLine.variant_id.in_(variant_ids)
+        ).first() is not None:
+            raise ProductError(
+                "لا يمكن حذف المنتج نهائيًا لوجود طلبات متجر مرتبطة به. "
+                "استخدم زر «إيقاف التفعيل» بدلاً من الحذف."
+            )
+        # فحص حركات المخزون (تسويات/شراء)
+        if db.session.query(InventoryMovement.id).filter(
+            InventoryMovement.variant_id.in_(variant_ids)
+        ).first() is not None:
+            raise ProductError(
+                "لا يمكن حذف المنتج نهائيًا لوجود حركات مخزون مرتبطة به. "
+                "استخدم زر «إيقاف التفعيل» بدلاً من الحذف."
+            )
+
+    db.session.delete(p)  # CASCADE على variants + images + features + composition + relations
+    db.session.flush()
+
+
 # ============ المنتجات ============
 
 def create_product(

@@ -99,10 +99,30 @@
               {% endif %}
             </td>
             <td class="py-space-xs px-space-md text-left">
-              <a href="{{ url_for('products.view', product_id=p.id) }}"
-                 class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="عرض">
-                <span class="material-symbols-outlined text-[16px]">visibility</span>
-              </a>
+              <div class="inline-flex items-center gap-1">
+                <a href="{{ url_for('products.view', product_id=p.id) }}"
+                   class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="عرض">
+                  <span class="material-symbols-outlined text-[16px]">visibility</span>
+                </a>
+                {% if current_user.can("products.manage") %}
+                <a href="{{ url_for('products.edit', product_id=p.id) }}"
+                   class="h-8 w-8 rounded-md bg-surface-container-low text-secondary hover:bg-surface-container-high flex items-center justify-center" title="تعديل">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </a>
+                <form method="post" action="{{ url_for('products.toggle_active', product_id=p.id) }}" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit"
+                          class="h-8 w-8 rounded-md {% if p.is_active %}bg-surface-container-low text-tertiary hover:bg-tertiary-fixed hover:text-on-tertiary-fixed-variant{% else %}bg-secondary-fixed text-on-secondary-fixed hover:bg-secondary hover:text-on-secondary{% endif %} flex items-center justify-center"
+                          title="{% if p.is_active %}إيقاف التفعيل{% else %}تفعيل{% endif %}">
+                    <span class="material-symbols-outlined text-[16px]">{% if p.is_active %}pause_circle{% else %}play_circle{% endif %}</span>
+                  </button>
+                </form>
+                <button type="button" onclick="document.getElementById('deleteDlg{{ p.id }}').showModal()"
+                        class="h-8 w-8 rounded-md bg-surface-container-low text-error hover:bg-error-container flex items-center justify-center" title="حذف نهائي">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+                {% endif %}
+              </div>
             </td>
           </tr>
           {% else %}
@@ -127,4 +147,37 @@
     </div>
   </div>
 </div>
+
+{# Delete-confirmation dialogs — one per product #}
+{% if current_user.can("products.manage") %}
+{% for p in products %}
+<dialog id="deleteDlg{{ p.id }}" class="rounded-xl p-0 backdrop:bg-primary-container/40 backdrop:backdrop-blur-sm w-full max-w-md">
+  <form method="post" action="{{ url_for('products.delete', product_id=p.id) }}" class="bg-surface-container-lowest p-space-lg">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="flex items-start gap-space-sm">
+      <div class="w-12 h-12 rounded-xl bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[24px]">warning</span>
+      </div>
+      <div class="min-w-0">
+        <h3 class="font-headline-lg text-headline-lg text-on-surface font-bold">حذف نهائي؟</h3>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+          سيتم محاولة حذف المنتج <strong class="text-on-surface">{{ p.name_ar }}</strong> نهائيًا.
+          الحذف ينجح فقط لو <strong>لا توجد فواتير مبيعات أو مشتريات أو طلبات أو حركات مخزون</strong> مرتبطة به.
+          في هذه الحالة استخدم زر «إيقاف التفعيل» بدلاً من الحذف.
+        </p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-space-xs mt-space-lg">
+      <button type="button" onclick="document.getElementById('deleteDlg{{ p.id }}').close()"
+              class="h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">إلغاء</button>
+      <button type="submit"
+              class="h-10 px-space-md rounded-lg bg-error text-on-error hover:bg-error/90 font-label-md text-label-md font-semibold shadow-sm flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+        <span>حذف نهائي</span>
+      </button>
+    </div>
+  </form>
+</dialog>
+{% endfor %}
+{% endif %}
 {% endblock %}

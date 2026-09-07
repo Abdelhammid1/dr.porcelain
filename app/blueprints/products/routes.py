@@ -30,6 +30,7 @@ from app.services.products import (
     create_category,
     create_product,
     delete_category,
+    delete_product,
     remove_related_product,
     set_product_composition,
     set_product_features,
@@ -255,6 +256,47 @@ def edit(product_id):
             flash(str(e), "danger")
 
     return render_template("products/form.html", form=form, product=p)
+
+
+# ============================================================
+# إيقاف تفعيل + حذف نهائي
+# ============================================================
+
+@products_bp.route("/<int:product_id>/toggle-active", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def toggle_active(product_id):
+    """يعكس is_active على المنتج — للإخفاء عن المتجر بدون حذف بيانات."""
+    p = db.session.get(Product, product_id) or abort(404)
+    try:
+        update_product(p.id, is_active=not p.is_active)
+        db.session.commit()
+        flash(f"تم {'تفعيل' if p.is_active else 'إيقاف'} المنتج.", "success")
+    except ProductError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(request.referrer or url_for("products.index"))
+
+
+@products_bp.route("/<int:product_id>/delete", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def delete(product_id):
+    """حذف نهائي — يُرفض لو المنتج له أي حركة محاسبية.
+
+    عادةً يجب استخدام toggle_active للإيقاف بدلاً من الحذف.
+    """
+    p = db.session.get(Product, product_id) or abort(404)
+    name = p.name_ar
+    try:
+        delete_product(p.id)
+        db.session.commit()
+        flash(f"تم حذف المنتج «{name}» نهائيًا.", "success")
+        return redirect(url_for("products.index"))
+    except ProductError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+        return redirect(request.referrer or url_for("products.view", product_id=p.id))
 
 
 # --------- إضافة متغير جديد لمنتج موجود ---------
