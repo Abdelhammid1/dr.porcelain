@@ -51,8 +51,18 @@ def inject_storefront_context():
             .all()
         )
         cust = current_customer()
+        # حساب إجمالي السلة السريع للـ pill في الهيدر (لا يعمل validate كوبون
+        # هنا — فقط subtotal بسيط عشان نعرض قيمة أولية)
+        cart_subtotal = None
+        try:
+            _view = build_cart_view(customer_id=cust.id if cust else None)
+            cart_subtotal = _view.subtotal
+        except Exception:
+            pass
+
         return {
             "sf_cart_count": items_count(),
+            "sf_cart_subtotal": cart_subtotal,
             "sf_root_categories": roots,
             "sf_current_customer": cust,
             "sf_wishlist_count": wishlist_service.count(cust.id) if cust else 0,
@@ -60,6 +70,7 @@ def inject_storefront_context():
                 "announcement": str(get_setting("storefront.announcement", "")),
                 "store_name": str(get_setting("store.name", "المتجر")),
                 "store_phone": str(get_setting("store.phone", "")),
+                "free_shipping_threshold": str(get_setting("storefront.free_shipping_threshold", "500")),
             },
         }
     except Exception:

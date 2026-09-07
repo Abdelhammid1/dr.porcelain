@@ -113,7 +113,13 @@
         </div>
         <div class="flex flex-col text-right">
           <span class="font-label-sm text-label-sm text-on-surface-variant">السلة ({{ sf_cart_count or 0 }})</span>
-          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">اطّلع على المشتريات</span>
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">
+            {%- if sf_cart_subtotal and sf_cart_subtotal > 0 -%}
+              {{ sf_cart_subtotal | money }}
+            {%- else -%}
+              اطّلع على المشتريات
+            {%- endif -%}
+          </span>
         </div>
       </a>
 
