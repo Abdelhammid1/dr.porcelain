@@ -14,7 +14,7 @@
     </a>
   </div>
 
-  <form method="post" novalidate class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm space-y-space-md">
+  <form method="post" enctype="multipart/form-data" novalidate class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm space-y-space-md">
     {{ form.hidden_tag() }}
     <div>
       <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.name_ar.label.text }}</label>
@@ -30,6 +30,39 @@
       <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">{{ form.display_order.label.text }}</label>
       {{ form.display_order(class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary font-fiscal-numeric-md") }}
     </div>
+    {# صورة التصنيف (اختياري) — تظهر على المتجر + شاشة الأدمن #}
+    <div>
+      <label class="font-label-md text-label-md text-on-surface-variant font-medium mb-1 block">
+        صورة التصنيف <span class="text-on-surface-variant/60 text-[11px]">(اختياري — png / jpg / jpeg / webp / gif، حد أقصى 8 ميجا)</span>
+      </label>
+
+      {% if category and category.image_path %}
+      <div class="flex items-center gap-space-md p-space-sm rounded-lg bg-surface-container-low mb-space-xs">
+        <img src="{{ url_for('static', filename=category.image_path) }}" alt="{{ category.name_ar }}"
+             class="w-20 h-20 rounded-lg object-cover shadow-sm shrink-0">
+        <div class="flex-1 min-w-0">
+          <div class="font-label-md text-label-md text-on-surface font-semibold truncate">الصورة الحالية</div>
+          <div class="font-body-sm text-body-sm text-on-surface-variant truncate" dir="ltr">{{ category.image_path.split('/')[-1] }}</div>
+        </div>
+        <form method="post" action="{{ url_for('products.categories_delete_image', cat_id=category.id) }}"
+              onsubmit="return confirm('حذف صورة التصنيف؟');" class="shrink-0">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" title="حذف الصورة"
+                  class="h-9 w-9 rounded-md text-error hover:bg-error-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">delete</span>
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      <input type="file" name="image" accept=".png,.jpg,.jpeg,.webp,.gif"
+             class="h-11 w-full px-space-sm rounded-lg bg-surface-container-low outline outline-1 outline-outline-variant/60 focus:outline-secondary file:me-space-sm file:h-full file:px-space-md file:bg-secondary file:text-on-secondary file:border-0 file:font-label-md file:cursor-pointer">
+      <p class="text-[11px] text-on-surface-variant mt-1">
+        {% if category and category.image_path %}اترك الحقل فارغًا للاحتفاظ بالصورة الحالية، أو ارفع صورة جديدة لاستبدالها.
+        {% else %}تظهر الصورة على بطاقة التصنيف في المتجر وشاشات الأدمن.{% endif %}
+      </p>
+    </div>
+
     {% if category %}
     <label class="flex items-center gap-space-xs cursor-pointer">
       {{ form.is_active(class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary") }}

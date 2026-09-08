@@ -404,11 +404,16 @@
             {% for cat in root_categories[:4] %}
             <a href="{{ url_for('storefront.category', category_id=cat.id) }}"
                class="relative h-72 rounded-xl overflow-hidden shadow-sm group cursor-pointer bg-primary-container block">
+              {% if cat.image_path %}
+              <img src="{{ url_for('static', filename=cat.image_path) }}" alt="{{ cat.name_ar }}"
+                   class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+              {% else %}
               <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-40 transition-opacity">
                 <span class="material-symbols-outlined text-[180px] text-secondary-container">
                   {% if loop.index == 1 %}dinner_dining{% elif loop.index == 2 %}coffee{% elif loop.index == 3 %}wine_bar{% else %}flatware{% endif %}
                 </span>
               </div>
+              {% endif %}
               <div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/40 to-transparent"></div>
               <div class="absolute inset-x-0 bottom-0 p-space-md space-y-space-3xs text-on-primary">
                 {% if loop.first %}

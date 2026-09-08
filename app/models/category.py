@@ -20,6 +20,10 @@ class Category(db.Model, TimestampMixin):
     parent_id = Column(Integer, ForeignKey("categories.id", ondelete="RESTRICT"), nullable=True, index=True)
     display_order = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
+    # صورة التصنيف — مسار نسبي داخل `app/static/` مثل
+    # `uploads/categories/12/ab.jpg` عشان `url_for('static', filename=…)`
+    # يشتغل مباشرة في القوالب. NULL = بدون صورة (fallback في الـ UI).
+    image_path = Column(String(500), nullable=True)
 
     parent = relationship("Category", remote_side="Category.id", backref="children")
 

@@ -169,3 +169,48 @@ class TestProductImages:
 
         # لا يوجد primary صراحة → يرجع أول واحدة (display_order=0)
         assert env["p1"].primary_image.id == img1.id
+
+
+# ---------------- Category images ----------------
+
+class TestCategoryImages:
+    """
+    Category images ticket — Category جديد له عمود image_path يقبل صورة
+    اختيارية عند الإنشاء أو التعديل، ويظهر في قوائم الأدمن والمتجر
+    بدلاً من الأيقونة العامة.
+    """
+
+    def test_image_path_column_defaults_to_none(self, app):
+        from app.models.category import Category
+        from app.services.products import create_category
+
+        cat = create_category(name_ar=f"tst-{uuid.uuid4().hex[:8]}")
+        _db.session.commit()
+
+        # التصنيف الجديد بلا صورة افتراضيًا → عمود nullable
+        assert cat.image_path is None
+
+    def test_image_path_can_be_set_directly(self, app):
+        from app.services.products import create_category
+
+        cat = create_category(name_ar=f"tst-{uuid.uuid4().hex[:8]}")
+        cat.image_path = "uploads/categories/1/abc.jpg"
+        _db.session.commit()
+        _db.session.refresh(cat)
+
+        assert cat.image_path == "uploads/categories/1/abc.jpg"
+
+    def test_delete_category_image_service_clears_path(self, app):
+        """delete_category_image يفرّغ العمود حتى لو الملف الأصلي مفقود."""
+        from app.services.products import create_category
+        from app.services.product_images import delete_category_image
+
+        cat = create_category(name_ar=f"tst-{uuid.uuid4().hex[:8]}")
+        cat.image_path = "uploads/categories/999/missing.jpg"
+        _db.session.commit()
+
+        delete_category_image(cat.id)
+        _db.session.commit()
+        _db.session.refresh(cat)
+
+        assert cat.image_path is None

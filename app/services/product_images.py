@@ -155,3 +155,81 @@ def reorder_images(product_id: int, ordered_ids: list[int]) -> None:
         if img_id in images:
             images[img_id].display_order = idx
     db.session.flush()
+
+
+# ================================================================
+# صور التصنيفات (نفس مخطط صور المنتجات لكن الصورة واحدة لكل تصنيف)
+# ================================================================
+
+def _category_dir(category_id: int) -> Path:
+    return _uploads_root() / "categories" / str(category_id)
+
+
+def save_category_image(category_id: int, file_storage: FileStorage) -> str:
+    """يحفظ صورة تصنيف على القرص ويحدّث `Category.image_path`.
+
+    - الصورة الواحدة الحالية للتصنيف تُحذَف من القرص قبل الاستبدال.
+    - يرجع المسار النسبي المخزَّن في DB (نفس صيغة صور المنتجات).
+    - يرمي `ImageError` عند فشل التحقق (لا ملف، امتداد غير مدعوم، حجم أكبر
+      من الحد، أو التصنيف غير موجود).
+    """
+    from app.models.category import Category
+
+    if file_storage is None or not file_storage.filename:
+        raise ImageError("لم يتم اختيار ملف.")
+
+    category = db.session.get(Category, category_id)
+    if category is None:
+        raise ImageError("التصنيف غير موجود.")
+
+    ext = _ext_of(file_storage.filename)
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ImageError(
+            f"صيغة الملف غير مدعومة ({ext or '؟'}). المسموح: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+        )
+
+    file_storage.stream.seek(0, os.SEEK_END)
+    size = file_storage.stream.tell()
+    file_storage.stream.seek(0)
+    if size > MAX_BYTES:
+        raise ImageError(f"حجم الصورة أكبر من {MAX_BYTES // (1024 * 1024)} ميجا.")
+
+    # نحذف الصورة القديمة قبل الاستبدال (لا نفشل لو الملف مفقود)
+    if category.image_path:
+        try:
+            old_abs = Path(current_app.static_folder) / category.image_path
+            if old_abs.exists():
+                old_abs.unlink()
+        except OSError:
+            pass
+
+    cat_dir = _category_dir(category_id)
+    cat_dir.mkdir(parents=True, exist_ok=True)
+    safe_ext = secure_filename(f"x.{ext}").rsplit(".", 1)[-1] or ext
+    new_name = f"{uuid.uuid4().hex}.{safe_ext}"
+    dest = cat_dir / new_name
+    file_storage.save(str(dest))
+
+    rel = _relative_static_path(dest)
+    category.image_path = rel
+    db.session.flush()
+    return rel
+
+
+def delete_category_image(category_id: int) -> None:
+    """يحذف صورة التصنيف من القرص + يفرّغ `image_path`."""
+    from app.models.category import Category
+
+    category = db.session.get(Category, category_id)
+    if category is None or not category.image_path:
+        return
+
+    try:
+        abs_path = Path(current_app.static_folder) / category.image_path
+        if abs_path.exists():
+            abs_path.unlink()
+    except OSError:
+        pass
+
+    category.image_path = None
+    db.session.flush()

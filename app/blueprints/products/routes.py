@@ -18,8 +18,10 @@ from app.models.product_relation import ProductRelation, RelationType
 from app.services.inventory import low_stock_variants
 from app.services.product_images import (
     ImageError,
+    delete_category_image,
     delete_product_image,
     reorder_images,
+    save_category_image,
     save_product_image,
     set_primary,
 )
@@ -71,11 +73,19 @@ def categories_create(parent_id: int | None = None):
 
     if form.validate_on_submit():
         try:
-            create_category(
+            cat = create_category(
                 name_ar=form.name_ar.data,
                 parent_id=(form.parent_id.data or None),
                 display_order=form.display_order.data or 0,
             )
+            # صورة التصنيف (اختياري — لو مرفوعة معها)
+            uploaded = request.files.get("image")
+            if uploaded and uploaded.filename:
+                try:
+                    save_category_image(cat.id, uploaded)
+                except ImageError as ie:
+                    # التصنيف اتعمل — الصورة فشلت. لا نرجّع؛ نعرض تحذير.
+                    flash(f"تم إنشاء التصنيف بدون صورة: {ie}", "warning")
             db.session.commit()
             flash("تم إنشاء التصنيف.", "success")
             return redirect(url_for("products.categories_index"))
@@ -102,6 +112,13 @@ def categories_edit(cat_id):
                 display_order=form.display_order.data or 0,
                 is_active=form.is_active.data,
             )
+            # استبدال صورة التصنيف (اختياري)
+            uploaded = request.files.get("image")
+            if uploaded and uploaded.filename:
+                try:
+                    save_category_image(cat.id, uploaded)
+                except ImageError as ie:
+                    flash(f"تم حفظ التعديلات بدون تحديث الصورة: {ie}", "warning")
             db.session.commit()
             flash("تم حفظ التعديلات.", "success")
             return redirect(url_for("products.categories_index"))
@@ -110,6 +127,22 @@ def categories_edit(cat_id):
             flash(str(e), "danger")
 
     return render_template("products/categories/form.html", form=form, category=cat)
+
+
+@products_bp.route("/categories/<int:cat_id>/image/delete", methods=["POST"])
+@login_required
+@require_permission("products.manage")
+def categories_delete_image(cat_id):
+    """حذف صورة تصنيف واحدة (يفرّغ image_path + يمسح الملف من القرص)."""
+    cat = db.session.get(Category, cat_id) or abort(404)
+    try:
+        delete_category_image(cat.id)
+        db.session.commit()
+        flash("تم حذف صورة التصنيف.", "success")
+    except ImageError as e:
+        db.session.rollback()
+        flash(str(e), "danger")
+    return redirect(url_for("products.categories_edit", cat_id=cat.id))
 
 
 @products_bp.route("/categories/<int:cat_id>/delete", methods=["POST"])

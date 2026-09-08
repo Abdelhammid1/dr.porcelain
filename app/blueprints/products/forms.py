@@ -20,6 +20,9 @@ class CategoryForm(FlaskForm):
     parent_id = SelectField("التصنيف الأب", coerce=int, validators=[Optional()])
     display_order = IntegerField("ترتيب العرض", default=0, validators=[Optional()])
     is_active = BooleanField("نشط", default=True)
+    # ملاحظة: حقل الصورة (`image`) لا نُصرّح به على WTForms عمدًا — بنقرأه
+    # مباشرة من `request.files.get("image")` في الـ route عشان يمر بالـ
+    # multipart بغير ما يخترق WTForms له فيه.
     submit = SubmitField("حفظ")
 
 
