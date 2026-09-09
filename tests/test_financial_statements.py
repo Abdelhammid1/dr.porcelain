@@ -175,6 +175,37 @@ class TestProfitability:
         assert row.gross_profit == Decimal("600.000")
         assert row.margin_percent == Decimal("60.000")
 
+    def test_pos_cashier_discount_reduces_product_revenue(self, env):
+        """تذكرة: خصم الكاشير من POS مش بيتوزّع على إيراد المنتج في تقرير
+        الربحية — كان قدره بيظهر كامل قبل الخصم. الآن كل سطر يأخذ نصيبه
+        النسبي من الخصم.
+
+        سيناريو: 5 × 6,500 = 32,500 (خام)، خصم فاتورة 1,000، فيبقى صافي
+        الإيراد للمنتج = 32,500 × (31,500 / 32,500) = 31,500 بالظبط.
+        (نفس ما بيظهر في قائمة الدخل — كده الرقمان بيتوافقوا.)
+        """
+        set_setting("tax.enabled", "false")
+        _db.session.commit()
+        create_cash_sale(
+            customer_id=env["customer"].id,
+            invoice_date=date(2026, 9, 5),
+            lines=[InvoiceLineDraft(env["variant"].id, qty=5, unit_price=6500)],
+            discount_amount=Decimal("1000"),
+        )
+        _db.session.commit()
+
+        rep = product_profitability(date_from=date(2026, 9, 1), date_to=date(2026, 9, 30))
+        row = next(r for r in rep.rows if r.product.id == env["product"].id)
+        assert row.qty_sold == Decimal("5.000")
+        # الإيراد بعد توزيع خصم الفاتورة (1,000 من 32,500 خام) = 31,500
+        assert row.revenue == Decimal("31500.000"), (
+            f"expected 31,500 (32,500 gross − 1,000 POS discount) but got {row.revenue}"
+        )
+        # التكلفة ما بتتغيرش بالخصم — 5 × 40 = 200
+        assert row.cost == Decimal("200.000")
+        # الربح = 31,500 − 200 = 31,300
+        assert row.gross_profit == Decimal("31300.000")
+
     def test_returns_subtracted(self, env):
         from app.services.sales import create_sales_return
         set_setting("tax.enabled", "false")
