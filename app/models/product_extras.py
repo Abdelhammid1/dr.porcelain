@@ -39,7 +39,7 @@ class ProductCompositionLine(db.Model, TimestampMixin):
         nullable=False, index=True,
     )
     quantity = Column(Integer, nullable=False, default=1)
-    content_name_ar = Column(String(200), nullable=False)
+    content_name_ar = Column(String(1000), nullable=False)
     display_order = Column(Integer, nullable=False, default=0)
 
     product = relationship("Product", back_populates="composition")
