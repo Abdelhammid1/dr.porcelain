@@ -1,0 +1,30 @@
+/* Self-hosted Material Symbols Outlined (variable: FILL, GRAD, opsz, wght).
+   Source: github.com/google/material-design-icons/variablefont
+   font-display: block — 'swap' would flash ligature names like "local_shipping". */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url('../fonts/material-symbols/MaterialSymbolsOutlined.woff2') format('woff2-variations'),
+       url('../fonts/material-symbols/MaterialSymbolsOutlined.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr; /* RTL pages: keep glyph from flipping */
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
