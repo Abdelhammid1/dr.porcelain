@@ -12,6 +12,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap">
+
+{# MARSOUD-STOREFRONT-ICONS-FIX (2026-10-18) — Material Symbols font is
+   SELF-HOSTED at /static/fonts/material-symbols/ because the Google
+   CDN URL for the full variable-axis family was failing on some
+   networks and the ligature text (`local_shipping`, `shopping_bag`,
+   `account_tree`...) was leaking onto the page.  Preload hint so the
+   icon glyphs are ready on first paint; `font-display: block` so the
+   ligature text never flashes (would be worse than nothing for icons).
+#}
+<link rel="preload" as="font" type="font/woff2"
+      href="{{ url_for('static', filename='fonts/material-symbols/MaterialSymbolsOutlined.woff2') }}"
+      crossorigin>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -70,7 +82,34 @@
   };
 </script>
 <style>
+  /* MARSOUD-STOREFRONT-ICONS-FIX (2026-10-18) — self-hosted Material
+     Symbols so the storefront never renders ligature text instead of
+     glyphs when Google Fonts' CDN is unreachable (networks, CSPs,
+     regional blocks).  `font-display: block` keeps the glyph slot
+     invisible for ~3s rather than flashing "local_shipping" etc.
+     while the font loads — swap would be wrong for icon fonts. */
+  @font-face {
+    font-family: 'Material Symbols Outlined';
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: block;
+    src: url("{{ url_for('static', filename='fonts/material-symbols/MaterialSymbolsOutlined.woff2') }}")
+         format('woff2-variations');
+  }
   .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;  /* Keep icon glyphs LTR even inside RTL (ar) scope. */
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     vertical-align: middle;
   }
