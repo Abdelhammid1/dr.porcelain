@@ -92,7 +92,7 @@
               <span class="font-label-md text-label-md text-surface-container-lowest">نقطة</span>
             </div>
             <p class="font-body-sm text-body-sm text-surface-dim mt-space-3xs">
-              الرصيد المستحق: <strong class="text-secondary-container font-semibold">{{ balance | money }}</strong>
+              الرصيد المستحق: <strong class="text-secondary-container font-semibold">{{ balance | sf_money }}</strong>
             </p>
           </div>
         </div>
@@ -148,7 +148,7 @@
       <div>
         <div class="font-label-md text-label-md text-on-surface-variant">الرصيد المستحق</div>
         <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
-          {{ balance | money }}
+          {{ balance | sf_money }}
         </div>
       </div>
     </div>
@@ -201,7 +201,7 @@
 
             <div class="flex items-center gap-space-md">
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold text-on-surface">
-                {{ o.total | money }}
+                {{ o.total | sf_money }}
               </span>
               <span class="inline-flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full font-label-md text-label-md font-bold {{ st[1] }}">
                 <span class="w-2 h-2 rounded-full bg-current"></span>
@@ -259,13 +259,13 @@
             <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
               <span>المسدَّد:</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-semibold">
-                {{ plan.total_paid | money }}
+                {{ plan.total_paid | sf_money }}
               </span>
             </div>
             <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
               <span>المتبقي:</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-error font-bold">
-                {{ plan.total_remaining | money }}
+                {{ plan.total_remaining | sf_money }}
               </span>
             </div>
           </a>

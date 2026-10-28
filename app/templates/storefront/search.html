@@ -1,45 +1,62 @@
 {% extends "storefront/_base.html" %}
-{% from "storefront/_macros.html" import stars, sale_badge, price_block, product_thumb, low_stock_alert %}
+{% from "storefront/_macros.html" import stars, product_thumb, low_stock_alert %}
 {% block title %}بحث: {{ q }}{% endblock %}
 
 {% block content %}
 <div style="margin-bottom:24px;">
   <h1 style="font-size:1.6rem; font-weight:800; margin:0 0 6px;">
-    <i class="bi bi-search"></i>
+    <span class="material-symbols-outlined align-middle">search</span>
     نتائج البحث عن: <span style="color:var(--dp-brand);">{{ q }}</span>
   </h1>
   <div style="color:var(--dp-ink-3);">{{ variants|length }} نتيجة</div>
 </div>
 
 {% if variants %}
-<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px;">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
   {% for v in variants %}
-  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" class="sf-product-card" style="position:relative;">
-    {{ sale_badge(v) }}
-    <div class="sf-product-image">
+  <div class="relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
+    <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
+       class="relative aspect-square w-full bg-surface-container-low overflow-hidden block">
       {{ product_thumb(v.product) }}
-    </div>
-    <div class="sf-product-body">
-      <div class="sf-product-cat">{{ v.product.category.name_ar if v.product.category else '' }}</div>
-      <div class="sf-product-name">{{ v.display_name }}</div>
-      {% if v.product.review_count > 0 %}
-      <div style="margin-bottom:4px; font-size:0.75rem;">
-        {{ stars(v.product.avg_rating, v.product.review_count) }}
-      </div>
+      {% if v.is_on_sale %}
+      <span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">
+        -{{ v.discount_percent | pct }}%
+      </span>
       {% endif %}
-      <div>{{ price_block(v) }}</div>
-      {{ low_stock_alert(v) }}
+    </a>
+    <div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
+      <div class="space-y-space-3xs">
+        {% if v.product.category %}
+        <div class="font-label-sm text-label-sm text-on-surface-variant">{{ v.product.category.name_ar }}</div>
+        {% endif %}
+        <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" title="{{ v.display_name }}"
+           class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 min-h-[2lh] break-words hover:text-secondary transition-colors">
+          {{ v.display_name }}
+        </a>
+        {% if v.product.review_count and v.product.review_count > 0 %}
+        <div class="flex items-center gap-space-3xs text-label-sm">{{ stars(v.product.avg_rating, v.product.review_count) }}</div>
+        {% endif %}
+        <div class="flex flex-wrap items-baseline gap-x-space-xs gap-y-space-3xs">
+          <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | sf_amount }}</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
+          {% if v.is_on_sale %}
+          <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through">{{ v.compare_at_price | sf_money }}</span>
+          {% endif %}
+        </div>
+        {{ low_stock_alert(v) }}
+      </div>
       <form method="post" action="{{ url_for('storefront.cart_add') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="variant_id" value="{{ v.id }}">
         <input type="hidden" name="qty" value="1">
-        <button type="submit" class="sf-add-btn" {% if v.stock_qty <= 0 %}disabled{% endif %}>
-          <i class="bi bi-basket-fill"></i>
-          {% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}
+        <button type="submit" {% if v.stock_qty <= 0 %}disabled{% endif %}
+                class="w-full bg-surface-container-high hover:bg-secondary text-secondary hover:text-on-secondary font-label-md text-label-md py-space-xs rounded-lg flex items-center justify-center gap-space-2xs transition-colors disabled:opacity-60">
+          <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+          <span>{% if v.stock_qty > 0 %}أضف للسلة{% else %}نفد المخزون{% endif %}</span>
         </button>
       </form>
     </div>
-  </a>
+  </div>
   {% endfor %}
 </div>
 {% else %}

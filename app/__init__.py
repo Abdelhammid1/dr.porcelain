@@ -174,6 +174,42 @@ def _register_template_filters(app: Flask) -> None:
         formatted = f"{d:,.{decimals}f}"
         return f"{formatted} {symbol}"
 
+    # --- فلاتر المتجر (واجهة العميل) ---
+    # `money` يعرض دائمًا 3 خانات عشرية (16,500.000) وهو مناسب للمحاسبة لا للعميل.
+    # هنا: رقم صحيح بلا كسور (16,500)، وإلا خانتان على الأقل (99.50) — بدون أي
+    # تقريب يخفي قيمة فعلية (10.125 تظل 10.125).
+    def _sf_amount(value) -> str:
+        try:
+            d = Decimal(str(value if value is not None else 0))
+        except Exception:
+            return "—"
+        if not d.is_finite():
+            return "—"
+        d = d.quantize(Decimal(10) ** -decimals)
+        if d == d.to_integral_value():
+            return f"{d:,.0f}"
+        places = max(2, -int(d.normalize().as_tuple().exponent))
+        return f"{d:,.{places}f}"
+
+    @app.template_filter("sf_amount")
+    def sf_amount_filter(value) -> str:
+        """المبلغ بدون رمز العملة — للقوالب التي تعرض الرمز في عنصر منفصل."""
+        return _sf_amount(value)
+
+    @app.template_filter("sf_money")
+    def sf_money_filter(value) -> str:
+        """المبلغ + رمز العملة مرة واحدة."""
+        return f"{_sf_amount(value)} {symbol}"
+
+    @app.template_filter("pct")
+    def pct_filter(value) -> str:
+        """نسبة مئوية بلا كسر زائد: 25.0 → 25، 28.9 → 28.9."""
+        try:
+            d = Decimal(str(value if value is not None else 0)).quantize(Decimal("0.1"))
+        except Exception:
+            return "0"
+        return f"{d:.0f}" if d == d.to_integral_value() else f"{d:.1f}"
+
     @app.template_filter("qty")
     def qty_filter(value) -> str:
         if value is None:

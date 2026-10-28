@@ -13,17 +13,6 @@
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap">
 
-{# MARSOUD-STOREFRONT-ICONS-FIX (2026-10-18) — Material Symbols font is
-   SELF-HOSTED at /static/fonts/material-symbols/ because the Google
-   CDN URL for the full variable-axis family was failing on some
-   networks and the ligature text (`local_shipping`, `shopping_bag`,
-   `account_tree`...) was leaking onto the page.  Preload hint so the
-   icon glyphs are ready on first paint; `font-display: block` so the
-   ligature text never flashes (would be worse than nothing for icons).
-#}
-<link rel="preload" as="font" type="font/woff2"
-      href="{{ url_for('static', filename='fonts/material-symbols/MaterialSymbolsOutlined.woff2') }}"
-      crossorigin>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -82,37 +71,6 @@
   };
 </script>
 <style>
-  /* MARSOUD-STOREFRONT-ICONS-FIX (2026-10-18) — self-hosted Material
-     Symbols so the storefront never renders ligature text instead of
-     glyphs when Google Fonts' CDN is unreachable (networks, CSPs,
-     regional blocks).  `font-display: block` keeps the glyph slot
-     invisible for ~3s rather than flashing "local_shipping" etc.
-     while the font loads — swap would be wrong for icon fonts. */
-  @font-face {
-    font-family: 'Material Symbols Outlined';
-    font-style: normal;
-    font-weight: 100 700;
-    font-display: block;
-    src: url("{{ url_for('static', filename='fonts/material-symbols/MaterialSymbolsOutlined.woff2') }}")
-         format('woff2-variations');
-  }
-  .material-symbols-outlined {
-    font-family: 'Material Symbols Outlined';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;  /* Keep icon glyphs LTR even inside RTL (ar) scope. */
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    vertical-align: middle;
-  }
   .sf-md3-scope { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; }
 </style>
 {% endblock %}
@@ -335,12 +293,12 @@
               <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
                  class="relative aspect-square w-full bg-surface-container-low overflow-hidden block">
                 <div class="w-full h-full flex items-center justify-center text-secondary text-[64px]">
-                  {{ product_thumb(v.product, icon='bi-star-fill') }}
+                  {{ product_thumb(v.product) }}
                 </div>
 
                 {% if v.is_on_sale %}
                 <span class="absolute top-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">
-                  -{{ v.discount_percent }}%
+                  -{{ v.discount_percent | pct }}%
                 </span>
                 {% endif %}
 
@@ -369,19 +327,19 @@
 
               <div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
                 <div class="space-y-space-3xs">
-                  <div class="flex items-baseline gap-space-xs">
-                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</span>
+                  <div class="flex flex-wrap items-baseline gap-x-space-xs gap-y-space-3xs">
+                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | sf_amount }}</span>
                     <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
                     {% if v.is_on_sale %}
                     <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">
-                      {{ v.compare_at_price | money }} ج.م
+                      {{ v.compare_at_price | sf_money }}
                     </span>
                     {% endif %}
                   </div>
                   {% if v.is_on_sale %}
                   <div class="flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm">
                     <span class="material-symbols-outlined text-[14px]">savings</span>
-                    <span>وفرت {{ v.savings_amount | money }} ج.م</span>
+                    <span>وفرت {{ v.savings_amount | sf_money }}</span>
                   </div>
                   {% endif %}
                 </div>
@@ -394,8 +352,8 @@
                     <span class="font-label-sm text-label-sm text-on-surface-variant">({{ v.product.review_count }} تقييم)</span>
                   </div>
                   {% endif %}
-                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
-                     class="block font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-secondary transition-colors">
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" title="{{ v.display_name }}"
+                     class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 min-h-[2lh] break-words hover:text-secondary transition-colors">
                     {{ v.display_name }}
                   </a>
                   <p class="font-body-sm text-body-sm text-on-surface-variant">
@@ -503,14 +461,14 @@
               <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
                  class="relative aspect-square w-full bg-surface-container-low overflow-hidden block">
                 <div class="w-full h-full flex items-center justify-center text-secondary text-[64px]">
-                  {{ product_thumb(v.product, icon='bi-box-fill') }}
+                  {{ product_thumb(v.product) }}
                 </div>
                 <span class="absolute top-space-xs right-space-xs bg-secondary text-on-secondary font-label-sm text-label-sm px-space-xs py-space-3xs rounded-md shadow-sm font-bold">
                   {% if loop.index == 1 %}الأكثر مبيعاً 2025{% else %}الأكثر طلباً{% endif %}
                 </span>
                 {% if v.is_on_sale %}
                 <span class="absolute bottom-space-xs right-space-xs bg-error text-on-error font-fiscal-numeric-md text-fiscal-numeric-md px-space-xs py-space-3xs rounded-md shadow-sm">
-                  -{{ v.discount_percent }}%
+                  -{{ v.discount_percent | pct }}%
                 </span>
                 {% endif %}
               </a>
@@ -526,19 +484,19 @@
 
               <div class="p-space-sm space-y-space-xs flex-1 flex flex-col justify-between">
                 <div class="space-y-space-3xs">
-                  <div class="flex items-baseline gap-space-xs">
-                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</span>
+                  <div class="flex flex-wrap items-baseline gap-x-space-xs gap-y-space-3xs">
+                    <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | sf_amount }}</span>
                     <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
                     {% if v.is_on_sale %}
                     <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface-variant line-through mr-space-2xs">
-                      {{ v.compare_at_price | money }} ج.م
+                      {{ v.compare_at_price | sf_money }}
                     </span>
                     {% endif %}
                   </div>
                   {% if v.is_on_sale %}
                   <div class="bg-surface-container-high text-secondary px-space-xs py-space-3xs rounded-md font-label-sm text-label-sm font-semibold flex items-center gap-space-3xs">
                     <span class="material-symbols-outlined text-[14px]">price_check</span>
-                    <span>وفرت {{ v.savings_amount | money }} ج.م كاش</span>
+                    <span>وفرت {{ v.savings_amount | sf_money }} كاش</span>
                   </div>
                   {% endif %}
                 </div>
@@ -559,8 +517,8 @@
                     {% endif %}
                     <span class="font-label-sm text-label-sm text-secondary bg-surface-container px-space-xs rounded-md">مُوثق</span>
                   </div>
-                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
-                     class="block font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-secondary transition-colors">
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" title="{{ v.display_name }}"
+                     class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 min-h-[2lh] break-words hover:text-secondary transition-colors">
                     {{ v.display_name }}
                   </a>
                   <p class="font-body-sm text-body-sm text-on-surface-variant">

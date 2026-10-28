@@ -160,7 +160,7 @@
               {% if product.primary_image %}
               <img src="{{ url_for('static', filename=product.primary_image.file_path) }}"
                    alt="{{ product.name_ar }}"
-                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500{% if not in_stock %} grayscale-[25%] group-hover:grayscale-0{% endif %}">
+                   class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500{% if not in_stock %} grayscale-[25%] group-hover:grayscale-0{% endif %}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
               {% else %}
               <div class="w-full h-full flex items-center justify-center text-secondary">
                 <span class="material-symbols-outlined text-[80px]" style="font-variation-settings:'FILL' 1;">inventory_2</span>
@@ -169,7 +169,7 @@
 
               {% if variant and variant.is_on_sale %}
               <span class="absolute top-2 right-2 bg-error text-on-error font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm">
-                خصم {{ variant.discount_percent }}%
+                خصم {{ variant.discount_percent | pct }}%
               </span>
               {% else %}
               <span class="absolute top-2 right-2 bg-primary-container text-on-primary font-label-sm text-[10px] px-space-xs py-space-3xs rounded shadow-sm">
@@ -256,11 +256,11 @@
                   {% if variant %}
                   <div class="flex items-baseline gap-space-xs">
                     <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
-                      {{ variant.price | money }}
+                      {{ variant.price | sf_money }}
                     </span>
                     {% if variant.is_on_sale and variant.compare_at_price %}
                     <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-outline-variant line-through mr-space-xs">
-                      {{ variant.compare_at_price | money }}
+                      {{ variant.compare_at_price | sf_money }}
                     </span>
                     {% endif %}
                   </div>

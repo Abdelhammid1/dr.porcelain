@@ -68,7 +68,7 @@ def inject_storefront_context():
             "sf_wishlist_count": wishlist_service.count(cust.id) if cust else 0,
             "sf_settings": {
                 "announcement": str(get_setting("storefront.announcement", "")),
-                "store_name": str(get_setting("store.name", "المتجر")),
+                "store_name": str(get_setting("store.name", "") or "دكتور بورسلين"),
                 "store_phone": str(get_setting("store.phone", "")),
                 "free_shipping_threshold": str(get_setting("storefront.free_shipping_threshold", "500")),
             },

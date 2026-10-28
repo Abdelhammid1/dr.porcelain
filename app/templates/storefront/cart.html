@@ -133,15 +133,15 @@
               {% if st >= threshold %}
                 <strong class="text-secondary font-semibold">مبروك! حصلت على الشحن المجاني الملكي.</strong>
               {% else %}
-                أضف <strong class="text-secondary font-semibold font-fiscal-numeric-md">{{ remaining | money }}</strong> فقط واستمتع بشحن مجاني في صناديق مبطنة لباب بيتك!
+                أضف <strong class="text-secondary font-semibold font-fiscal-numeric-md">{{ remaining | sf_money }}</strong> فقط واستمتع بشحن مجاني في صناديق مبطنة لباب بيتك!
               {% endif %}
             </p>
           </div>
         </div>
         <div class="flex items-center gap-space-md self-end md:self-auto font-label-md">
           <div class="text-left font-fiscal-numeric-md">
-            <span class="text-secondary font-bold">{{ cart.subtotal | money }}</span>
-            <span class="text-on-surface-variant"> / {{ threshold | money }}</span>
+            <span class="text-secondary font-bold">{{ cart.subtotal | sf_money }}</span>
+            <span class="text-on-surface-variant"> / {{ threshold | sf_money }}</span>
           </div>
         </div>
       </div>
@@ -193,9 +193,9 @@
             <div class="flex items-center gap-space-md flex-1 min-w-0">
               <div class="w-24 h-24 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden flex items-center justify-center">
                 {% if line.variant.product.primary_image %}
-                <img class="w-full h-full object-cover"
+                <img class="w-full h-full object-contain"
                      src="{{ url_for('static', filename=line.variant.product.primary_image.file_path) }}"
-                     alt="{{ line.variant.display_name }}">
+                     alt="{{ line.variant.display_name }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
                 {% else %}
                 <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;">image</span>
                 {% endif %}
@@ -251,20 +251,20 @@
             <div class="flex items-center md:flex-col justify-between md:items-end w-full md:w-auto gap-space-sm">
               <div class="text-left">
                 <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">
-                  {{ line.line_total | money }}
+                  {{ line.line_total | sf_money }}
                 </div>
                 {% if line.variant.is_on_sale %}
                 <div class="flex items-center gap-space-2xs text-left justify-end">
                   <span class="font-label-sm line-through text-on-surface-variant">
-                    {{ (line.variant.compare_at_price * line.qty) | money }}
+                    {{ (line.variant.compare_at_price * line.qty) | sf_money }}
                   </span>
                   <span class="bg-error-container text-on-error-container font-label-sm px-space-xs py-space-3xs rounded font-semibold">
-                    وفّر {{ (line.variant.savings_amount * line.qty) | money }}
+                    وفّر {{ (line.variant.savings_amount * line.qty) | sf_money }}
                   </span>
                 </div>
                 {% else %}
                 <span class="font-label-sm text-on-surface-variant">
-                  {{ line.unit_price | money }} × {{ line.qty | qty }}
+                  {{ line.unit_price | sf_money }} × {{ line.qty | qty }}
                 </span>
                 {% endif %}
               </div>
@@ -377,7 +377,7 @@
           <div class="flex flex-col gap-space-sm pt-space-xs">
             <div class="flex items-center justify-between font-body-md text-on-surface-variant">
               <span>الإجمالي الفرعي للمنتجات:</span>
-              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.subtotal | money }}</span>
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.subtotal | sf_money }}</span>
             </div>
 
             {% if cart.coupon_code %}
@@ -389,7 +389,7 @@
                 </span>
               </span>
               <span class="font-fiscal-numeric-md font-bold text-secondary">
-                - {{ cart.discount_amount | money }}
+                - {{ cart.discount_amount | sf_money }}
               </span>
             </div>
             {% endif %}
@@ -400,7 +400,7 @@
                 <span>ضريبة القيمة المضافة ({{ cart.tax_rate }}%):</span>
                 <span class="material-symbols-outlined text-[15px] text-on-surface-variant cursor-help" title="القيمة الضريبية مشمولة بالفعل طبقاً للقانون">info</span>
               </div>
-              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.tax_amount | money }}</span>
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.tax_amount | sf_money }}</span>
             </div>
             {% endif %}
 
@@ -412,7 +412,7 @@
               {% if cart.free_shipping_reached %}
               <span class="font-label-md text-secondary font-bold">شحن مجاني</span>
               {% else %}
-              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.shipping_fee | money }}</span>
+              <span class="font-fiscal-numeric-md text-on-surface">{{ cart.shipping_fee | sf_money }}</span>
               {% endif %}
             </div>
           </div>
@@ -426,10 +426,10 @@
               </div>
               <div class="text-left">
                 <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold block">
-                  {{ cart.total | money }}
+                  {{ cart.total | sf_money }}
                 </span>
                 {% if cart.discount_amount and cart.discount_amount > 0 %}
-                <span class="font-label-sm text-on-surface-variant font-medium">وفرت {{ cart.discount_amount | money }} إجمالاً</span>
+                <span class="font-label-sm text-on-surface-variant font-medium">وفرت {{ cart.discount_amount | sf_money }} إجمالاً</span>
                 {% endif %}
               </div>
             </div>
@@ -514,14 +514,14 @@
           <div class="flex flex-col gap-space-sm">
             <div class="w-full h-44 rounded-lg bg-surface-container-low overflow-hidden relative">
               {% if v.product.primary_image %}
-              <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
+              <img class="w-full h-full object-contain" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
               {% else %}
               <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
                 <span class="material-symbols-outlined" style="font-size:48px;">image</span>
               </div>
               {% endif %}
               {% if v.is_on_sale %}
-              <span class="absolute top-2 right-2 bg-error text-on-error font-label-sm px-space-xs py-space-3xs rounded shadow">-{{ v.discount_percent }}%</span>
+              <span class="absolute top-2 right-2 bg-error text-on-error font-label-sm px-space-xs py-space-3xs rounded shadow">-{{ v.discount_percent | pct }}%</span>
               {% endif %}
             </div>
             <div>
@@ -530,11 +530,11 @@
                 <span>{{ v.product.category.name_ar }}</span>
               </div>
               {% endif %}
-              <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold line-clamp-1">{{ v.display_name }}</h3>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold line-clamp-2 break-words" title="{{ v.display_name }}">{{ v.display_name }}</h3>
             </div>
           </div>
           <div class="flex items-center justify-between pt-space-xs">
-            <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | money }}</div>
+            <div class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-on-surface font-bold">{{ v.price | sf_money }}</div>
             <form method="post" action="{{ url_for('storefront.cart_add') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="variant_id" value="{{ v.id }}">

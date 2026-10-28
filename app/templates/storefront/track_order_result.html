@@ -410,7 +410,7 @@
               <p class="font-body-sm text-body-sm text-on-surface-variant truncate">قطعة فاخرة معتمدة من دكتور بورسلين</p>
               <div class="flex items-center justify-between mt-space-2xs gap-space-xs flex-wrap">
                 <span class="font-label-sm text-label-sm text-secondary font-semibold">الكمية: {{ l.qty | qty }}</span>
-                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ l.line_total | money }}</span>
+                <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">{{ l.line_total | sf_money }}</span>
               </div>
             </div>
           </div>
@@ -421,12 +421,12 @@
         <div class="mt-space-lg bg-surface-container-low p-space-md rounded-xl space-y-space-xs">
           <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
             <span>قيمة المنتجات الأصلية:</span>
-            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.subtotal | money }}</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.subtotal | sf_money }}</span>
           </div>
           <div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
             <span>مصاريف النقل الهيدروليكي المصفح:</span>
             {% if order.shipping_fee and order.shipping_fee > 0 %}
-            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.shipping_fee | money }}</span>
+            <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">{{ order.shipping_fee | sf_money }}</span>
             {% else %}
             <span class="font-label-md text-label-md text-secondary font-bold">مجاناً (عرض ملكي VIP)</span>
             {% endif %}
@@ -444,7 +444,7 @@
               <span class="font-headline-sm text-headline-sm text-on-surface font-bold block">المبلغ المستحق عند المعاينة:</span>
               <span class="font-label-sm text-label-sm text-on-surface-variant">الدفع بعد فتح جميع الكراتين والتأكد 100%</span>
             </div>
-            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ order.total | money }}</span>
+            <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ order.total | sf_money }}</span>
           </div>
         </div>
       </div>

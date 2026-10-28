@@ -1,10 +1,11 @@
-/* Self-hosted Material Symbols Outlined (variable: FILL, GRAD, opsz, wght).
-   Source: github.com/google/material-design-icons/variablefont
+/* Self-hosted Material Symbols Outlined.
+   Built by scripts/build_icon_font.py from github.com/google/material-design-icons/variablefont
+   with wght/GRAD/opsz pinned to 400/0/24 (~450KB instead of ~4MB); FILL stays variable.
    font-display: block — 'swap' would flash ligature names like "local_shipping". */
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
-  font-weight: 100 700;
+  font-weight: 100 700; /* one pinned weight, but declared as a range so `font-bold` never fakes bold */
   font-display: block;
   src: url('../fonts/material-symbols/MaterialSymbolsOutlined.woff2') format('woff2-variations'),
        url('../fonts/material-symbols/MaterialSymbolsOutlined.woff2') format('woff2');
@@ -27,4 +28,16 @@
   -webkit-font-smoothing: antialiased;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   vertical-align: middle;
+  /* A rendered glyph is exactly 1em wide. Reserving that box means the raw
+     ligature word ("shopping_bag") can never widen the layout, even if the
+     font is late or blocked. */
+  width: 1em;
+  overflow: hidden;
+}
+
+/* Past the ~3s block period the browser would fall back to painting the
+   ligature words. Keep the glyph slot blank until the icon font has actually
+   loaded; `ms-ready` is set on <html> by the loader next to this stylesheet. */
+html:not(.ms-ready) .material-symbols-outlined {
+  color: transparent !important;
 }

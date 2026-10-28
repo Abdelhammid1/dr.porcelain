@@ -267,7 +267,7 @@
             </div>
             <div class="bg-surface-container-low rounded-lg p-space-md">
               <span class="font-label-sm text-label-sm text-on-surface-variant block">إجمالي الشحنة</span>
-              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ order.total | money }}</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-secondary font-bold">{{ order.total | sf_money }}</span>
             </div>
           </div>
           <div class="mt-space-md flex flex-wrap gap-space-xs">
@@ -421,7 +421,7 @@
                 {% if line.variant and line.variant.product and line.variant.product.primary_image %}
                   <img src="{{ url_for('static', filename=line.variant.product.primary_image.file_path) }}"
                        alt="{{ line.product_name }}"
-                       class="w-full h-full object-cover">
+                       class="w-full h-full object-contain" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
                 {% else %}
                   <span class="material-symbols-outlined text-[28px] text-secondary">inventory_2</span>
                 {% endif %}
@@ -436,7 +436,7 @@
                 <div class="flex items-center justify-between mt-space-2xs">
                   <span class="font-label-sm text-label-sm text-on-surface-variant">الكمية: {{ line.qty | qty }}</span>
                   <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface font-bold">
-                    {{ line.line_total | money }}
+                    {{ line.line_total | sf_money }}
                   </span>
                 </div>
               </div>
@@ -448,7 +448,7 @@
           <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-xs mb-space-lg">
             <div class="flex justify-between items-center text-on-surface font-body-md text-body-md">
               <span class="text-on-surface-variant">المجموع الفرعي للمنتجات:</span>
-              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">{{ order.subtotal | money }}</span>
+              <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">{{ order.subtotal | sf_money }}</span>
             </div>
             {% if order.discount_amount and order.discount_amount > 0 %}
             <div class="flex justify-between items-center text-secondary font-body-md text-body-md">
@@ -457,7 +457,7 @@
                 خصم قسيمة النخبة:
               </span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-bold dir-ltr">
-                - {{ order.discount_amount | money }}
+                - {{ order.discount_amount | sf_money }}
               </span>
             </div>
             {% endif %}
@@ -465,7 +465,7 @@
               <span class="text-on-surface-variant">الشحن المصفح والتأمين ضد الكسر:</span>
               {% if order.shipping_fee and order.shipping_fee > 0 %}
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">
-                {{ order.shipping_fee | money }}
+                {{ order.shipping_fee | sf_money }}
               </span>
               {% else %}
               <span class="text-secondary font-semibold font-label-md text-label-md">مجاني بالكامل</span>
@@ -475,7 +475,7 @@
             <div class="flex justify-between items-center text-on-surface font-body-md text-body-md">
               <span class="text-on-surface-variant">ضريبة القيمة المضافة (14%):</span>
               <span class="font-fiscal-numeric-md text-fiscal-numeric-md font-semibold">
-                {{ order.tax_amount | money }}
+                {{ order.tax_amount | sf_money }}
               </span>
             </div>
             {% endif %}
@@ -485,7 +485,7 @@
                 <span class="font-label-sm text-label-sm text-on-surface-variant">يُسدد عند الفحص والمعاينة</span>
               </div>
               <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg font-bold text-secondary">
-                {{ order.total | money }}
+                {{ order.total | sf_money }}
               </span>
             </div>
           </div>

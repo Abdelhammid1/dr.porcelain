@@ -121,8 +121,8 @@
               <div style="font-size:0.75rem; color:var(--dp-ink-3);" dir="ltr">{{ line.sku }}</div>
             </td>
             <td>{{ line.qty | qty }}</td>
-            <td>{{ line.unit_price | money }}</td>
-            <td class="text-end fw-bold">{{ line.line_total | money }}</td>
+            <td>{{ line.unit_price | sf_money }}</td>
+            <td class="text-end fw-bold">{{ line.line_total | sf_money }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -136,16 +136,16 @@
       <h6 style="font-weight:800; margin:0 0 12px;">الملخّص</h6>
       <dl class="row mb-0">
         <dt class="col-6 text-muted small">الفرعي</dt>
-        <dd class="col-6 text-end">{{ order.subtotal | money }}</dd>
+        <dd class="col-6 text-end">{{ order.subtotal | sf_money }}</dd>
         {% if order.tax_amount > 0 %}
         <dt class="col-6 text-muted small">الضريبة</dt>
-        <dd class="col-6 text-end">{{ order.tax_amount | money }}</dd>
+        <dd class="col-6 text-end">{{ order.tax_amount | sf_money }}</dd>
         {% endif %}
         <dt class="col-6 text-muted small">الشحن</dt>
-        <dd class="col-6 text-end">{{ order.shipping_fee | money }}</dd>
+        <dd class="col-6 text-end">{{ order.shipping_fee | sf_money }}</dd>
         <hr>
         <dt class="col-6 fw-bold">الإجمالي</dt>
-        <dd class="col-6 text-end fw-bold" style="color:var(--dp-brand);">{{ order.total | money }}</dd>
+        <dd class="col-6 text-end fw-bold" style="color:var(--dp-brand);">{{ order.total | sf_money }}</dd>
       </dl>
     </div>
 

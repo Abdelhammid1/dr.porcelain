@@ -5,6 +5,18 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/material-symbols/MaterialSymbolsOutlined.woff2') }}" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+<script>
+  /* icons.css hides icon glyphs until the icon font is really loaded, so the
+     raw ligature words never show on a slow or failed load. */
+  (function (d) {
+    var root = d.documentElement;
+    function ready() { root.classList.add('ms-ready'); }
+    if (!d.fonts || !d.fonts.load) { ready(); return; }
+    d.fonts.load('24px "Material Symbols Outlined"', 'home').then(function (faces) {
+      if (faces.length) ready();
+    }, function () {});
+  })(document);
+</script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {

@@ -111,9 +111,9 @@
         <div class="aspect-[4/3] w-full overflow-hidden relative cursor-zoom-in">
           {% if product.primary_image %}
           <img id="main-product-image"
-               class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+               class="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
                src="{{ url_for('static', filename=product.primary_image.file_path) }}"
-               alt="{{ product.name_ar }}">
+               alt="{{ product.name_ar }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'">
           {% else %}
           <div class="w-full h-full flex items-center justify-center bg-surface-container text-on-surface-variant">
             <span class="material-symbols-outlined" style="font-size:96px;">image</span>
@@ -125,7 +125,7 @@
             {% if dv and dv.is_on_sale %}
             <span class="bg-error text-on-error px-space-sm py-space-3xs rounded-full font-label-md shadow-sm font-bold flex items-center gap-space-3xs">
               <span class="material-symbols-outlined text-xs">local_fire_department</span>
-              -{{ dv.discount_percent }}% عرض حصري
+              -{{ dv.discount_percent | pct }}% عرض حصري
             </span>
             {% else %}
             <span class="bg-error text-on-error px-space-sm py-space-3xs rounded-full font-label-md shadow-sm font-bold flex items-center gap-space-3xs">
@@ -157,9 +157,9 @@
         <button type="button"
                 class="thumb-btn rounded-lg overflow-hidden bg-surface-container-lowest p-space-3xs shadow-sm transition-all {% if img.is_primary %}bg-surface-container-high{% else %}hover:bg-surface-container-high{% endif %}"
                 data-full="{{ url_for('static', filename=img.file_path) }}">
-          <img class="w-full aspect-square object-cover rounded"
+          <img class="w-full aspect-square object-contain rounded"
                src="{{ url_for('static', filename=img.file_path) }}"
-               alt="{{ product.name_ar }}">
+               alt="{{ product.name_ar }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
         </button>
         {% endfor %}
       </div>
@@ -290,18 +290,18 @@
           {% if dv and dv.is_on_sale %}
           <div class="flex items-baseline gap-space-md flex-wrap">
             <div class="flex items-baseline gap-space-2xs">
-              <span class="font-display-lg text-display-lg font-bold text-on-surface leading-none">{{ dv.price | money }}</span>
+              <span class="font-display-lg text-display-lg font-bold text-on-surface leading-none">{{ dv.price | sf_money }}</span>
             </div>
-            <span class="font-headline-sm line-through text-outline">{{ dv.compare_at_price | money }}</span>
+            <span class="font-headline-sm line-through text-outline">{{ dv.compare_at_price | sf_money }}</span>
             <span class="bg-error-container text-on-error-container px-space-xs py-space-3xs rounded-md font-label-md font-bold">
-              وفّرت {{ dv.savings_amount | money }} (خصم {{ dv.discount_percent }}%)
+              وفّرت {{ dv.savings_amount | sf_money }} (خصم {{ dv.discount_percent | pct }}%)
             </span>
           </div>
           {% else %}
           <div class="flex items-baseline gap-space-md flex-wrap">
             <div class="flex items-baseline gap-space-2xs">
               <span class="font-display-lg text-display-lg font-bold text-on-surface leading-none">
-                {{ (dv.price if dv else product.default_price) | money }}
+                {{ (dv.price if dv else product.default_price) | sf_money }}
               </span>
             </div>
           </div>
@@ -718,14 +718,14 @@
           <input checked class="accent-secondary w-5 h-5 rounded cursor-not-allowed shrink-0" disabled type="checkbox">
           <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
             {% if product.primary_image %}
-            <img class="w-full h-full object-cover" src="{{ url_for('static', filename=product.primary_image.file_path) }}" alt="{{ product.name_ar }}">
+            <img class="w-full h-full object-contain" src="{{ url_for('static', filename=product.primary_image.file_path) }}" alt="{{ product.name_ar }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
             {% else %}
             <span class="material-symbols-outlined text-on-surface-variant">image</span>
             {% endif %}
           </div>
           <div class="flex flex-col min-w-0">
             <span class="font-label-md font-bold truncate">{{ product.name_ar }}</span>
-            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ (dv.price if dv else product.default_price) | money }}</span>
+            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ (dv.price if dv else product.default_price) | sf_money }}</span>
             <span class="font-label-sm text-secondary">المنتج الرئيسي</span>
           </div>
         </div>
@@ -736,16 +736,16 @@
           <input checked class="accent-secondary w-5 h-5 rounded cursor-pointer shrink-0" type="checkbox">
           <div class="w-16 h-16 rounded object-cover shrink-0 bg-surface-container-lowest overflow-hidden flex items-center justify-center">
             {% if v.product.primary_image %}
-            <img class="w-full h-full object-cover" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}">
+            <img class="w-full h-full object-contain" src="{{ url_for('static', filename=v.product.primary_image.file_path) }}" alt="{{ v.display_name }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
             {% else %}
             <span class="material-symbols-outlined text-on-surface-variant">image</span>
             {% endif %}
           </div>
           <div class="flex flex-col min-w-0">
             <span class="font-label-md font-bold truncate">{{ v.display_name }}</span>
-            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ v.price | money }}</span>
+            <span class="font-fiscal-numeric-md text-on-surface font-bold">{{ v.price | sf_money }}</span>
             {% if v.is_on_sale %}
-            <span class="font-label-sm text-outline line-through">{{ v.compare_at_price | money }}</span>
+            <span class="font-label-sm text-outline line-through">{{ v.compare_at_price | sf_money }}</span>
             {% endif %}
           </div>
         </div>
@@ -923,9 +923,9 @@
          class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
         <div class="aspect-square relative overflow-hidden bg-surface-container">
           {% if v.product.primary_image %}
-          <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                src="{{ url_for('static', filename=v.product.primary_image.file_path) }}"
-               alt="{{ v.display_name }}">
+               alt="{{ v.display_name }}" onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/product-placeholder.svg') }}'" loading="lazy" decoding="async">
           {% else %}
           <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
             <span class="material-symbols-outlined" style="font-size:48px;">image</span>
@@ -933,7 +933,7 @@
           {% endif %}
           {% if v.is_on_sale %}
           <span class="absolute top-space-xs right-space-xs bg-error text-on-error font-label-sm px-space-2xs py-space-3xs rounded">
-            -{{ v.discount_percent }}%
+            -{{ v.discount_percent | pct }}%
           </span>
           {% endif %}
         </div>
@@ -942,14 +942,14 @@
             {% if v.product.category %}
             <span class="font-label-sm text-on-surface-variant">{{ v.product.category.name_ar }}</span>
             {% endif %}
-            <h4 class="font-headline-sm font-bold text-on-surface truncate">{{ v.display_name }}</h4>
+            <h4 class="font-headline-sm font-bold text-on-surface line-clamp-2 break-words" title="{{ v.display_name }}">{{ v.display_name }}</h4>
           </div>
           <div class="flex items-center justify-between pt-space-xs">
             <div class="flex flex-col">
               {% if v.is_on_sale %}
-              <span class="font-label-sm line-through text-outline">{{ v.compare_at_price | money }}</span>
+              <span class="font-label-sm line-through text-outline">{{ v.compare_at_price | sf_money }}</span>
               {% endif %}
-              <span class="font-fiscal-numeric-md font-bold text-on-surface">{{ v.price | money }}</span>
+              <span class="font-fiscal-numeric-md font-bold text-on-surface">{{ v.price | sf_money }}</span>
             </div>
             <span class="p-space-2xs rounded-lg bg-surface-container-low text-secondary">
               <span class="material-symbols-outlined text-sm">arrow_back</span>

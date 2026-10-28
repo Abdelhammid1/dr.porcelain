@@ -4,7 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>{% block title %}المتجر{% endblock %} — {{ sf_settings.store_name }}</title>
+  {# هوية المتجر في تبويب المتصفح: `store` يأتي من context processor عام
+     (اسم المتجر الافتراضي "دكتور بورسلين")، واللوجو المرفوع من الإعدادات
+     هو الـ favicon، وإلا علامة "د.ب" نفسها المعروضة في الهيدر. #}
+  <title>{% block title %}{% endblock %}{% if self.title() | trim %} — {% endif %}{{ store.name }}</title>
+  {% set _favicon = store.logo_url or url_for('static', filename='img/favicon.svg') %}
+  <link rel="icon" href="{{ _favicon }}"{% if not store.logo_url %} type="image/svg+xml"{% endif %}>
+  <link rel="apple-touch-icon" href="{{ _favicon }}">
+  <meta name="theme-color" content="#006398">
+  <meta name="application-name" content="{{ store.name }}">
+  <meta property="og:site_name" content="{{ store.name }}">
+  <meta property="og:title" content="{{ self.title() | trim or store.name }}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ar_EG">
+  <meta property="og:url" content="{{ request.url }}">
+  {% if store.logo_url %}
+  <meta property="og:image" content="{{ url_for('static', filename=store.logo_path, _external=True) }}">
+  {% endif %}
 
   {# Tailwind + MD3 tokens + fonts — same config the mockups use #}
   {% include "storefront/_dp_head.html" %}
@@ -115,7 +131,7 @@
           <span class="font-label-sm text-label-sm text-on-surface-variant">السلة ({{ sf_cart_count or 0 }})</span>
           <span class="font-fiscal-numeric-md text-fiscal-numeric-md text-on-surface">
             {%- if sf_cart_subtotal and sf_cart_subtotal > 0 -%}
-              {{ sf_cart_subtotal | money }}
+              {{ sf_cart_subtotal | sf_money }}
             {%- else -%}
               اطّلع على المشتريات
             {%- endif -%}

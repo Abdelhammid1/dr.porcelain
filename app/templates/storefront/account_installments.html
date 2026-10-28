@@ -35,9 +35,9 @@
             <a href="{{ url_for('storefront.account_installment_view', plan_id=p.id) }}"
                class="text-decoration-none">{{ p.doc_number }}</a>
           </td>
-          <td>{{ p.total_amount | money }}</td>
-          <td>{{ p.total_paid | money }}</td>
-          <td class="fw-bold">{{ p.total_remaining | money }}</td>
+          <td>{{ p.total_amount | sf_money }}</td>
+          <td>{{ p.total_paid | sf_money }}</td>
+          <td class="fw-bold">{{ p.total_remaining | sf_money }}</td>
           <td>
             <span class="dp-chip tone-brand">{{ p.paid_installments_count }} / {{ p.installments_count }}</span>
             {% if p.overdue_lines %}

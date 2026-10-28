@@ -622,7 +622,7 @@
                   {% endif %}
                   {% if v.is_on_sale %}
                   <span class="bg-error text-on-error px-space-xs py-space-3xs rounded font-label-sm text-[11px] font-bold shadow">
-                    -{{ v.discount_percent }}%
+                    -{{ v.discount_percent | pct }}%
                   </span>
                   {% endif %}
                   {% if v.stock_qty and v.stock_qty > 0 and v.reorder_level and v.stock_qty <= v.reorder_level %}
@@ -691,8 +691,8 @@
                     {% endif %}
                   </div>
 
-                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}"
-                     class="block font-headline-sm text-headline-sm text-on-surface font-bold group-hover:text-secondary transition-colors">
+                  <a href="{{ url_for('storefront.product', product_id=v.product_id) }}" title="{{ v.display_name }}"
+                     class="font-headline-sm text-headline-sm text-on-surface font-bold line-clamp-2 min-h-[2lh] break-words group-hover:text-secondary transition-colors">
                     {{ v.display_name }}
                   </a>
 
@@ -711,16 +711,16 @@
 
                 {# Price & CTA #}
                 <div class="pt-space-sm border-t border-surface-container flex items-end justify-between gap-space-xs">
-                  <div>
+                  <div class="min-w-0">
                     <div class="flex items-center gap-space-2xs">
-                      <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ v.price | money }}</span>
+                      <span class="font-fiscal-numeric-lg text-fiscal-numeric-lg text-secondary font-bold">{{ v.price | sf_amount }}</span>
                       <span class="font-label-sm text-label-sm text-on-surface-variant">ج.م</span>
                     </div>
                     {% if v.is_on_sale %}
-                    <div class="flex items-center gap-space-xs">
-                      <span class="font-body-sm text-body-sm text-outline line-through">{{ v.compare_at_price | money }} ج.م</span>
+                    <div class="flex flex-wrap items-center gap-x-space-xs gap-y-space-3xs">
+                      <span class="font-body-sm text-body-sm text-outline line-through">{{ v.compare_at_price | sf_money }}</span>
                       <span class="bg-error-container text-on-error-container px-space-3xs py-0 rounded font-label-sm text-[11px] font-bold">
-                        وفر {{ v.savings_amount | money }}
+                        وفر {{ v.savings_amount | sf_money }}
                       </span>
                     </div>
                     {% endif %}

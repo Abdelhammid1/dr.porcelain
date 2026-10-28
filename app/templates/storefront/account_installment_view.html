@@ -42,7 +42,7 @@
       <div class="stat-tile-icon"><i class="bi bi-cash"></i></div>
       <div>
         <div class="stat-tile-label">الإجمالي</div>
-        <div class="stat-tile-value">{{ plan.total_amount | money }}</div>
+        <div class="stat-tile-value">{{ plan.total_amount | sf_money }}</div>
       </div>
     </div>
   </div>
@@ -51,7 +51,7 @@
       <div class="stat-tile-icon"><i class="bi bi-arrow-down-circle"></i></div>
       <div>
         <div class="stat-tile-label">المقدم</div>
-        <div class="stat-tile-value">{{ plan.down_payment | money }}</div>
+        <div class="stat-tile-value">{{ plan.down_payment | sf_money }}</div>
       </div>
     </div>
   </div>
@@ -60,7 +60,7 @@
       <div class="stat-tile-icon"><i class="bi bi-check2-all"></i></div>
       <div>
         <div class="stat-tile-label">مسدَّد</div>
-        <div class="stat-tile-value">{{ plan.total_paid | money }}</div>
+        <div class="stat-tile-value">{{ plan.total_paid | sf_money }}</div>
       </div>
     </div>
   </div>
@@ -69,7 +69,7 @@
       <div class="stat-tile-icon"><i class="bi bi-exclamation-circle"></i></div>
       <div>
         <div class="stat-tile-label">المتبقي</div>
-        <div class="stat-tile-value">{{ plan.total_remaining | money }}</div>
+        <div class="stat-tile-value">{{ plan.total_remaining | sf_money }}</div>
       </div>
     </div>
   </div>
@@ -97,9 +97,9 @@
         <tr>
           <td class="fw-bold">{{ line.number }}</td>
           <td>{{ line.due_date.strftime('%Y/%m/%d') }}</td>
-          <td>{{ line.amount | money }}</td>
-          <td>{{ line.paid_amount | money }}</td>
-          <td class="fw-bold">{{ line.remaining | money }}</td>
+          <td>{{ line.amount | sf_money }}</td>
+          <td>{{ line.paid_amount | sf_money }}</td>
+          <td class="fw-bold">{{ line.remaining | sf_money }}</td>
           <td><span class="badge badge-{{ lst[1] }}">{{ lst[0] }}</span></td>
         </tr>
         {% endfor %}
