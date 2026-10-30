@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -87,7 +87,9 @@ def _register_context_processors(app: Flask) -> None:
             # BRAND: Manasety credit footer — one source of truth for every
             # template that includes `_footer.html`. Env-tunable so the credit
             # can be hidden per deployment without a redeploy.
-            "now": datetime.utcnow,
+            # Lambda avoids the deprecated `datetime.utcnow`; templates still
+            # call it with `now()` to get the current UTC datetime.
+            "now": lambda: datetime.now(timezone.utc),
             "app_name": name,
             "brand": {
                 "text": os.getenv("BRAND_TEXT", "Developed by"),

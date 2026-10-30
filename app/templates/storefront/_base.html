@@ -271,9 +271,19 @@
       </div>
     </div>
 
-    {# Copyright + payment badges strip #}
+    {# Copyright + payment badges strip. BRAND: Manasety credit renders next
+       to the copyright when enabled; sits beneath on mobile, inline on md+. #}
     <div class="pt-space-xl border-t border-outline-variant/40 flex flex-col md:flex-row items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant">
-      <p>© 2026 {{ store.name }} — جميع الحقوق محفوظة.</p>
+      <p>
+        © {{ (now() if now is callable else now).year if now is defined else 2026 }} {{ store.name }} — جميع الحقوق محفوظة.
+        {% if brand and brand.show %}
+        <span class="mx-space-xs text-outline-variant">·</span>
+        <span>{{ brand.text }}
+          <a href="{{ brand.url }}" target="_blank" rel="noopener noreferrer"
+             class="font-bold text-secondary hover:underline">{{ brand.name }}</a>
+        </span>
+        {% endif %}
+      </p>
       <div class="flex flex-wrap items-center gap-space-sm font-label-sm text-label-sm">
         <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">دفع عند الاستلام</span>
         <span class="bg-surface-container-lowest px-space-sm py-space-3xs rounded-md text-on-surface">Visa / MasterCard</span>
