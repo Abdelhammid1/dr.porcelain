@@ -1,6 +1,8 @@
 """App factory — يُنشئ تطبيق Flask وينفّذ كل التهيئة."""
 from __future__ import annotations
 
+import os
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -82,6 +84,17 @@ def _register_context_processors(app: Flask) -> None:
                 tax_number=tax_number, commercial_reg=commercial_reg,
                 logo_path=logo_path, logo_url=logo_url,
             ),
+            # BRAND: Manasety credit footer — one source of truth for every
+            # template that includes `_footer.html`. Env-tunable so the credit
+            # can be hidden per deployment without a redeploy.
+            "now": datetime.utcnow,
+            "app_name": name,
+            "brand": {
+                "text": os.getenv("BRAND_TEXT", "Developed by"),
+                "name": os.getenv("BRAND_NAME", "Manasety"),
+                "url":  os.getenv("BRAND_URL",  "https://manasety.ai"),
+                "show": os.getenv("BRAND_SHOW", "1") != "0",
+            },
         }
 
 

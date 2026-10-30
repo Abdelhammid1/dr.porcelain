@@ -1,0 +1,11 @@
+{# BRAND: shared footer partial. One place so base.html (and anything else
+   that includes it) never drifts. The whole thing disappears when
+   BRAND_SHOW=0 in the env. #}
+{% if brand and brand.show %}
+<footer class="w-full text-center py-space-sm px-space-md border-t border-outline-variant/40 bg-surface-container-lowest font-body-sm text-body-sm text-on-surface-variant">
+  <span>© {{ now().year }} {{ app_name }} — {{ brand.text }}</span>
+  {# rel=noopener stops the opened tab from navigating this window via window.opener #}
+  <a href="{{ brand.url }}" target="_blank" rel="noopener noreferrer"
+     class="font-bold text-secondary hover:underline">{{ brand.name }}</a>
+</footer>
+{% endif %}
